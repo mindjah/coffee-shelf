@@ -3,6 +3,7 @@ import type { Coffee } from '../types'
 import { useT } from '../i18n'
 import { CoffeeThumb } from './CoffeeThumb'
 import { GENERIC_WORDS } from '../roaster'
+import { Cobweb, Spider } from './Cobweb'
 
 
 let canvas: CanvasRenderingContext2D | null | undefined
@@ -66,17 +67,24 @@ function useBagWidth() {
  * Compact view: bags standing three to a wooden shelf, roaster name above each (as much as fits). `selected` marks
  * bags with a check (Compare's "Add from shelf" uses it for coffees already in the comparison).
  */
-export function Bookcase({ coffees, onPick, selected }: { coffees: Coffee[]; onPick: (c: Coffee) => void; selected?: (c: Coffee) => boolean }) {
+/** `dusty` is the archive look: faded bags, cobwebs over shelves and bags, a few spiders. */
+export function Bookcase({ coffees, onPick, selected, dusty = false }: { coffees: Coffee[]; onPick: (c: Coffee) => void; selected?: (c: Coffee) => boolean; dusty?: boolean }) {
   const t = useT()
   const { ref, width } = useBagWidth()
   const shelves: Coffee[][] = []
   for (let i = 0; i < coffees.length; i += 3) shelves.push(coffees.slice(i, i + 3))
   return (
-    <div className="bookcase" ref={ref}>
+    <div className={`bookcase${dusty ? ' dusty' : ''}`} ref={ref}>
+      {dusty && <Cobweb corner="tl" className="case-web" />}
+      {dusty && <Cobweb corner="tr" className="case-web" />}
       {shelves.map((row, i) => (
         <div className="bookcase-shelf" key={i}>
+          {/* Placement varies by shelf but stays the same between visits. */}
+          {dusty && <Cobweb corner={i % 2 ? 'tr' : 'tl'} className="shelf-web" />}
+          {/* Spiders hang in the gaps between bags, clear of the labels. */}
+          {dusty && i % 2 === 0 && <Spider left={i % 4 === 0 ? '33.4%' : '66.6%'} thread={22 + ((i * 13) % 30)} size={14} />}
           <div className="bookcase-row">
-            {row.map((c) => (
+            {row.map((c, j) => (
               <button
                 key={c.id}
                 className={`bag${selected?.(c) ? ' selected' : ''}`}
@@ -89,6 +97,7 @@ export function Bookcase({ coffees, onPick, selected }: { coffees: Coffee[]; onP
                   <CoffeeThumb photo={c.photo} className="bag-photo" zoomable={false} />
                   {c.rating != null && <span className="bag-rating">{c.rating.toFixed(1)}</span>}
                   {selected?.(c) && <span className="bag-check" aria-hidden="true">✓</span>}
+                  {dusty && <Cobweb corner={(i + j) % 3 === 0 ? 'tr' : (i + j) % 3 === 1 ? 'tl' : 'br'} className={`bag-web${(i + j) % 2 ? ' big' : ''}`} />}
                 </span>
               </button>
             ))}

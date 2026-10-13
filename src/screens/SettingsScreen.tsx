@@ -5,6 +5,8 @@ import { LANG_NAMES, useLang, useT } from '../i18n'
 import { ScanError } from '../errors'
 import { DriveSection } from '../components/DriveSection'
 import { Linkify } from '../components/Linkify'
+import { ArchiveSection } from '../components/ArchiveSection'
+import type { Coffee } from '../types'
 
 /**
  * "Add coffees from a file" was needed for a one-off import (e.g. from Notion), so it stays out of
@@ -12,7 +14,7 @@ import { Linkify } from '../components/Linkify'
  */
 const SHOW_MERGE = new URLSearchParams(location.search).has('import')
 
-export function SettingsScreen() {
+export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpen: (id: number) => void }) {
   const t = useT()
   const lang = useLang()
   const settings = useSettings()
@@ -179,6 +181,8 @@ export function SettingsScreen() {
         {status && <div className="muted small">{status}</div>}
       </div>
       <p className="muted small" style={{ margin: '12px 4px 0' }}>{t.settings.dataHint}</p>
+
+      <ArchiveSection archived={archived} onOpen={onOpen} />
     </div>
   )
 }

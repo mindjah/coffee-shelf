@@ -57,7 +57,7 @@ function ShelfPicker({ coffees, items, onClose }: { coffees: Coffee[]; items: Co
             const on = items.some((i) => i.coffeeId === c.id)
             return (
               <button key={c.id} className={`card list-item pick${on ? ' on' : ''}`} onClick={() => toggle(c)} aria-pressed={on}>
-                <CoffeeThumb photo={c.photo} />
+                <CoffeeThumb photo={c.photo} name={[c.roaster, c.name].filter(Boolean).join(' – ')} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="roaster">{c.roaster || t.common.unknownRoaster}</div>
                   <div className="coffee-name">{c.name || t.common.untitled}</div>
@@ -149,7 +149,7 @@ export function CompareSheet({ items, model, coffees, onClose }: Props) {
                 <div key={c.item.id} className={`cmp-cell cmp-head${c.item.id === best ? ' best' : ''}${c.onShelf ? ' shelf' : ''}`}>
                   {c.item.id === best && <div className="cmp-best">{t.compare.best}</div>}
                   {c.onShelf && <div className="cmp-best cmp-shelf">{t.compare.onShelf}</div>}
-                  <CoffeeThumb photo={c.d.photo} className="cmp-thumb" />
+                  <CoffeeThumb photo={c.d.photo} className="cmp-thumb" name={[c.d.roaster, c.d.name].filter(Boolean).join(' – ')} />
                   <div className="roaster">{c.d.roaster || t.common.unknownRoaster}</div>
                   <div className="cmp-name">{c.d.name || t.common.untitled}</div>
                 </div>

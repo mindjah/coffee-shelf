@@ -17,7 +17,7 @@ function Row({ coffee, onOpen }: { coffee: Coffee; onOpen: () => void }) {
   const lang = useLang()
   return (
     <button className="card list-item" onClick={onOpen}>
-      <CoffeeThumb photo={coffee.photo} />
+      <CoffeeThumb photo={coffee.photo} name={[coffee.roaster, coffee.name].filter(Boolean).join(' – ')} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="roaster">{coffee.roaster || t.common.unknownRoaster}</div>
         <div className="coffee-name">{coffee.name || t.common.untitled}</div>

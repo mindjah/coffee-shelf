@@ -27,9 +27,12 @@ export default function App() {
   // Back from Google sign-in → show the Google Drive status in Settings.
   const [tab, setTab] = useState<Tab>(() => (cameBackFromSignIn() ? 'settings' : 'scan'))
   const [openId, setOpenId] = useState<number>()
-  const coffees = useLiveQuery(() => db.coffees.toArray(), [])
+  const all = useLiveQuery(() => db.coffees.toArray(), [])
+  // Archived coffees stay in the database but leave the shelf, the taste profile and predictions.
+  const coffees = useMemo(() => all?.filter((c) => !c.archivedAt), [all])
+  const archived = useMemo(() => (all ?? []).filter((c) => c.archivedAt).sort((a, b) => b.archivedAt! - a.archivedAt!), [all])
   const model = useMemo(() => buildModel(coffees ?? []), [coffees])
-  const open = coffees?.find((c) => c.id === openId)
+  const open = all?.find((c) => c.id === openId)
 
   useEffect(() => {
     requestPersistence()
@@ -43,17 +46,17 @@ export default function App() {
     window.scrollTo(0, 0)
   }, [tab])
 
-  if (!coffees) return null
+  if (!coffees || !all) return null
 
   return (
     <>
       {/* Kept mounted so photos, an in-flight scan and an unsaved result survive tab switches. */}
       <div hidden={tab !== 'scan'}>
-        <ScanScreen model={model} coffees={coffees} onSaved={(id) => (setTab('shelf'), setOpenId(id))} onOpenSettings={() => setTab('settings')} />
+        <ScanScreen model={model} coffees={all} onSaved={(id) => (setTab('shelf'), setOpenId(id))} onOpenSettings={() => setTab('settings')} />
       </div>
       {tab === 'shelf' && <LibraryScreen coffees={coffees} model={model} onOpen={setOpenId} />}
       {tab === 'taste' && <InsightsScreen coffees={coffees} model={model} />}
-      {tab === 'settings' && <SettingsScreen />}
+      {tab === 'settings' && <SettingsScreen archived={archived} onOpen={setOpenId} />}
 
       {open && <CoffeeDetail key={open.id} coffee={open} model={model} onClose={() => setOpenId(undefined)} />}
 

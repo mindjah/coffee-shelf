@@ -394,7 +394,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
         </div>
       )}
 
-      {comparing && <CompareSheet items={compareItems} model={model} coffees={coffees} onClose={() => setComparing(false)} />}
+      {comparing && <CompareSheet items={compareItems} model={model} coffees={coffees.filter((c) => !c.archivedAt)} onClose={() => setComparing(false)} />}
 
       {!reading && shots.length === 0 && (
         <>

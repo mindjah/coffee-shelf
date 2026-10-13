@@ -93,7 +93,7 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   return (
     <Sheet title={t.editor.title} closeLabel={t.common.cancel} onClose={onClose} action={{ label: t.common.done, onClick: save }}>
       <div className="card row" style={{ marginBottom: 12 }}>
-        <CoffeeThumb photo={c.photo} />
+        <CoffeeThumb photo={c.photo} name={[c.roaster, c.name].filter(Boolean).join(' – ')} />
         <div className="stack" style={{ flex: 1 }}>
           <button type="button" className="btn ghost block" onClick={() => photoRef.current?.click()}>
             {c.photo ? t.editor.changePhoto : t.editor.addPhoto}

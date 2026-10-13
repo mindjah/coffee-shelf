@@ -55,6 +55,8 @@ export interface Coffee {
   rating: number | null
   ratedAt: number | null
   comment: string
+  /** Set when moved to the archive: kept, but off the shelf and out of the taste profile. */
+  archivedAt?: number | null
 }
 
 export const LANGS = ['en', 'ru'] as const

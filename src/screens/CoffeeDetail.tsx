@@ -24,6 +24,12 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
 
   const update = (patch: Partial<Coffee>) => db.coffees.update(coffee.id!, patch)
 
+  const archived = !!coffee.archivedAt
+  async function toggleArchive() {
+    await update({ archivedAt: archived ? null : Date.now() })
+    if (!archived) onClose() // it just left the shelf
+  }
+
   async function remove() {
     if (!confirm(t.coffee.confirmDelete)) return
     await db.coffees.delete(coffee.id!)
@@ -33,6 +39,12 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
   return (
     <Sheet title={coffee.roaster || t.coffee.fallbackTitle} onClose={() => (comment !== coffee.comment && update({ comment }), onClose())} closeLabel={t.common.done} action={{ label: t.common.edit, onClick: () => setEditing(true) }}>
       <div className="stack">
+        {archived && (
+          <div className="notice archived-note">
+            <p style={{ margin: '0 0 10px' }}>{t.archive.note}</p>
+            <button className="btn block" onClick={toggleArchive}>{t.archive.restore}</button>
+          </div>
+        )}
         <div className="card">
           <div className="row">
             <div style={{ fontWeight: 600 }}>{coffee.rating == null ? t.coffee.rateAfter : t.coffee.yourRating}</div>
@@ -47,11 +59,12 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
             <button className="btn plain" style={{ marginTop: 6, paddingLeft: 0 }} onClick={() => update({ rating: null, ratedAt: null })}>{t.coffee.clearRating}</button>
           )}
         </div>
-        {coffee.rating == null && <PredictionCard prediction={prediction} ratedCount={model.count} />}
+        {coffee.rating == null && !archived && <PredictionCard prediction={prediction} ratedCount={model.count} />}
         <CoffeeSummary coffee={coffee} />
         <p className="muted small" style={{ textAlign: 'center' }}>{t.coffee.scanned} {new Date(coffee.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-        <button className="btn ghost block" onClick={addToCompare}>{t.compare.add}</button>
+        {!archived && <button className="btn ghost block" onClick={addToCompare}>{t.compare.add}</button>}
         {compareNote && <div className="notice" style={{ marginTop: 0 }}>{compareNote}</div>}
+        {!archived && <button className="btn ghost block" onClick={toggleArchive}>{t.archive.move}</button>}
         <button className="btn danger block" onClick={remove}>{t.coffee.delete}</button>
       </div>
       {editing && (

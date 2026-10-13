@@ -37,7 +37,7 @@ export function CoffeeSummary({ coffee, showFlavors = true }: { coffee: CoffeeDr
   return (
     <div className="card">
       <div className="coffee-head">
-        <CoffeeThumb photo={coffee.photo} />
+        <CoffeeThumb photo={coffee.photo} name={[coffee.roaster, coffee.name].filter(Boolean).join(' – ')} />
         <div>
           <div className="roaster">{coffee.roaster || t.common.unknownRoaster}</div>
           <div className="coffee-name">{coffee.name || t.common.untitled}</div>

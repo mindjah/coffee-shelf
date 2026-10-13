@@ -218,11 +218,13 @@ h2.section {
 .viewer { position: fixed; inset: 0; z-index: 50; background: #0d0b0a; animation: fade 0.18s ease; }
 .viewer-stage { position: absolute; inset: 0; overflow: auto; display: flex; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; }
 .viewer-stage img { margin: auto; max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
-.viewer-close {
-  position: absolute; top: calc(var(--safe-top) + 10px); right: 14px; width: 40px; height: 40px;
+.viewer-actions { position: absolute; top: calc(var(--safe-top) + 10px); right: 14px; display: flex; gap: 10px; }
+.viewer-btn {
+  width: 40px; height: 40px; display: grid; place-items: center;
   border: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.16); color: #fff; font-size: 18px;
   -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
 }
+.viewer-btn svg { width: 20px; height: 20px; }
 
 .coffee-name { font: 600 20px/1.2 var(--serif); margin: 2px 0 4px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
@@ -354,6 +356,36 @@ textarea.input { min-height: 84px; resize: vertical; }
     linear-gradient(180deg, var(--plank-top) 0 4px, var(--wood-light) 4px, var(--plank-front) 100%);
   box-shadow: 0 7px 9px -3px rgba(0, 0, 0, 0.55);
 }
+
+/* Archive: the same bookcase, gone dusty — faded bags, cobwebs, spiders */
+.bookcase.dusty {
+  --wood-dark: #2f2622; --wood: #463830; --wood-light: #6e5d50; --plank-top: #85725f; --plank-front: #54453a;
+  filter: saturate(0.75);
+}
+.bookcase.dusty::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 0%, rgba(230, 220, 200, 0.12), transparent 70%);
+}
+.bookcase.dusty .bag-photo { filter: grayscale(0.6) sepia(0.35) brightness(0.82) contrast(0.92); }
+.bookcase.dusty .bag-label { color: #cbbba7; }
+.bookcase.dusty .bag-rating { background: rgba(30, 22, 18, 0.6); color: #d8c9b6; }
+.bookcase-shelf { position: relative; }
+.cobweb { position: absolute; pointer-events: none; color: rgba(240, 232, 220, 0.55); overflow: visible; }
+.cobweb.case-web { width: 84px; height: 84px; top: 6px; z-index: 2; }
+.cobweb.case-web.tl { left: 6px; }
+.cobweb.case-web.tr { right: 6px; }
+.cobweb.shelf-web { width: 62px; height: 62px; top: -2px; z-index: 2; color: rgba(240, 232, 220, 0.45); }
+.cobweb.shelf-web.tl { left: -4px; }
+.cobweb.shelf-web.tr { right: -4px; }
+.cobweb.bag-web { width: 58%; height: auto; aspect-ratio: 1; z-index: 1; color: rgba(255, 250, 240, 0.6); }
+.cobweb.bag-web.big { width: 82%; }
+.cobweb.bag-web.tl { top: 0; left: 0; }
+.cobweb.bag-web.tr { top: 0; right: 0; }
+.cobweb.bag-web.br { bottom: 0; right: 0; }
+.spider { position: absolute; top: -14px; z-index: 3; margin-left: -7px; display: flex; flex-direction: column; align-items: center; pointer-events: none; animation: spider-sway 5s ease-in-out infinite; transform-origin: top center; }
+.spider-thread { width: 1px; background: rgba(240, 232, 220, 0.55); }
+@keyframes spider-sway { 50% { transform: rotate(4deg) translateY(3px); } }
+.archived-note { margin-top: 0; }
 
 /* Settings: way of adding coffee */
 .choices { display: grid; gap: 8px; }

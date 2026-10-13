@@ -9,6 +9,7 @@ const en = {
   tabs: { scan: 'Scan', shelf: 'Shelf', taste: 'Taste', settings: 'Settings' },
   common: {
     close: 'Close',
+    savePhoto: 'Save photo',
     cancel: 'Cancel',
     done: 'Done',
     edit: 'Edit',
@@ -94,6 +95,15 @@ const en = {
     signInAgain: 'Sign in again',
     banner: 'Changes not backed up to Google Drive',
     bannerAction: 'Back up',
+  },
+  archive: {
+    title: 'Archive',
+    move: 'Move to archive',
+    restore: 'Restore from archive',
+    note: 'This coffee is in the archive: it isn’t on your shelf and doesn’t count toward your taste profile or predictions.',
+    empty: 'Nothing here yet. “Move to archive” on a coffee’s page puts it here — it leaves the shelf and your taste profile but isn’t deleted.',
+    hint: 'Tap a bag to open it and restore it to the shelf.',
+    count: (n: number) => `${n} ${n === 1 ? 'coffee' : 'coffees'} gathering dust`,
   },
   compare: {
     add: 'Add to comparison',
@@ -346,6 +356,7 @@ const ru: Dict = {
   tabs: { scan: 'Скан', shelf: 'Полка', taste: 'Вкус', settings: 'Настройки' },
   common: {
     close: 'Закрыть',
+    savePhoto: 'Сохранить фото',
     cancel: 'Отмена',
     done: 'Готово',
     edit: 'Изменить',
@@ -431,6 +442,15 @@ const ru: Dict = {
     signInAgain: 'Войти снова',
     banner: 'Изменения не сохранены в Google Drive',
     bannerAction: 'Сохранить',
+  },
+  archive: {
+    title: 'Архив',
+    move: 'Переместить в архив',
+    restore: 'Вернуть из архива',
+    note: 'Этот кофе в архиве: его нет на полке, и он не учитывается во вкусовом профиле и прогнозах.',
+    empty: 'Пока пусто. Кнопка «Переместить в архив» на странице кофе отправит его сюда — он уйдёт с полки и из вкусового профиля, но не удалится.',
+    hint: 'Нажмите на пачку, чтобы открыть её и вернуть на полку.',
+    count: (n) => `Пылится кофе: ${n}`,
   },
   compare: {
     add: 'Добавить к сравнению',

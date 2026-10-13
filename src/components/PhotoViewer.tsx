@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { usePhotoUrl } from './CoffeeSummary'
 import { useT } from '../i18n'
+import { SaveIcon } from './icons'
 
 // One app-wide viewer: any thumbnail calls openPhoto(), <PhotoViewer /> in App shows it.
-let current: Blob | ArrayBuffer | undefined
+let current: { photo: Blob | ArrayBuffer; name: string } | undefined
 const listeners = new Set<() => void>()
 const emit = () => listeners.forEach((l) => l())
 
-export function openPhoto(photo: Blob | ArrayBuffer) {
-  current = photo
+/** `name` becomes the file name when the photo is saved, e.g. "Martines – Luis Marcelino". */
+export function openPhoto(photo: Blob | ArrayBuffer, name = 'Coffee Shelf') {
+  current = { photo, name }
   emit()
 }
 
@@ -17,12 +19,32 @@ function closePhoto() {
   emit()
 }
 
+/** iPhone: the share sheet offers "Save Image" (Photos), Files and AirDrop; elsewhere a download. */
+async function savePhoto(photo: Blob | ArrayBuffer, name: string) {
+  const safe = name.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || 'Coffee Shelf'
+  const file = new File([photo], `${safe}.jpg`, { type: 'image/jpeg' })
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file] })
+      return
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return
+    }
+  }
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(file)
+  a.download = file.name
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000)
+}
+
 const MAX_ZOOM = 4
 
 /** Full-screen photo. Pinch (iOS gesture events) or double-tap to zoom, scroll to pan, ✕ to close. */
 export function PhotoViewer() {
   const t = useT()
-  const photo = useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), () => current)
+  const shown = useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), () => current)
+  const photo = shown?.photo
   const url = usePhotoUrl(photo)
   const [zoom, setZoom] = useState(1)
   const stage = useRef<HTMLDivElement>(null)
@@ -62,7 +84,12 @@ export function PhotoViewer() {
       <div ref={stage} className="viewer-stage" onDoubleClick={() => setZoom((z) => (z > 1 ? 1 : 2.5))}>
         <img src={url} alt="" style={zoom > 1 ? { width: `${zoom * 100}%`, maxWidth: 'none', maxHeight: 'none' } : undefined} />
       </div>
-      <button className="viewer-close" onClick={closePhoto} aria-label={t.common.close}>✕</button>
+      <div className="viewer-actions">
+        <button className="viewer-btn" onClick={() => shown && savePhoto(shown.photo, shown.name)} aria-label={t.common.savePhoto}>
+          <SaveIcon />
+        </button>
+        <button className="viewer-btn" onClick={closePhoto} aria-label={t.common.close}>✕</button>
+      </div>
     </div>
   )
 }
