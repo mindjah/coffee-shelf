@@ -3,6 +3,7 @@ import { backupNow, restoreFromDrive, signIn, signOut, takeDriveFocus, useDrive 
 import { useLang, useT } from '../i18n'
 import { Avatar } from './Avatar'
 import { Linkify } from './Linkify'
+import { CardInfo } from './CardInfo'
 
 /** Settings block for Google Drive backup; hidden until a Google client ID is configured. */
 export function DriveSection() {
@@ -20,7 +21,7 @@ export function DriveSection() {
   return (
     <>
       <h2 className="section" ref={anchor} style={{ scrollMarginTop: 'calc(var(--safe-top) + 12px)' }}>{t.drive.title}</h2>
-      <div className="card stack">
+      <div className={`card stack${drive.signedIn ? ' has-info' : ''}`}>
         {!drive.signedIn ? (
           <>
             <p className="muted small" style={{ margin: 0 }}>{t.drive.hint}</p>
@@ -28,8 +29,9 @@ export function DriveSection() {
           </>
         ) : (
           <>
+            <CardInfo>{t.drive.auto}</CardInfo>
             {drive.email && (
-              <div className="row">
+              <div className="row info-clear">
                 <Avatar size="large" />
                 <div style={{ fontWeight: 600, minWidth: 0, overflowWrap: 'anywhere' }}>{t.drive.signedInAs(drive.email)}</div>
               </div>
@@ -61,7 +63,6 @@ export function DriveSection() {
                 <button className="btn ghost block" disabled={!!drive.busy} onClick={() => confirm(t.drive.confirmRestore) && restoreFromDrive()}>{t.drive.restore}</button>
               </>
             )}
-            <p className="muted small" style={{ margin: 0 }}>{t.drive.auto}</p>
             <button className="btn plain block" onClick={signOut}>{t.drive.signOut}</button>
           </>
         )}

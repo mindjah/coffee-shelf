@@ -7,6 +7,7 @@ import { ScanError } from '../errors'
 import { DriveSection } from '../components/DriveSection'
 import { Linkify } from '../components/Linkify'
 import { ArchiveSection } from '../components/ArchiveSection'
+import { CardInfo } from '../components/CardInfo'
 import type { Coffee } from '../types'
 
 /**
@@ -181,8 +182,12 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
       <DriveSection />
 
       <h2 className="section">{t.settings.yourData}</h2>
-      <div className="card stack">
-        <div className="row small">
+      <div className="card stack has-info">
+        <CardInfo>
+          <p style={{ margin: '0 0 8px' }}><b>{t.settings.persisted}.</b> {t.settings.persistedInfo}</p>
+          <p style={{ margin: 0 }}>{t.settings.dataHint}</p>
+        </CardInfo>
+        <div className="row small info-clear">
           <span>{t.settings.persisted}</span>
           <span className="spacer" />
           {persisted ? <span className="muted">{t.settings.yes}</span> : <button className="btn plain" onClick={async () => setPersisted(await requestPersistence())}>{t.settings.turnOn}</button>}
@@ -198,7 +203,6 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
         <input ref={importRef} className="file-input" type="file" accept="application/json,.json" onChange={(e) => (doImport(e.target.files?.[0]), (e.target.value = ''))} />
         {status && <div className="muted small">{status}</div>}
       </div>
-      <p className="muted small" style={{ margin: '12px 4px 0' }}>{t.settings.dataHint}</p>
 
       <ArchiveSection archived={archived} onOpen={onOpen} />
     </div>

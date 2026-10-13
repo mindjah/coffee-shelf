@@ -1,10 +1,19 @@
+import { useState } from 'react'
 import type { Coffee } from '../types'
 import { useT } from '../i18n'
 import { Bookcase } from './Bookcase'
+import { Sheet } from './Sheet'
 
-/** Bottom of Settings: archived coffees on a dusty bookcase; tapping one opens it to restore. */
+const PREVIEW = 3 // one shelf
+
+/**
+ * Bottom of Settings: the first shelf of archived coffees on a dusty bookcase; more opens the full
+ * archive page. Tapping a bag opens the coffee, where it can be restored.
+ */
 export function ArchiveSection({ archived, onOpen }: { archived: Coffee[]; onOpen: (id: number) => void }) {
   const t = useT()
+  const [full, setFull] = useState(false)
+  const open = (c: Coffee) => onOpen(c.id!)
   return (
     <>
       <h2 className="section">{t.archive.title}</h2>
@@ -13,8 +22,17 @@ export function ArchiveSection({ archived, onOpen }: { archived: Coffee[]; onOpe
       ) : (
         <>
           <p className="muted small" style={{ margin: '0 4px 12px' }}>{t.archive.count(archived.length)}. {t.archive.hint}</p>
-          <Bookcase coffees={archived} onPick={(c) => onOpen(c.id!)} dusty />
+          <Bookcase coffees={archived.slice(0, PREVIEW)} onPick={open} dusty />
+          {archived.length > PREVIEW && (
+            <button className="btn ghost block" style={{ marginTop: 12 }} onClick={() => setFull(true)}>{t.archive.openAll(archived.length)}</button>
+          )}
         </>
+      )}
+      {full && (
+        <Sheet title={t.archive.title} onClose={() => setFull(false)} closeLabel={t.common.done}>
+          <p className="muted small" style={{ margin: '0 4px 12px' }}>{t.archive.count(archived.length)}. {t.archive.hint}</p>
+          {archived.length ? <Bookcase coffees={archived} onPick={open} dusty /> : <p className="muted small">{t.archive.empty}</p>}
+        </Sheet>
       )}
     </>
   )

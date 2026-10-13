@@ -9,6 +9,7 @@ const en = {
   tabs: { scan: 'Scan', shelf: 'Shelf', taste: 'Taste', settings: 'Settings' },
   common: {
     close: 'Close',
+    info: 'More info',
     savePhoto: 'Save photo',
     cancel: 'Cancel',
     done: 'Done',
@@ -103,6 +104,7 @@ const en = {
     note: 'This coffee is in the archive: it isn’t on your shelf and doesn’t count toward your taste profile or predictions.',
     empty: 'Nothing here yet. “Move to archive” on a coffee’s page puts it here — it leaves the shelf and your taste profile but isn’t deleted.',
     hint: 'Tap a bag to open it and restore it to the shelf.',
+    openAll: (n: number) => `Open the whole archive (${n})`,
     count: (n: number) => `${n} ${n === 1 ? 'coffee' : 'coffees'} gathering dust`,
   },
   compare: {
@@ -278,6 +280,7 @@ const en = {
     geminiHint: 'Free: open aistudio.google.com, sign in with a Google account and tap “Get API key” — no card needed. Free keys have daily request limits, and Google may use free-tier requests to improve its products. Photos go straight from your phone to Google; the key is stored only on this device.',
     yourData: 'Your data',
     persisted: 'Protected from storage cleanup',
+    persistedInfo: 'iOS can delete what websites and web apps store — such as your shelf — when the iPhone runs low on space or the app hasn’t been opened for a while. “Turn on” asks iOS to keep Coffee Shelf’s data. iOS decides on its own; if it stays off, rely on backups.',
     yes: 'Yes',
     turnOn: 'Turn on',
     export: 'Export backup',
@@ -358,6 +361,7 @@ const ru: Dict = {
   tabs: { scan: 'Скан', shelf: 'Полка', taste: 'Вкус', settings: 'Настройки' },
   common: {
     close: 'Закрыть',
+    info: 'Подробнее',
     savePhoto: 'Сохранить фото',
     cancel: 'Отмена',
     done: 'Готово',
@@ -452,6 +456,7 @@ const ru: Dict = {
     note: 'Этот кофе в архиве: его нет на полке, и он не учитывается во вкусовом профиле и прогнозах.',
     empty: 'Пока пусто. Кнопка «Переместить в архив» на странице кофе отправит его сюда — он уйдёт с полки и из вкусового профиля, но не удалится.',
     hint: 'Нажмите на пачку, чтобы открыть её и вернуть на полку.',
+    openAll: (n) => `Открыть весь архив (${n})`,
     count: (n) => `Пылится кофе: ${n}`,
   },
   compare: {
@@ -627,6 +632,7 @@ const ru: Dict = {
     geminiHint: 'Бесплатно: откройте aistudio.google.com, войдите с аккаунтом Google и нажмите «Get API key» — карта не нужна. У бесплатных ключей есть дневные лимиты запросов, и Google может использовать запросы бесплатного уровня для улучшения своих продуктов. Фото уходят с телефона напрямую в Google; ключ хранится только на этом устройстве.',
     yourData: 'Ваши данные',
     persisted: 'Защита от очистки хранилища',
+    persistedInfo: 'iOS может удалить то, что хранят сайты и веб-приложения (например, вашу полку), когда на iPhone мало места или приложение давно не открывали. «Включить» просит iOS сохранять данные Coffee Shelf. iOS решает сама; если защита не включилась, полагайтесь на резервные копии.',
     yes: 'Да',
     turnOn: 'Включить',
     export: 'Экспорт резервной копии',

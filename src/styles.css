@@ -208,6 +208,17 @@ h2.section {
 .coffee-head { display: flex; gap: 14px; }
 .thumb { flex: none; width: 64px; height: 84px; border-radius: 12px; object-fit: cover; background: var(--surface-2); }
 .roaster { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); }
+/* ⓘ in a card's corner and the explanation it reveals */
+.card.has-info { position: relative; }
+.card.has-info .info-clear { padding-right: 40px; }
+.info-btn {
+  position: absolute; top: 12px; right: 12px; z-index: 1; width: 28px; height: 28px; padding: 0;
+  border: 1.5px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--muted);
+  font: italic 700 15px/1 var(--serif);
+}
+.info-btn.open { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.card.stack > .info-btn + * { margin-top: 0; }
+.info-panel { margin: 0 40px 12px 0; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); color: var(--text); line-height: 1.45; }
 .hint-link { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
 .error .hint-link { color: inherit; }
 .thumb-empty { display: grid; place-items: center; color: var(--accent); }
