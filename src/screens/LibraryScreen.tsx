@@ -3,7 +3,7 @@ import type { Coffee } from '../types'
 import { countryName, useLang, useT } from '../i18n'
 import { originLine } from '../components/CoffeeSummary'
 import { CoffeeThumb } from '../components/CoffeeThumb'
-import { ShelfIcon } from '../components/icons'
+import { FilterIcon, ShelfIcon } from '../components/icons'
 import { DriveBanner } from '../components/DriveSection'
 
 type Filter = 'all' | 'rated' | 'todo'
@@ -86,6 +86,10 @@ export function LibraryScreen({ coffees, onOpen }: { coffees: Coffee[]; onOpen: 
   const [roaster, setRoaster] = useState('')
   const [country, setCountry] = useState('')
   const [sort, setSort] = useState<Sort>(readSort)
+  const [showFilters, setShowFilters] = useState(false)
+  // Filters that hide coffees (sort only reorders), flagged on the button while the panel is closed.
+  const filtering = !!roaster || !!country || filter !== 'all'
+  const clearFilters = () => (setRoaster(''), setCountry(''), setFilter('all'))
   const chooseSort = (s: Sort) => {
     setSort(s)
     try {
@@ -110,8 +114,21 @@ export function LibraryScreen({ coffees, onOpen }: { coffees: Coffee[]; onOpen: 
       <h1 className="screen-title">{t.shelf.title}</h1>
       <p className="screen-sub">{t.shelf.logged(coffees.length)}</p>
       <DriveBanner />
-      <input className="input" type="search" placeholder={t.shelf.search} value={query} onChange={(e) => setQuery(e.target.value)} style={{ marginBottom: 12 }} />
-      {coffees.length > 0 && (
+      <div className="search-row">
+        <input className="input" type="search" placeholder={t.shelf.search} value={query} onChange={(e) => setQuery(e.target.value)} />
+        {coffees.length > 0 && (
+          <button
+            type="button"
+            className={`icon-btn${showFilters ? ' open' : ''}${filtering ? ' filtering' : ''}`}
+            onClick={() => setShowFilters((v) => !v)}
+            aria-label={t.shelf.filters}
+            aria-expanded={showFilters}
+          >
+            <FilterIcon />
+          </button>
+        )}
+      </div>
+      {coffees.length > 0 && showFilters && (
         <div className="grid-2 shelf-filters">
           <select className={`input${roaster ? ' active' : ''}`} value={roaster} onChange={(e) => setRoaster(e.target.value)} aria-label={t.shelf.roaster}>
             <option value="">{t.shelf.allRoasters}</option>
@@ -124,21 +141,24 @@ export function LibraryScreen({ coffees, onOpen }: { coffees: Coffee[]; onOpen: 
           <select className="input shelf-sort" value={sort} onChange={(e) => chooseSort(e.target.value as Sort)} aria-label={t.shelf.sort}>
             {SORTS.map((s) => <option key={s} value={s}>{t.shelf.sorts[s]}</option>)}
           </select>
+          <div className="segmented shelf-sort" style={{ marginBottom: 0 }}>
+            {(['all', 'rated', 'todo'] as Filter[]).map((f) => (
+              <button key={f} className={filter === f ? 'on' : ''} onClick={() => setFilter(f)}>
+                {t.shelf[f]}
+              </button>
+            ))}
+          </div>
+          {filtering && (
+            <button className="btn plain shelf-sort" style={{ minHeight: 36 }} onClick={clearFilters}>{t.shelf.clearFilters}</button>
+          )}
         </div>
       )}
-      <div className="segmented">
-        {(['all', 'rated', 'todo'] as Filter[]).map((f) => (
-          <button key={f} className={filter === f ? 'on' : ''} onClick={() => setFilter(f)}>
-            {t.shelf[f]}
-          </button>
-        ))}
-      </div>
       {shown.length === 0 ? (
         <div className="empty">
           <ShelfIcon />
           <div>{coffees.length ? t.shelf.noMatch : t.shelf.empty}</div>
-          {(roaster || country) && (
-            <button className="btn plain" onClick={() => (setRoaster(''), setCountry(''))}>{t.shelf.clearFilters}</button>
+          {filtering && (
+            <button className="btn plain" onClick={clearFilters}>{t.shelf.clearFilters}</button>
           )}
         </div>
       ) : (
