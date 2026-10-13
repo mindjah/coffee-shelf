@@ -29,7 +29,7 @@ export async function testKey(apiKey: string, model: string): Promise<void> {
   }
 }
 
-export async function readBag(images: Blob[]): Promise<CoffeeDraft> {
+export async function readBag(images: Blob[], signal?: AbortSignal): Promise<CoffeeDraft> {
   const { geminiKey, geminiModel } = getSettings()
   if (!geminiKey) throw new ScanError('noKey')
 
@@ -49,6 +49,7 @@ export async function readBag(images: Blob[]): Promise<CoffeeDraft> {
         responseMimeType: 'application/json',
         responseJsonSchema,
         maxOutputTokens: 16000,
+        abortSignal: signal,
       },
     })
   } catch (e) {

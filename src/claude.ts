@@ -25,7 +25,7 @@ export async function testKey(apiKey: string, model: string): Promise<void> {
   }
 }
 
-export async function readBag(images: Blob[]): Promise<CoffeeDraft> {
+export async function readBag(images: Blob[], signal?: AbortSignal): Promise<CoffeeDraft> {
   const { apiKey, model } = getSettings()
   if (!apiKey) throw new ScanError('noKey')
 
@@ -50,7 +50,8 @@ export async function readBag(images: Blob[]): Promise<CoffeeDraft> {
       },
       // Opus 5 can hand off a declined request to another model server-side.
       ...(model === 'claude-opus-5' ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
-    })
+
+    }, { signal })
   } catch (e) {
     throw toScanError(e)
   }

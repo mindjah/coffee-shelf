@@ -48,6 +48,7 @@ const en = {
     saveRated: 'Save with rating',
     saveLater: 'Save to try later',
     discard: 'Discard',
+    cancelReading: 'Cancel',
     recognize: 'Recognize text',
     continue: 'Continue',
     manualTitle: 'Add a coffee',
@@ -72,6 +73,7 @@ const en = {
     notCoffee: "That doesn't look like a coffee bag.",
     noModel: "This key can't use the selected model. Pick another model in Settings.",
     ocrDownload: 'Could not download text recognition. Connect to the internet once to set it up.',
+    timeout: 'No answer after 90 seconds, so reading was stopped. Try again, or pick a lighter model in Settings.',
     unknown: 'Something went wrong',
   } satisfies Record<ScanErrorCode | 'unknown', string>,
   prediction: {
@@ -293,6 +295,7 @@ const ru: Dict = {
     saveRated: 'Сохранить с оценкой',
     saveLater: 'Попробовать позже',
     discard: 'Удалить',
+    cancelReading: 'Отменить',
     recognize: 'Распознать текст',
     continue: 'Продолжить',
     manualTitle: 'Добавить кофе',
@@ -317,6 +320,7 @@ const ru: Dict = {
     notCoffee: 'Это не похоже на пачку кофе.',
     noModel: 'С этим ключом выбранная модель недоступна. Выберите другую в настройках.',
     ocrDownload: 'Не удалось загрузить распознавание текста. Один раз подключитесь к интернету.',
+    timeout: 'Ответа нет 90 секунд, чтение остановлено. Попробуйте ещё раз или выберите в настройках более лёгкую модель.',
     unknown: 'Что-то пошло не так',
   },
   prediction: {

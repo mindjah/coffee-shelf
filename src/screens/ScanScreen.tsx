@@ -21,6 +21,17 @@ interface Props {
   onOpenSettings: () => void
 }
 
+const READ_TIMEOUT_MS = 90_000
+
+/** Settles as soon as the signal aborts, so the UI never waits on a request that won't stop. */
+function untilAborted<T>(work: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) return reject(signal.reason)
+    signal.addEventListener('abort', () => reject(signal.reason), { once: true })
+    work.then(resolve, reject)
+  })
+}
+
 type ErrorState = { code: keyof Dict['errors'] | 'photo'; detail?: string }
 
 function Shot({ blob, onRemove }: { blob: Blob; onRemove: () => void }) {
@@ -50,6 +61,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const [comment, setComment] = useState('')
   const [ocr, setOcr] = useState<OcrProgress>()
   const [ocrText, setOcrText] = useState('')
+  const reader = useRef<AbortController>(undefined)
 
   // Restore an unsaved scan from the last session, then keep it saved as it changes so it
   // survives iOS closing the app in the background. An interrupted read just needs a retry.
@@ -127,27 +139,42 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
       setDraft({ ...emptyDraft(), photo: await thumbnail() })
       return setEditing(true)
     }
+    const ac = new AbortController()
+    reader.current = ac
+    // AI reading can hang without an answer; on-device OCR has no limit because the first run downloads files.
+    const timer = provider === 'ocr' ? undefined : setTimeout(() => ac.abort(new ScanError('timeout')), READ_TIMEOUT_MS)
     setReading(true)
     setError(undefined)
     try {
       if (provider === 'ocr') {
         // On-device text recognition, then rule-based parsing; the user reviews the result.
         const { recognize } = await import('../ocr')
-        const text = await recognize(shots, setOcr)
+        const text = await untilAborted(recognize(shots, setOcr, ac.signal), ac.signal)
         setOcrText(text)
         setDraft({ ...parseLabel(text), photo: await thumbnail() })
         setEditing(true)
       } else {
         const { readBag } = await import('../scan')
-        const d = await readBag(shots)
+        const d = await untilAborted(readBag(shots, ac.signal), ac.signal)
         setDraft({ ...d, photo: await thumbnail() })
       }
     } catch (e) {
-      setError(e instanceof ScanError ? { code: e.code, detail: e.detail } : { code: 'unknown', detail: (e as Error).message })
+      const err = ac.signal.aborted ? ac.signal.reason : e
+      // A user cancel just returns to the photos; anything else is shown.
+      if (ac.signal.aborted && !(err instanceof ScanError)) return
+      setError(err instanceof ScanError ? { code: err.code, detail: err.detail } : { code: 'unknown', detail: (err as Error).message })
     } finally {
-      setReading(false)
-      setOcr(undefined)
+      clearTimeout(timer)
+      if (reader.current === ac) {
+        reader.current = undefined
+        setReading(false)
+        setOcr(undefined)
+      }
     }
+  }
+
+  function cancelReading() {
+    reader.current?.abort()
   }
 
   function reset() {
@@ -246,6 +273,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
               <div className="muted small">{t.scan.readingHint}</div>
             </>
           )}
+          <button className="btn ghost" style={{ marginTop: 20, minWidth: 160 }} onClick={cancelReading}>{t.scan.cancelReading}</button>
         </div>
       ) : shots.length === 0 ? (
         <div className="hero">

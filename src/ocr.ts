@@ -9,9 +9,11 @@ export interface OcrProgress {
 }
 
 /** Recognises English, Spanish and Russian text on the phone; nothing leaves the device. */
-export async function recognize(images: Blob[], onProgress: (p: OcrProgress) => void): Promise<string> {
+export async function recognize(images: Blob[], onProgress: (p: OcrProgress) => void, signal?: AbortSignal): Promise<string> {
   let current = 0
-  let worker
+  let worker: Awaited<ReturnType<typeof createWorker>> | undefined
+  // Cancelling stops the worker, which also abandons a first-time download.
+  signal?.addEventListener('abort', () => void worker?.terminate(), { once: true })
   try {
     worker = await createWorker(['eng', 'spa', 'rus'], 1, {
       logger: (m) => {
