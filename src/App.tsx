@@ -10,6 +10,7 @@ import { CoffeeDetail } from './screens/CoffeeDetail'
 import { CameraIcon, GearIcon, ShelfIcon, TasteIcon } from './components/icons'
 import { useLang, useT } from './i18n'
 import { cameBackFromSignIn } from './gdrive'
+import { PhotoViewer } from './components/PhotoViewer'
 
 type Tab = 'scan' | 'shelf' | 'taste' | 'settings'
 
@@ -55,6 +56,8 @@ export default function App() {
       {tab === 'settings' && <SettingsScreen />}
 
       {open && <CoffeeDetail key={open.id} coffee={open} model={model} onClose={() => setOpenId(undefined)} />}
+
+      <PhotoViewer />
 
       <nav className="tabbar">
         {TABS.map(({ id, icon: Icon }) => (

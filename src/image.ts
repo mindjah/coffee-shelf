@@ -1,3 +1,6 @@
+/** Longest side of a saved bag photo: sharp enough to view full screen, small enough for backups. */
+export const PHOTO_SIDE = 1200
+
 /** Downscales a camera photo; createImageBitmap applies the EXIF rotation iOS writes. */
 export async function resizeImage(file: Blob, maxSide: number, quality = 0.85): Promise<Blob> {
   const bitmap = await createImageBitmap(file)

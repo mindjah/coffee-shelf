@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { FLAVORS, type CoffeeDraft, type Lang } from '../types'
 import { countryName, localized, useLang, useT, type Dict } from '../i18n'
+import { CoffeeThumb } from './CoffeeThumb'
 
 export function usePhotoUrl(photo?: Blob | ArrayBuffer) {
   const [url, setUrl] = useState<string>()
@@ -20,7 +21,6 @@ export function originLine(c: CoffeeDraft, t: Dict, lang: Lang) {
 export function CoffeeSummary({ coffee, showFlavors = true }: { coffee: CoffeeDraft; showFlavors?: boolean }) {
   const t = useT()
   const lang = useLang()
-  const photo = usePhotoUrl(coffee.photo)
   const { notes, processDetail } = localized(coffee, lang)
   const translated = notes.join() !== coffee.notes.join()
   const facts = [
@@ -37,7 +37,7 @@ export function CoffeeSummary({ coffee, showFlavors = true }: { coffee: CoffeeDr
   return (
     <div className="card">
       <div className="coffee-head">
-        {photo && <img className="thumb" src={photo} alt="" />}
+        <CoffeeThumb photo={coffee.photo} />
         <div>
           <div className="roaster">{coffee.roaster || t.common.unknownRoaster}</div>
           <div className="coffee-name">{coffee.name || t.common.untitled}</div>

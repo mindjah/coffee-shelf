@@ -3,7 +3,8 @@ import { addShelfToCompare, db, MAX_COMPARE, type CompareItem } from '../db'
 import { MIN_RATINGS, predict, toneFor, type Model, type Prediction } from '../recommend'
 import { localized, reasonText, useLang, useT } from '../i18n'
 import type { Coffee, CoffeeDraft } from '../types'
-import { originLine, usePhotoUrl } from '../components/CoffeeSummary'
+import { originLine } from '../components/CoffeeSummary'
+import { CoffeeThumb } from '../components/CoffeeThumb'
 import { Sheet } from '../components/Sheet'
 import { Stars } from '../components/Stars'
 
@@ -17,10 +18,6 @@ interface Props {
 const sameCoffee = (a: CoffeeDraft, b: CoffeeDraft) =>
   !!a.name && `${a.roaster}|${a.name}`.toLowerCase().trim() === `${b.roaster}|${b.name}`.toLowerCase().trim()
 
-function Thumb({ photo, className = 'cmp-thumb' }: { photo?: ArrayBuffer; className?: string }) {
-  const url = usePhotoUrl(photo)
-  return url ? <img className={className} src={url} alt="" /> : <div className={className} />
-}
 
 /** Pick shelf coffees to compare against; tapping toggles a coffee in or out of the comparison. */
 function ShelfPicker({ coffees, items, onClose }: { coffees: Coffee[]; items: CompareItem[]; onClose: () => void }) {
@@ -52,7 +49,7 @@ function ShelfPicker({ coffees, items, onClose }: { coffees: Coffee[]; items: Co
             const on = items.some((i) => i.coffeeId === c.id)
             return (
               <button key={c.id} className={`card list-item pick${on ? ' on' : ''}`} onClick={() => toggle(c)} aria-pressed={on}>
-                <Thumb photo={c.photo} className="thumb" />
+                <CoffeeThumb photo={c.photo} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="roaster">{c.roaster || t.common.unknownRoaster}</div>
                   <div className="coffee-name">{c.name || t.common.untitled}</div>
@@ -144,7 +141,7 @@ export function CompareSheet({ items, model, coffees, onClose }: Props) {
                 <div key={c.item.id} className={`cmp-cell cmp-head${c.item.id === best ? ' best' : ''}${c.onShelf ? ' shelf' : ''}`}>
                   {c.item.id === best && <div className="cmp-best">{t.compare.best}</div>}
                   {c.onShelf && <div className="cmp-best cmp-shelf">{t.compare.onShelf}</div>}
-                  <Thumb photo={c.d.photo} />
+                  <CoffeeThumb photo={c.d.photo} className="cmp-thumb" />
                   <div className="roaster">{c.d.roaster || t.common.unknownRoaster}</div>
                   <div className="cmp-name">{c.d.name || t.common.untitled}</div>
                 </div>

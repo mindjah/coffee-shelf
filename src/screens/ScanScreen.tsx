@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { clearPendingScan, db, loadPendingScan, MAX_COMPARE, savePendingScan } from '../db'
 import { CompareSheet } from './CompareSheet'
 import { ScanError } from '../errors'
-import { resizeImage } from '../image'
+import { PHOTO_SIDE, resizeImage } from '../image'
 import { MIN_RATINGS, predict, type Model } from '../recommend'
 import { needsKey, useSettings } from '../settings'
 import { emptyDraft, isBlankDraft, parseLabel } from '../parse'
@@ -16,6 +16,7 @@ import { PredictionCard } from '../components/PredictionCard'
 import { Stars } from '../components/Stars'
 import { BeanIcon, CameraIcon, PlusIcon } from '../components/icons'
 import { Avatar } from '../components/Avatar'
+import { openPhoto } from '../components/PhotoViewer'
 
 interface Props {
   model: Model
@@ -53,7 +54,7 @@ function Shot({ blob, onRemove }: { blob: Blob; onRemove: () => void }) {
   const url = usePhotoUrl(blob)
   return (
     <div className="shot">
-      {url && <img src={url} alt={t.scan.bagPhoto} />}
+      {url && <img src={url} alt={t.scan.bagPhoto} onClick={() => openPhoto(blob)} />}
       <button onClick={onRemove} aria-label={t.scan.removePhoto}>×</button>
     </div>
   )
@@ -154,7 +155,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     }
   }
 
-  const thumbnail = async () => (shots[0] ? (await resizeImage(shots[0], 600, 0.8)).arrayBuffer() : undefined)
+  const thumbnail = async () => (shots[0] ? (await resizeImage(shots[0], PHOTO_SIDE, 0.82)).arrayBuffer() : undefined)
 
   function startManual() {
     setDraft(emptyDraft())

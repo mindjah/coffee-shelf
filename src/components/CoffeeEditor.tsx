@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
-import { resizeImage } from '../image'
-import { usePhotoUrl } from './CoffeeSummary'
+import { PHOTO_SIDE, resizeImage } from '../image'
+import { CoffeeThumb } from './CoffeeThumb'
 import { FLAVORS, PROCESSES, REGIONS, ROASTS, ROAST_FOR, type CoffeeDraft, type Flavor, type Structure } from '../types'
 import { estimateFlavors, findNotes, flavorsFromNotes, lookupCountry } from '../parse'
 import { countryName, localized, useLang, useT } from '../i18n'
@@ -35,13 +35,12 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   const [sca, setSca] = useState(coffee.scaScore?.toString() ?? '')
   const [fillNote, setFillNote] = useState<string>()
   const photoRef = useRef<HTMLInputElement>(null)
-  const photoUrl = usePhotoUrl(c.photo)
 
   /** Bag picture from Photos or Files, e.g. one saved from the roaster's website. */
   async function pickPhoto(file?: File) {
     if (!file) return
     try {
-      set('photo', await (await resizeImage(file, 600, 0.8)).arrayBuffer())
+      set('photo', await (await resizeImage(file, PHOTO_SIDE, 0.82)).arrayBuffer())
     } catch {
       // Unreadable image: keep the current photo.
     }
@@ -94,7 +93,7 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   return (
     <Sheet title={t.editor.title} closeLabel={t.common.cancel} onClose={onClose} action={{ label: t.common.done, onClick: save }}>
       <div className="card row" style={{ marginBottom: 12 }}>
-        {photoUrl ? <img className="thumb" src={photoUrl} alt="" /> : <div className="thumb" />}
+        <CoffeeThumb photo={c.photo} />
         <div className="stack" style={{ flex: 1 }}>
           <button type="button" className="btn ghost block" onClick={() => photoRef.current?.click()}>
             {c.photo ? t.editor.changePhoto : t.editor.addPhoto}
