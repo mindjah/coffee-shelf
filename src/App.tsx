@@ -44,9 +44,10 @@ export default function App() {
 
   return (
     <>
-      {tab === 'scan' && (
+      {/* Kept mounted so photos, an in-flight scan and an unsaved result survive tab switches. */}
+      <div hidden={tab !== 'scan'}>
         <ScanScreen model={model} coffees={coffees} onSaved={(id) => (setTab('shelf'), setOpenId(id))} onOpenSettings={() => setTab('settings')} />
-      )}
+      </div>
       {tab === 'shelf' && <LibraryScreen coffees={coffees} onOpen={setOpenId} />}
       {tab === 'taste' && <InsightsScreen coffees={coffees} model={model} />}
       {tab === 'settings' && <SettingsScreen />}
