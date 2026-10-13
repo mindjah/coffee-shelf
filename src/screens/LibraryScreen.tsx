@@ -16,7 +16,10 @@ function Row({ coffee, onOpen }: { coffee: Coffee; onOpen: () => void }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="roaster">{coffee.roaster || t.common.unknownRoaster}</div>
         <div className="coffee-name">{coffee.name || t.common.untitled}</div>
-        <div className="muted small">{originLine(coffee, t, lang)}</div>
+        <div className="muted small">
+          {originLine(coffee, t, lang)}
+          {coffee.scaScore != null && <span className="sca-tag">SCA {coffee.scaScore}</span>}
+        </div>
       </div>
       {coffee.rating != null ? <span className="badge">{coffee.rating.toFixed(1)}</span> : <span className="badge todo">{t.shelf.todo}</span>}
     </button>

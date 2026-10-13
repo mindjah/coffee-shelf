@@ -240,6 +240,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 .list-item .coffee-name { font-size: 17px; margin: 1px 0 3px; }
 .badge { flex: none; min-width: 44px; padding: 6px 8px; border-radius: 12px; text-align: center; font: 600 15px/1 var(--serif); background: var(--accent-soft); color: var(--accent); }
 .badge.todo { font: 600 11px/1.2 var(--sans); text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); background: var(--surface-2); }
+.sca-tag { display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 6px; background: var(--surface-2); color: var(--text); font-size: 12px; font-weight: 600; white-space: nowrap; }
 .empty { text-align: center; padding: 48px 20px; color: var(--muted); }
 .empty svg { width: 52px; height: 52px; opacity: 0.4; margin-bottom: 10px; }
 
