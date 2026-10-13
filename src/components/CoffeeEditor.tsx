@@ -30,6 +30,7 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   const [notes, setNotes] = useState(shown.notes.join(', '))
   const [processDetail, setProcessDetail] = useState(shown.processDetail)
   const [varieties, setVarieties] = useState(coffee.varieties.join(', '))
+  const [sca, setSca] = useState(coffee.scaScore?.toString() ?? '')
   const [fillNote, setFillNote] = useState<string>()
   const set = <K extends keyof CoffeeDraft>(k: K, v: CoffeeDraft[K]) => setC((p) => ({ ...p, [k]: v }))
   const text = (k: 'roaster' | 'name' | 'area' | 'producer', label: string, placeholder?: string) => (
@@ -51,7 +52,9 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   }
 
   function save() {
-    const next: CoffeeDraft = { ...c, varieties: list(varieties) }
+    // SCA scores live between 0 and 100 (specialty is 80+); anything else is treated as not entered.
+    const score = Number(sca.replace(',', '.'))
+    const next: CoffeeDraft = { ...c, varieties: list(varieties), scaScore: sca.trim() && score > 0 && score <= 100 ? score : null }
     // A typed country is matched to ISO codes (for translated names) and an origin group.
     if (country !== countryName(coffee, lang)) {
       const match = lookupCountry(country)
@@ -123,10 +126,17 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
           <span>{t.editor.varieties}</span>
           <input className="input" value={varieties} onChange={(e) => setVarieties(e.target.value)} />
         </label>
-        <label className="field">
-          <span>{t.editor.altitude}</span>
-          <input className="input" inputMode="numeric" value={c.altitude ?? ''} onChange={(e) => set('altitude', e.target.value ? Number(e.target.value.replace(/\D/g, '')) : null)} />
-        </label>
+        <div className="grid-2" style={{ marginTop: 12 }}>
+          <label className="field">
+            <span>{t.editor.altitude}</span>
+            <input className="input" inputMode="numeric" value={c.altitude ?? ''} onChange={(e) => set('altitude', e.target.value ? Number(e.target.value.replace(/\D/g, '')) : null)} />
+          </label>
+          <label className="field">
+            <span>{t.editor.sca}</span>
+            <input className="input" inputMode="decimal" placeholder={t.editor.scaPlaceholder} value={sca} onChange={(e) => setSca(e.target.value.replace(/[^\d.,]/g, ''))} />
+          </label>
+        </div>
+        <p className="muted small" style={{ margin: '6px 4px 14px' }}>{t.editor.scaHint}</p>
         <label className="field">
           <span>{t.editor.notes}</span>
           <input className="input" value={notes} onChange={(e) => setNotes(e.target.value)} />
