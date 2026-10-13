@@ -245,6 +245,8 @@ const en = {
     title: 'Settings',
     language: 'Language',
     labelReading: 'Coffee bag scanning',
+    expand: 'Show all methods and key settings',
+    collapse: 'Hide other methods and key settings',
     providers: {
       gemini: ['Gemini', 'Free AI · reads the whole label · needs a Google key'],
       claude: ['Claude', 'Paid AI · most accurate · needs an Anthropic key'],
@@ -592,6 +594,8 @@ const ru: Dict = {
     title: 'Настройки',
     language: 'Язык',
     labelReading: 'Сканирование пачек',
+    expand: 'Показать все способы и настройки ключа',
+    collapse: 'Скрыть другие способы и настройки ключа',
     providers: {
       gemini: ['Gemini', 'Бесплатный ИИ · читает всю этикетку · нужен ключ Google'],
       claude: ['Claude', 'Платный ИИ · самый точный · нужен ключ Anthropic'],

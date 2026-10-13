@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { exportBackup, importBackup, mergeBackup, requestPersistence } from '../db'
-import { AI_FIELDS, PROVIDERS, saveSettings, usesAI, useSettings, type AIProvider } from '../settings'
+import { AI_FIELDS, needsKey, PROVIDERS, saveSettings, usesAI, useSettings, type AIProvider } from '../settings'
+import { ChevronIcon } from '../components/icons'
 import { LANG_NAMES, useLang, useT } from '../i18n'
 import { ScanError } from '../errors'
 import { DriveSection } from '../components/DriveSection'
@@ -18,6 +19,8 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
   const t = useT()
   const lang = useLang()
   const settings = useSettings()
+  // Only the chosen method shows until expanded; it opens by itself while a needed key is missing.
+  const [expanded, setExpanded] = useState(() => needsKey(settings))
   // The key card belongs to the selected AI provider (Without AI has none; Gemini fields fill in).
   const ai: AIProvider = usesAI(settings.provider) ? settings.provider : 'gemini'
   const { key: keyField, model: modelField, models } = AI_FIELDS[ai]
@@ -113,17 +116,32 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
 
       <h2 className="section">{t.settings.labelReading}</h2>
       <div className="choices">
-        {PROVIDERS.map((p) => (
-          <button key={p} className={`choice${settings.provider === p ? ' on' : ''}`} onClick={() => saveSettings({ provider: p })} aria-pressed={settings.provider === p}>
-            <span className="radio" />
-            <span>
-              <b>{t.settings.providers[p][0]}</b>
-              <span className="sub">{t.settings.providers[p][1]}</span>
-            </span>
-          </button>
-        ))}
+        {PROVIDERS.filter((p) => expanded || p === settings.provider).map((p) => {
+          const chosen = settings.provider === p
+          return (
+            <button
+              key={p}
+              className={`choice${chosen ? ' on' : ''}`}
+              // The chosen card opens and closes the section; the others switch method.
+              onClick={() => (chosen ? setExpanded((v) => !v) : saveSettings({ provider: p }))}
+              aria-pressed={chosen}
+              aria-expanded={chosen ? expanded : undefined}
+            >
+              <span className="radio" />
+              <span style={{ flex: 1 }}>
+                <b>{t.settings.providers[p][0]}</b>
+                <span className="sub">{t.settings.providers[p][1]}</span>
+              </span>
+              {chosen && (
+                <span className={`chevron${expanded ? ' open' : ''}`} aria-label={expanded ? t.settings.collapse : t.settings.expand}>
+                  <ChevronIcon />
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
-      {usesAI(settings.provider) ? (
+      {!expanded ? null : usesAI(settings.provider) ? (
         <div className="card" style={{ marginTop: 12 }}>
           <label className="field">
             <span>{keyCopy.label}</span>

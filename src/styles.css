@@ -399,6 +399,12 @@ textarea.input { min-height: 84px; resize: vertical; }
 .choice.on .radio { border-color: var(--accent); }
 .choice.on .radio::after { content: ''; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
 .choice b { display: block; font-size: 16px; }
+.chevron {
+  flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--surface-2); color: var(--muted); transition: transform 0.2s ease;
+}
+.chevron svg { width: 20px; height: 20px; }
+.chevron.open { transform: rotate(180deg); background: var(--accent-soft); color: var(--accent); }
 .choice .sub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
 
 /* Editor: taste profile dots */
