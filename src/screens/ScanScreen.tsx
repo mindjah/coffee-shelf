@@ -15,6 +15,7 @@ import { CoffeeEditor } from '../components/CoffeeEditor'
 import { PredictionCard } from '../components/PredictionCard'
 import { Stars } from '../components/Stars'
 import { BeanIcon, CameraIcon, PlusIcon } from '../components/icons'
+import { Avatar } from '../components/Avatar'
 
 interface Props {
   model: Model
@@ -292,7 +293,11 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   return (
     <div className="screen">
       {inputs}
-      <h1 className="screen-title">Coffee Shelf</h1>
+      <div className="row title-row">
+        <h1 className="screen-title">Coffee Shelf</h1>
+        <span className="spacer" />
+        <Avatar onClick={onOpenSettings} label={t.tabs.settings} />
+      </div>
       <p className="screen-sub">{t.scan.subtitle}</p>
       {!reading && (
         <div className="segmented" role="tablist">

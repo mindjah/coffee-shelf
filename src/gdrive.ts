@@ -9,7 +9,8 @@ import { useSyncExternalStore } from 'react'
 import { GOOGLE_CLIENT_ID } from './config'
 import { exportBackup, importBackup, lastChange, onShelfChange } from './db'
 
-const SCOPES = 'openid email https://www.googleapis.com/auth/drive.appdata'
+// "profile" only adds the name and picture shown as the avatar.
+const SCOPES = 'openid email profile https://www.googleapis.com/auth/drive.appdata'
 const FILE_NAME = 'coffee-shelf-backup.json'
 const KEY = 'coffee-shelf.drive'
 const AUTO_BACKUP_DELAY_MS = 4000
@@ -18,6 +19,9 @@ type Intent = 'connect' | 'backup' | 'restore'
 
 interface Stored {
   email?: string
+  name?: string
+  /** Google profile picture URL (needs the "profile" permission). */
+  picture?: string
   token?: string
   /** ms timestamp */
   expiresAt?: number
@@ -154,7 +158,8 @@ export async function handleRedirect() {
   update({ token, expiresAt: Date.now() + Number(params.get('expires_in') ?? 3600) * 1000, pending: undefined })
   try {
     const me = await api('https://www.googleapis.com/oauth2/v3/userinfo')
-    update({ email: (await me.json()).email })
+    const { email, name, picture } = await me.json()
+    update({ email, name, picture })
   } catch {
     // The email is only for display; carry on without it.
   }

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { backupNow, cameBackFromSignIn, restoreFromDrive, signIn, signOut, useDrive } from '../gdrive'
 import { useLang, useT } from '../i18n'
+import { Avatar } from './Avatar'
 
 /** Settings block for Google Drive backup; hidden until a Google client ID is configured. */
 export function DriveSection() {
@@ -26,7 +27,12 @@ export function DriveSection() {
           </>
         ) : (
           <>
-            {drive.email && <div style={{ fontWeight: 600 }}>{t.drive.signedInAs(drive.email)}</div>}
+            {drive.email && (
+              <div className="row">
+                <Avatar size="large" />
+                <div style={{ fontWeight: 600, minWidth: 0, overflowWrap: 'anywhere' }}>{t.drive.signedInAs(drive.email)}</div>
+              </div>
+            )}
             {!drive.choose && <div className="muted small">
               {drive.busy === 'backup' ? t.drive.backingUp
                 : drive.busy === 'restore' ? t.drive.restoring
