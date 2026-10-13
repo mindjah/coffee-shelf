@@ -3,7 +3,7 @@ import { backupNow, restoreFromDrive, signIn, signOut, takeDriveFocus, useDrive 
 import { useLang, useT } from '../i18n'
 import { Avatar } from './Avatar'
 import { Linkify } from './Linkify'
-import { CardInfo } from './CardInfo'
+import { SectionHeader } from './SectionHeader'
 
 /** Settings block for Google Drive backup; hidden until a Google client ID is configured. */
 export function DriveSection() {
@@ -20,8 +20,8 @@ export function DriveSection() {
 
   return (
     <>
-      <h2 className="section" ref={anchor} style={{ scrollMarginTop: 'calc(var(--safe-top) + 12px)' }}>{t.drive.title}</h2>
-      <div className={`card stack${drive.signedIn ? ' has-info' : ''}`}>
+      <SectionHeader title={t.drive.title} headingRef={anchor} info={drive.signedIn ? t.drive.auto : undefined} />
+      <div className="card stack">
         {!drive.signedIn ? (
           <>
             <p className="muted small" style={{ margin: 0 }}>{t.drive.hint}</p>
@@ -29,9 +29,8 @@ export function DriveSection() {
           </>
         ) : (
           <>
-            <CardInfo>{t.drive.auto}</CardInfo>
             {drive.email && (
-              <div className="row info-clear">
+              <div className="row">
                 <Avatar size="large" />
                 <div style={{ fontWeight: 600, minWidth: 0, overflowWrap: 'anywhere' }}>{t.drive.signedInAs(drive.email)}</div>
               </div>

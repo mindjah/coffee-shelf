@@ -3,6 +3,7 @@ import type { Coffee } from '../types'
 import { useT } from '../i18n'
 import { Bookcase } from './Bookcase'
 import { Sheet } from './Sheet'
+import { SectionHeader } from './SectionHeader'
 
 const PREVIEW = 3 // one shelf
 
@@ -16,7 +17,10 @@ export function ArchiveSection({ archived, onOpen }: { archived: Coffee[]; onOpe
   const open = (c: Coffee) => onOpen(c.id!)
   return (
     <>
-      <h2 className="section">{t.archive.title}</h2>
+      <SectionHeader
+        title={t.archive.title}
+        info={t.archive.about.map((line, i) => <p key={i} style={{ margin: i ? '8px 0 0' : 0 }}>{line}</p>)}
+      />
       {archived.length === 0 ? (
         <p className="muted small" style={{ margin: '0 4px' }}>{t.archive.empty}</p>
       ) : (

@@ -105,6 +105,11 @@ const en = {
     empty: 'Nothing here yet. “Move to archive” on a coffee’s page puts it here — it leaves the shelf and your taste profile but isn’t deleted.',
     hint: 'Tap a bag to open it and restore it to the shelf.',
     openAll: (n: number) => `Open the whole archive (${n})`,
+    about: [
+      'The archive keeps coffees you no longer want on your shelf without deleting them.',
+      'While a coffee is archived it is hidden from the Shelf, its filters and comparisons, and it doesn’t count toward your taste profile, the stats on the Taste tab or predictions for new bags.',
+      'Its rating, notes and photo are kept, it stays in your backups, and you can put it back on the shelf any time: open it here and tap “Restore from archive”.',
+    ],
     count: (n: number) => `${n} ${n === 1 ? 'coffee' : 'coffees'} gathering dust`,
   },
   compare: {
@@ -457,6 +462,11 @@ const ru: Dict = {
     empty: 'Пока пусто. Кнопка «Переместить в архив» на странице кофе отправит его сюда — он уйдёт с полки и из вкусового профиля, но не удалится.',
     hint: 'Нажмите на пачку, чтобы открыть её и вернуть на полку.',
     openAll: (n) => `Открыть весь архив (${n})`,
+    about: [
+      'Архив хранит кофе, который вы больше не хотите видеть на полке, не удаляя его.',
+      'Пока кофе в архиве, его нет на полке, в фильтрах и сравнении, и он не учитывается во вкусовом профиле, статистике на вкладке «Вкус» и прогнозах для новых пачек.',
+      'Оценка, заметки и фото сохраняются, кофе остаётся в резервных копиях, и его можно вернуть на полку в любой момент: откройте его здесь и нажмите «Вернуть из архива».',
+    ],
     count: (n) => `Пылится кофе: ${n}`,
   },
   compare: {

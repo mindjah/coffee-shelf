@@ -7,7 +7,7 @@ import { ScanError } from '../errors'
 import { DriveSection } from '../components/DriveSection'
 import { Linkify } from '../components/Linkify'
 import { ArchiveSection } from '../components/ArchiveSection'
-import { CardInfo } from '../components/CardInfo'
+import { SectionHeader } from '../components/SectionHeader'
 import type { Coffee } from '../types'
 
 /**
@@ -181,13 +181,17 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
 
       <DriveSection />
 
-      <h2 className="section">{t.settings.yourData}</h2>
-      <div className="card stack has-info">
-        <CardInfo>
-          <p style={{ margin: '0 0 8px' }}><b>{t.settings.persisted}.</b> {t.settings.persistedInfo}</p>
-          <p style={{ margin: 0 }}>{t.settings.dataHint}</p>
-        </CardInfo>
-        <div className="row small info-clear">
+      <SectionHeader
+        title={t.settings.yourData}
+        info={
+          <>
+            <p style={{ margin: '0 0 8px' }}><b>{t.settings.persisted}.</b> {t.settings.persistedInfo}</p>
+            <p style={{ margin: 0 }}>{t.settings.dataHint}</p>
+          </>
+        }
+      />
+      <div className="card stack">
+        <div className="row small">
           <span>{t.settings.persisted}</span>
           <span className="spacer" />
           {persisted ? <span className="muted">{t.settings.yes}</span> : <button className="btn plain" onClick={async () => setPersisted(await requestPersistence())}>{t.settings.turnOn}</button>}
