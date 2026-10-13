@@ -10,6 +10,7 @@ import { CoffeeThumb } from '../components/CoffeeThumb'
 import { CompareIcon, ShelfIcon } from '../components/icons'
 import { DriveBanner } from '../components/DriveSection'
 import { useShelfFilters } from '../components/ShelfFilters'
+import { Bookcase } from '../components/Bookcase'
 
 function Row({ coffee, onOpen }: { coffee: Coffee; onOpen: () => void }) {
   const t = useT()
@@ -27,41 +28,6 @@ function Row({ coffee, onOpen }: { coffee: Coffee; onOpen: () => void }) {
       </div>
       {coffee.rating != null ? <span className="badge">{coffee.rating.toFixed(1)}</span> : <span className="badge todo">{t.shelf.todo}</span>}
     </button>
-  )
-}
-
-const GENERIC_WORDS = new Set(['coffee', 'coffees', 'roaster', 'roasters', 'roastery', 'roasting', 'roasted', 'roastworks', 'cafe', 'café', 'the', 'co', 'company', 'lab', 'кофе', 'кофейня', 'обжарщик', 'обжарка'])
-
-/** One word for the label above a bag: the first distinctive word of the roaster's name. */
-function roasterWord(roaster: string): string {
-  const words = roaster.replace(/\(.*?\)/g, ' ').split(/[\s&+,.·/-]+/).filter(Boolean)
-  return words.find((w) => !GENERIC_WORDS.has(w.toLowerCase())) ?? words[0] ?? ''
-}
-
-/** Compact view: bags standing three to a wooden shelf, roaster word above each. */
-function Bookcase({ coffees, onOpen }: { coffees: Coffee[]; onOpen: (id: number) => void }) {
-  const t = useT()
-  const shelves: Coffee[][] = []
-  for (let i = 0; i < coffees.length; i += 3) shelves.push(coffees.slice(i, i + 3))
-  return (
-    <div className="bookcase">
-      {shelves.map((row, i) => (
-        <div className="bookcase-shelf" key={i}>
-          <div className="bookcase-row">
-            {row.map((c) => (
-              <button key={c.id} className="bag" onClick={() => onOpen(c.id!)} aria-label={`${c.roaster} ${c.name}`.trim()}>
-                <span className="bag-label">{roasterWord(c.roaster) || t.common.unknownRoaster}</span>
-                <span className="bag-body">
-                  <CoffeeThumb photo={c.photo} className="bag-photo" zoomable={false} />
-                  {c.rating != null && <span className="bag-rating">{c.rating.toFixed(1)}</span>}
-                </span>
-              </button>
-            ))}
-          </div>
-          <div className="plank" />
-        </div>
-      ))}
-    </div>
   )
 }
 
@@ -93,7 +59,7 @@ export function LibraryScreen({ coffees, model, onOpen }: { coffees: Coffee[]; m
           )}
         </div>
       ) : view === 'compact' ? (
-        <Bookcase coffees={shown} onOpen={onOpen} />
+        <Bookcase coffees={shown} onPick={(c) => onOpen(c.id!)} />
       ) : (
         shown.map((c) => <Row key={c.id} coffee={c} onOpen={() => onOpen(c.id!)} />)
       )}

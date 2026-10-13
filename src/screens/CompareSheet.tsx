@@ -8,6 +8,7 @@ import { CoffeeThumb } from '../components/CoffeeThumb'
 import { Sheet } from '../components/Sheet'
 import { Stars } from '../components/Stars'
 import { useShelfFilters } from '../components/ShelfFilters'
+import { Bookcase } from '../components/Bookcase'
 
 interface Props {
   items: CompareItem[]
@@ -26,7 +27,7 @@ function ShelfPicker({ coffees, items, onClose }: { coffees: Coffee[]; items: Co
   const lang = useLang()
   const [message, setMessage] = useState<string>()
   // Same search, filters and order as the Shelf.
-  const { controls, shown, filtering, clearFilters } = useShelfFilters(coffees)
+  const { controls, shown, view, filtering, clearFilters } = useShelfFilters(coffees, { withView: true })
 
   async function toggle(c: Coffee) {
     const existing = items.find((i) => i.coffeeId === c.id)
@@ -49,7 +50,10 @@ function ShelfPicker({ coffees, items, onClose }: { coffees: Coffee[]; items: Co
               {filtering && <button className="btn plain" onClick={clearFilters}>{t.shelf.clearFilters}</button>}
             </div>
           )}
-          {shown.map((c) => {
+          {view === 'compact' && shown.length > 0 && (
+            <Bookcase coffees={shown} onPick={toggle} selected={(c) => items.some((i) => i.coffeeId === c.id)} />
+          )}
+          {view === 'list' && shown.map((c) => {
             const on = items.some((i) => i.coffeeId === c.id)
             return (
               <button key={c.id} className={`card list-item pick${on ? ' on' : ''}`} onClick={() => toggle(c)} aria-pressed={on}>
