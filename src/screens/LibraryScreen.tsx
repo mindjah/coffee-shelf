@@ -50,6 +50,34 @@ function options(coffees: Coffee[], key: (c: Coffee) => string, label: (c: Coffe
   return [...m.entries()].sort((a, b) => b[1].n - a[1].n || a[1].label.localeCompare(b[1].label))
 }
 
+type Sort = 'newest' | 'ratingDesc' | 'ratingAsc'
+const SORTS: Sort[] = ['newest', 'ratingDesc', 'ratingAsc']
+const SORT_KEY = 'coffee-shelf.shelfSort'
+
+function readSort(): Sort {
+  try {
+    const s = localStorage.getItem(SORT_KEY) as Sort
+    return SORTS.includes(s) ? s : 'newest'
+  } catch {
+    return 'newest'
+  }
+}
+
+/** Rating orders keep unrated coffees at the end; ties fall back to newest first. */
+function compare(sort: Sort) {
+  return (a: Coffee, b: Coffee) => {
+    if (sort !== 'newest') {
+      if (a.rating == null || b.rating == null) {
+        if (a.rating != null) return -1
+        if (b.rating != null) return 1
+      } else if (a.rating !== b.rating) {
+        return sort === 'ratingDesc' ? b.rating - a.rating : a.rating - b.rating
+      }
+    }
+    return b.createdAt - a.createdAt
+  }
+}
+
 export function LibraryScreen({ coffees, onOpen }: { coffees: Coffee[]; onOpen: (id: number) => void }) {
   const t = useT()
   const lang = useLang()
@@ -57,6 +85,15 @@ export function LibraryScreen({ coffees, onOpen }: { coffees: Coffee[]; onOpen: 
   const [query, setQuery] = useState('')
   const [roaster, setRoaster] = useState('')
   const [country, setCountry] = useState('')
+  const [sort, setSort] = useState<Sort>(readSort)
+  const chooseSort = (s: Sort) => {
+    setSort(s)
+    try {
+      localStorage.setItem(SORT_KEY, s)
+    } catch {
+      // Not remembered in private mode; sorting still works.
+    }
+  }
   const q = query.trim().toLowerCase()
   const roasterKey = (c: Coffee) => c.roaster.trim().toLowerCase()
   const roasters = useMemo(() => options(coffees, roasterKey, (c) => c.roaster.trim()), [coffees])
@@ -66,7 +103,7 @@ export function LibraryScreen({ coffees, onOpen }: { coffees: Coffee[]; onOpen: 
     .filter((c) => !roaster || roasterKey(c) === roaster)
     .filter((c) => !country || countryKey(c) === country)
     .filter((c) => !q || haystack(c).includes(q))
-    .sort((a, b) => b.createdAt - a.createdAt)
+    .sort(compare(sort))
 
   return (
     <div className="screen">
@@ -83,6 +120,9 @@ export function LibraryScreen({ coffees, onOpen }: { coffees: Coffee[]; onOpen: 
           <select className={`input${country ? ' active' : ''}`} value={country} onChange={(e) => setCountry(e.target.value)} aria-label={t.shelf.country}>
             <option value="">{t.shelf.allCountries}</option>
             {countries.map(([k, o]) => <option key={k} value={k}>{o.label} ({o.n})</option>)}
+          </select>
+          <select className="input shelf-sort" value={sort} onChange={(e) => chooseSort(e.target.value as Sort)} aria-label={t.shelf.sort}>
+            {SORTS.map((s) => <option key={s} value={s}>{t.shelf.sorts[s]}</option>)}
           </select>
         </div>
       )}
