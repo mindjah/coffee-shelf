@@ -1,7 +1,7 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Coffee } from '../types'
 import { countryName, useLang, useT } from '../i18n'
-import { FilterIcon, ListViewIcon, ShelfViewIcon, SortIcon } from './icons'
+import { ClearIcon, FilterIcon, ListViewIcon, ShelfViewIcon, SortIcon } from './icons'
 import { groupRoasters } from '../roaster'
 
 // Search, the filter button and its panel (roaster, country, sort, view, rated) shared by the
@@ -93,6 +93,7 @@ export function useShelfFilters(coffees: Coffee[], { withView = false } = {}): S
   const [sort, setSort] = useState<Sort>(() => remembered(SORT_KEY, SORTS, 'newest'))
   const [view, setView] = useState<ShelfView>(() => (withView ? remembered(VIEW_KEY, VIEWS, 'list') : 'list'))
   const [open, setOpen] = useState(false)
+  const searchRef = useRef<HTMLInputElement>(null)
 
   const filtering = !!roaster || !!country || filter !== 'all'
   const clearFilters = () => (setRoaster(''), setCountry(''), setFilter('all'))
@@ -112,7 +113,15 @@ export function useShelfFilters(coffees: Coffee[], { withView = false } = {}): S
   const controls = (
     <>
       <div className="search-row">
-        <input className="input" type="search" placeholder={t.shelf.search} value={query} onChange={(e) => setQuery(e.target.value)} />
+        <div className="search-field">
+          <input ref={searchRef} className="input" type="search" placeholder={t.shelf.search} value={query} onChange={(e) => setQuery(e.target.value)} />
+          {query && (
+            // Clears the search and keeps the cursor there for a new query.
+            <button type="button" className="search-clear" onClick={() => (setQuery(''), searchRef.current?.focus())} aria-label={t.shelf.clearSearch}>
+              <ClearIcon />
+            </button>
+          )}
+        </div>
         {withView && coffees.length > 0 && (
           // One tap swaps List ↔ Compact shelf; the icon shows the view you'll switch to.
           <button

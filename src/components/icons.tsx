@@ -27,6 +27,10 @@ export const ListViewIcon = () => <svg {...base}><rect x="3.5" y="4.5" width="5"
 export const ShelfViewIcon = () => <svg {...base}><rect x="3" y="7" width="5" height="10" rx="1" /><rect x="9.5" y="7" width="5" height="10" rx="1" /><rect x="16" y="7" width="5" height="10" rx="1" /><path d="M2 20h20" /></svg>
 /** Sort: lines shortening downward with an arrow. */
 export const SortIcon = () => <svg {...base}><path d="M4 6h9M4 12h6M4 18h3" /><path d="M17.5 5v14M14.5 16l3 3 3-3" /></svg>
+/** ⓧ: filled circle with a cut-out cross. */
+export const ClearIcon = () => (
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor" /><path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="var(--surface)" strokeWidth="2" strokeLinecap="round" /></svg>
+)
 export const ChevronIcon = () => <svg {...base}><path d="m6 9 6 6 6-6" /></svg>
 /** Share-style arrow out of a tray: save or send. */
 export const SaveIcon = () => <svg {...base}><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" /><path d="M5 12v6.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V12" /></svg>
