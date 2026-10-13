@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { clearPendingScan, db, loadPendingScan, savePendingScan } from '../db'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { clearPendingScan, db, loadPendingScan, MAX_COMPARE, savePendingScan } from '../db'
+import { CompareSheet } from './CompareSheet'
 import { ScanError } from '../errors'
 import { resizeImage } from '../image'
 import { MIN_RATINGS, predict, type Model } from '../recommend'
@@ -82,6 +84,9 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const [ocr, setOcr] = useState<OcrProgress>()
   const [ocrText, setOcrText] = useState('')
   const reader = useRef<AbortController>(undefined)
+  const compareItems = useLiveQuery(() => db.compare.orderBy('addedAt').toArray(), []) ?? []
+  const [comparing, setComparing] = useState(false)
+  const [notice, setNotice] = useState<string>()
 
   // Restore an unsaved scan from the last session, then keep it saved as it changes so it
   // survives iOS closing the app in the background. An interrupted read just needs a retry.
@@ -139,6 +144,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   async function addFiles(files: FileList | null) {
     if (!files?.length) return
     setError(undefined)
+    setNotice(undefined)
     try {
       const resized = await Promise.all([...files].map((f) => resizeImage(f, 1600)))
       setShots((s) => [...s, ...resized].slice(0, 3))
@@ -204,6 +210,16 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     setComment('')
     setError(undefined)
     setOcrText('')
+    setNotice(undefined)
+  }
+
+  /** Shop flow: park this bag for side-by-side comparison and get ready for the next one. */
+  async function addToCompare() {
+    if (!draft) return
+    if (compareItems.length >= MAX_COMPARE) return setNotice(t.compare.full(MAX_COMPARE))
+    await db.compare.add({ addedAt: Date.now(), draft })
+    reset()
+    setNotice(t.compare.added)
   }
 
   async function save(withRating: boolean) {
@@ -262,6 +278,8 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
           </div>
           <button className="btn block" disabled={rating == null} onClick={() => save(true)}>{t.scan.saveRated}</button>
           <button className="btn ghost block" onClick={() => save(false)}>{t.scan.saveLater}</button>
+          <button className="btn ghost block" onClick={addToCompare}>{t.compare.add}</button>
+          {notice && <div className="notice">{notice}</div>}
           <button className="btn danger block" onClick={reset}>{t.scan.discard}</button>
         </div>
         {editing && (
@@ -353,12 +371,22 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
         </div>
       )}
 
+      {!reading && compareItems.length > 0 && (
+        <div className="card compare-bar">
+          <b style={{ flex: 1 }}>{t.compare.bar(compareItems.length)}</b>
+          <button className="btn" onClick={() => setComparing(true)}>{t.compare.open}</button>
+        </div>
+      )}
+      {notice && !reading && <div className="notice">{notice}</div>}
+
       {error && (
         <div className="error" style={{ marginTop: 14 }}>
           {error.code === 'photo' ? t.scan.photoError : t.errors[error.code]}
           {error.detail && `: ${error.detail}`}
         </div>
       )}
+
+      {comparing && <CompareSheet items={compareItems} model={model} coffees={coffees} onClose={() => setComparing(false)} />}
 
       {!reading && shots.length === 0 && (
         <>

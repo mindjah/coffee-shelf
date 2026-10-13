@@ -36,6 +36,12 @@ The workflow in `.github/workflows/deploy.yml` builds with the right `/<repo>/` 
 On the iPhone: open the Pages URL in Safari → Share → **Add to Home Screen**, then add your API key
 in the app's Settings.
 
+## In the shop
+
+Scan a bag → **Add to comparison** → scan the next one (up to 6). **Compare** on the Scan screen
+shows the bags side by side, best predicted match first, with SCA score, origin, process, roast,
+notes and the reasons behind each prediction. The comparison is kept on the device until cleared.
+
 ## How predictions work (`src/recommend.ts`)
 
 Each coffee becomes a feature vector: 13 flavor categories based on the SCA flavor wheel,

@@ -11,12 +11,22 @@ export interface PendingScan {
   comment: string
 }
 
+/** A scanned bag held for side-by-side comparison in the shop, not yet on the shelf. */
+export interface CompareItem {
+  id?: number
+  addedAt: number
+  draft: CoffeeDraft
+}
+
+export const MAX_COMPARE = 6
+
 export const db = new Dexie('coffee-shelf') as Dexie & {
   coffees: EntityTable<Coffee, 'id'>
   pending: Table<PendingScan, string>
+  compare: EntityTable<CompareItem, 'id'>
 }
 
-db.version(2).stores({ coffees: '++id, createdAt, rating, roaster', pending: '' })
+db.version(3).stores({ coffees: '++id, createdAt, rating, roaster', pending: '', compare: '++id, addedAt' })
 
 const PENDING_KEY = 'scan'
 export const loadPendingScan = () => db.pending.get(PENDING_KEY)
