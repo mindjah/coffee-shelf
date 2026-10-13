@@ -103,7 +103,7 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
   const langs: ['en' | 'ru', string][] = [['en', LANG_NAMES.en], ['ru', LANG_NAMES.ru]]
 
   return (
-    <div className="screen">
+    <div className="screen settings-screen">
       <h1 className="screen-title">{t.settings.title}</h1>
 
       <h2 className="section">{t.settings.language}</h2>

@@ -230,6 +230,10 @@ h2.section {
 .coffee-head { display: flex; gap: 14px; }
 .thumb { flex: none; width: 64px; height: 84px; border-radius: 12px; object-fit: cover; background: var(--surface-2); }
 .roaster { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); }
+/* Settings: more air between sections; the first stays close to the page title */
+.settings-screen > h2.section, .settings-screen > .section-head { margin-top: 44px; }
+.settings-screen > .screen-title + h2.section { margin-top: 20px; }
+
 /* Section title with an ⓘ on the right; the explanation opens under the title */
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 28px 4px 10px; }
 .section-head .section { margin: 0; }
