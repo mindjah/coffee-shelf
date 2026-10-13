@@ -1,0 +1,91 @@
+import { MIN_RATINGS, tasteSummary, type Model } from '../recommend'
+import type { Coffee } from '../types'
+import { reasonText, useT } from '../i18n'
+import { TasteIcon } from '../components/icons'
+
+function groupAverages(rated: Coffee[], key: (c: Coffee) => string | null) {
+  const groups = new Map<string, number[]>()
+  for (const c of rated) {
+    const k = key(c)
+    if (!k) continue
+    groups.set(k, [...(groups.get(k) ?? []), c.rating!])
+  }
+  return [...groups.entries()]
+    .map(([label, rs]) => ({ label, avg: rs.reduce((a, b) => a + b, 0) / rs.length, n: rs.length }))
+    .sort((a, b) => b.avg - a.avg)
+}
+
+function Breakdown({ title, rows }: { title: string; rows: { label: string; avg: number; n: number }[] }) {
+  if (rows.length < 2) return null
+  return (
+    <>
+      <h2 className="section">{title}</h2>
+      <div className="card">
+        {rows.map((r) => (
+          <div className="pref" key={r.label}>
+            <span>{r.label} <span className="muted small">· {r.n}</span></span>
+            <b>{r.avg.toFixed(1)}</b>
+            <span className="bar"><i style={{ width: `${(r.avg / 5) * 100}%` }} /></span>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: Model }) {
+  const t = useT()
+  const rated = coffees.filter((c) => c.rating != null)
+  const taste = tasteSummary(model)
+  const roasters = groupAverages(rated, (c) => c.roaster || null).filter((r) => r.n >= 2).slice(0, 3)
+
+  return (
+    <div className="screen">
+      <h1 className="screen-title">{t.taste.title}</h1>
+      <p className="screen-sub">{t.taste.subtitle}</p>
+
+      {rated.length < MIN_RATINGS ? (
+        <div className="empty">
+          <TasteIcon />
+          <div>{t.taste.needMore(MIN_RATINGS)}</div>
+        </div>
+      ) : (
+        <>
+          <div className="stat-row">
+            <div className="stat"><b>{rated.length}</b><span>{t.taste.rated}</span></div>
+            <div className="stat"><b>{model.mean.toFixed(1)}</b><span>{t.taste.average}</span></div>
+            <div className="stat"><b>{coffees.length - rated.length}</b><span>{t.taste.toTry}</span></div>
+          </div>
+
+          {taste ? (
+            <>
+              {taste.likes.length > 0 && (
+                <>
+                  <h2 className="section">{t.taste.higher}</h2>
+                  <div className="card"><ul className="taste-list">
+                    {taste.likes.map((r) => <li key={r.id}><span className="sign up">+</span>{reasonText(t, r, true)}</li>)}
+                  </ul></div>
+                </>
+              )}
+              {taste.dislikes.length > 0 && (
+                <>
+                  <h2 className="section">{t.taste.lower}</h2>
+                  <div className="card"><ul className="taste-list">
+                    {taste.dislikes.map((r) => <li key={r.id}><span className="sign down">−</span>{reasonText(t, r, true)}</li>)}
+                  </ul></div>
+                </>
+              )}
+            </>
+          ) : (
+            <p className="muted small" style={{ margin: '16px 4px 0' }}>{t.taste.fewMore}</p>
+          )}
+
+          <Breakdown title={t.taste.byProcess} rows={groupAverages(rated, (c) => (c.process === 'unknown' ? null : t.process[c.process]))} />
+          <Breakdown title={t.taste.byOrigin} rows={groupAverages(rated, (c) => (c.region === 'unknown' ? null : t.region[c.region]))} />
+          <Breakdown title={t.taste.byRoast} rows={groupAverages(rated, (c) => (c.roast === 'unknown' ? null : t.roast[c.roast]))} />
+          {roasters.length > 0 && <Breakdown title={t.taste.roasters} rows={roasters} />}
+        </>
+      )}
+    </div>
+  )
+}
