@@ -60,7 +60,7 @@ img { display: block; }
 .screen {
   max-width: 640px;
   margin: 0 auto;
-  padding: calc(var(--safe-top) + 12px) 16px calc(var(--safe-bottom) + 110px);
+  padding: calc(var(--safe-top) + 12px) 16px calc(var(--safe-bottom) + 96px);
 }
 .screen-title {
   font: 600 34px/1.1 var(--serif);
@@ -106,22 +106,25 @@ h2.section {
 .btn.plain { background: transparent; color: var(--accent); padding: 0 8px; min-height: 44px; }
 .btn.danger { background: transparent; color: var(--pass); }
 
-/* Tab bar — floating glass pill */
+/* Tab bar — docked to the bottom edge; the glass fills the home-indicator area */
 .tabbar {
-  position: fixed; left: 50%; transform: translateX(-50%);
-  bottom: calc(var(--safe-bottom) + 10px);
-  display: flex; gap: 4px; padding: 6px;
+  position: fixed; left: 0; right: 0; bottom: 0;
+  display: flex; justify-content: center; gap: 4px;
+  padding: 6px 8px calc(var(--safe-bottom) + 6px);
   background: var(--glass);
   -webkit-backdrop-filter: blur(24px) saturate(1.6);
   backdrop-filter: blur(24px) saturate(1.6);
-  border: 0.5px solid var(--line);
-  border-radius: 999px;
-  box-shadow: var(--shadow);
+  border-top: 0.5px solid var(--line);
   z-index: 20;
+}
+/* Covers any strip below the layout viewport that iOS can leave in standalone mode. */
+.tabbar::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 120px;
+  background: var(--bg);
 }
 .tab {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
-  width: 76px; padding: 7px 0 6px;
+  flex: 1; max-width: 96px; padding: 7px 0 6px;
   border: 0; border-radius: 999px; background: transparent;
   color: var(--muted); font-size: 11px; font-weight: 600;
 }
