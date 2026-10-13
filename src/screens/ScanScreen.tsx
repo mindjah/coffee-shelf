@@ -3,7 +3,7 @@ import { db } from '../db'
 import { ScanError } from '../errors'
 import { resizeImage } from '../image'
 import { MIN_RATINGS, predict, type Model } from '../recommend'
-import { useSettings } from '../settings'
+import { activeKey, useSettings } from '../settings'
 import { useT, type Dict } from '../i18n'
 import type { Coffee, CoffeeDraft } from '../types'
 import { CoffeeSummary, usePhotoUrl } from '../components/CoffeeSummary'
@@ -34,7 +34,7 @@ function Shot({ blob, onRemove }: { blob: Blob; onRemove: () => void }) {
 
 export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const t = useT()
-  const { apiKey } = useSettings()
+  const apiKey = activeKey(useSettings())
   const cameraRef = useRef<HTMLInputElement>(null)
   const libraryRef = useRef<HTMLInputElement>(null)
   const [shots, setShots] = useState<Blob[]>([])
@@ -67,7 +67,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     setReading(true)
     setError(undefined)
     try {
-      const { readBag } = await import('../claude')
+      const { readBag } = await import('../scan')
       const d = await readBag(shots)
       setDraft({ ...d, photo: await (await resizeImage(shots[0], 600, 0.8)).arrayBuffer() })
     } catch (e) {

@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { exportBackup, importBackup, requestPersistence } from '../db'
-import { MODELS, saveSettings, useSettings, type Settings } from '../settings'
+import { GEMINI_MODELS, MODELS, saveSettings, useSettings, type Provider, type Settings } from '../settings'
 import { LANG_NAMES, useT } from '../i18n'
 
 export function SettingsScreen() {
   const t = useT()
   const settings = useSettings()
-  const [key, setKey] = useState(settings.apiKey)
+  const isClaude = settings.provider === 'claude'
+  const keyField = isClaude ? 'apiKey' : 'geminiKey'
+  const modelField = isClaude ? 'model' : 'geminiModel'
+  const models = isClaude ? MODELS : GEMINI_MODELS
+  const [key, setKey] = useState(settings[keyField])
+  // Show the stored key of whichever provider is selected.
+  useEffect(() => setKey(settings[keyField]), [keyField, settings])
   const [persisted, setPersisted] = useState<boolean>()
   const [status, setStatus] = useState<string>()
   const importRef = useRef<HTMLInputElement>(null)
@@ -62,31 +68,39 @@ export function SettingsScreen() {
       </div>
 
       <h2 className="section">{t.settings.labelReading}</h2>
+      <div className="segmented">
+        {(['gemini', 'claude'] as Provider[]).map((p) => (
+          <button key={p} className={settings.provider === p ? 'on' : ''} onClick={() => saveSettings({ provider: p })}>
+            {p === 'gemini' ? t.settings.providerFree : t.settings.providerPaid}
+          </button>
+        ))}
+      </div>
       <div className="card">
         <label className="field">
-          <span>{t.settings.apiKey}</span>
+          <span>{isClaude ? t.settings.apiKey : t.settings.geminiKey}</span>
           <input
             className="input"
             type="password"
             autoComplete="off"
             autoCapitalize="off"
             spellCheck={false}
-            placeholder="sk-ant-…"
+            placeholder={isClaude ? 'sk-ant-…' : 'AIza…'}
             value={key}
             onChange={(e) => setKey(e.target.value)}
-            onBlur={() => saveSettings({ apiKey: key.trim() })}
+            onBlur={() => saveSettings({ [keyField]: key.trim() })}
           />
         </label>
         <label className="field">
           <span>{t.settings.model}</span>
-          <select className="input" value={settings.model} onChange={(e) => saveSettings({ model: e.target.value })}>
-            {MODELS.map((m) => <option key={m.id} value={m.id}>{m.label} — {t.settings.modelHints[m.id]}</option>)}
+          <select className="input" value={settings[modelField]} onChange={(e) => saveSettings({ [modelField]: e.target.value })}>
+            {models.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
           </select>
+          <span className="muted small" style={{ display: 'block', margin: '6px 4px 0' }}>{t.settings.modelHints[settings[modelField]]}</span>
         </label>
-        <button className="btn block" style={{ marginTop: 14 }} disabled={key.trim() === settings.apiKey} onClick={() => saveSettings({ apiKey: key.trim() })}>
-          {key.trim() === settings.apiKey && settings.apiKey ? t.settings.keySaved : t.settings.saveKey}
+        <button className="btn block" style={{ marginTop: 14 }} disabled={key.trim() === settings[keyField]} onClick={() => saveSettings({ [keyField]: key.trim() })}>
+          {key.trim() === settings[keyField] && settings[keyField] ? t.settings.keySaved : t.settings.saveKey}
         </button>
-        <p className="muted small" style={{ margin: '12px 4px 0' }}>{t.settings.keyHint}</p>
+        <p className="muted small" style={{ margin: '12px 4px 0' }}>{isClaude ? t.settings.keyHint : t.settings.geminiHint}</p>
       </div>
 
       <h2 className="section">{t.settings.yourData}</h2>

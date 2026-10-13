@@ -1,11 +1,19 @@
 # Coffee Shelf
 
-A personal specialty-coffee journal for iPhone. Photograph a bag, Claude reads the label
-(roaster, origin, process, roast, tasting notes), you rate it after brewing, and every new bag
-gets a predicted rating based on what you've liked before.
+A personal specialty-coffee journal for iPhone. Photograph a bag, an AI model reads the label
+(roaster, origin, process, roast, tasting notes — English, Spanish, Russian and more), you rate it
+after brewing, and every new bag gets a predicted rating based on what you've liked before.
+English and Russian UI.
 
-Static PWA — no server. Data lives in IndexedDB on the phone; label reading calls the
-Anthropic API directly from the device with your own key.
+Static PWA — no server. Data lives in IndexedDB on the phone. Label reading calls the model
+directly from the device with your own key, chosen in Settings:
+
+- **Google Gemini (default, free)** — key from aistudio.google.com, no card. Free-tier requests
+  have daily limits and may be used by Google to improve its products.
+- **Anthropic Claude (paid)** — key from console.anthropic.com.
+
+`src/extract.ts` holds the shared prompt, schema and mapping; `src/gemini.ts` and `src/claude.ts`
+only handle the API calls.
 
 ## Run locally
 

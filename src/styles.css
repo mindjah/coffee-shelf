@@ -12,7 +12,7 @@
   --like: #9a6c46;
   --maybe: #b8a08a;
   --pass: #a85f48;
-  --glass: rgba(255, 255, 255, 0.72);
+  --glass: rgba(251, 248, 244, 0.97);
   --shadow: 0 1px 2px rgba(30, 23, 20, 0.04), 0 8px 24px rgba(30, 23, 20, 0.06);
   --serif: ui-serif, 'New York', Georgia, serif;
   --sans: -apple-system, system-ui, 'SF Pro Text', sans-serif;
@@ -37,7 +37,7 @@
     --like: #b88a62;
     --maybe: #7d6b5c;
     --pass: #c47a60;
-    --glass: rgba(29, 25, 22, 0.72);
+    --glass: rgba(20, 17, 15, 0.96);
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
   }
 }

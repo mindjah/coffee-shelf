@@ -6,7 +6,20 @@ export const MODELS = [
   { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5' },
 ] as const
 
+/** Both are on the Gemini API free tier. */
+export const GEMINI_MODELS = [
+  { id: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash' },
+  { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash-Lite' },
+] as const
+
+export type Provider = 'gemini' | 'claude'
+
 export interface Settings {
+  /** Gemini is the free default; Claude is the paid alternative. */
+  provider: Provider
+  geminiKey: string
+  geminiModel: string
+  /** Anthropic API key. */
   apiKey: string
   model: string
   /** 'auto' follows the iPhone's language. */
@@ -14,7 +27,18 @@ export interface Settings {
 }
 
 const KEY = 'coffee-shelf.settings'
-const DEFAULTS: Settings = { apiKey: '', model: MODELS[0].id, lang: 'auto' }
+const DEFAULTS: Settings = {
+  provider: 'gemini',
+  geminiKey: '',
+  geminiModel: GEMINI_MODELS[0].id,
+  apiKey: '',
+  model: MODELS[0].id,
+  lang: 'auto',
+}
+
+export function activeKey(s: Settings): string {
+  return s.provider === 'claude' ? s.apiKey : s.geminiKey
+}
 const listeners = new Set<() => void>()
 
 function read(): Settings {
