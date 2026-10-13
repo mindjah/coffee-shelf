@@ -43,7 +43,10 @@
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; height: 100%; }
+html, body { margin: 0; }
+/* iOS Home Screen apps size short pages to the screen minus the status bar, which lifts
+   bottom-pinned elements off the edge; a full-height document keeps them anchored. */
+html { min-height: calc(100% + env(safe-area-inset-top)); }
 body {
   background: var(--bg);
   color: var(--text);
