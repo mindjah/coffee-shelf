@@ -135,6 +135,10 @@ export interface Reason {
   impact: number
 }
 
+/** Verdict band for a 1–5 score, shared by predictions and your own ratings. */
+export const toneFor = (score: number): Prediction['tone'] =>
+  score >= 4.2 ? 'love' : score >= 3.6 ? 'like' : score >= 2.9 ? 'maybe' : 'pass'
+
 export interface Prediction {
   score: number
   confidence: 'low' | 'medium' | 'high'
@@ -171,7 +175,7 @@ export function predict(model: Model, c: CoffeeDraft, excludeId?: number): Predi
 
   const strength = Math.min(1, pool.length / 15) * Math.min(1, wSum / 1.2)
   const confidence = strength > 0.55 ? 'high' : strength > 0.25 ? 'medium' : 'low'
-  const tone = score >= 4.2 ? 'love' : score >= 3.6 ? 'like' : score >= 2.9 ? 'maybe' : 'pass'
+  const tone = toneFor(score)
 
   return {
     score,

@@ -11,11 +11,14 @@ export interface PendingScan {
   comment: string
 }
 
-/** A scanned bag held for side-by-side comparison in the shop, not yet on the shelf. */
+/** A bag held for side-by-side comparison: freshly scanned, or a coffee already on the shelf. */
 export interface CompareItem {
   id?: number
   addedAt: number
+  /** Snapshot of the bag; for shelf coffees the live shelf entry is shown when it still exists. */
   draft: CoffeeDraft
+  /** Set when the item is a coffee from the shelf. */
+  coffeeId?: number
 }
 
 export const MAX_COMPARE = 6
@@ -66,4 +69,16 @@ export async function importBackup(file: File): Promise<number> {
     await db.coffees.bulkAdd(rows)
   })
   return rows.length
+}
+
+export type AddResult = 'added' | 'full' | 'duplicate'
+
+/** Puts a shelf coffee into the comparison next to scanned bags. */
+export async function addShelfToCompare(coffee: Coffee): Promise<AddResult> {
+  const items = await db.compare.toArray()
+  if (items.some((i) => i.coffeeId === coffee.id)) return 'duplicate'
+  if (items.length >= MAX_COMPARE) return 'full'
+  const { id, createdAt: _c, rating: _r, ratedAt: _ra, comment: _co, ...draft } = coffee
+  await db.compare.add({ addedAt: Date.now(), draft, coffeeId: id })
+  return 'added'
 }

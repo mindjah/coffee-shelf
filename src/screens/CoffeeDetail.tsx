@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { db } from '../db'
+import { addShelfToCompare, db, MAX_COMPARE } from '../db'
 import { predict, type Model } from '../recommend'
 import type { Coffee } from '../types'
 import { CoffeeSummary } from '../components/CoffeeSummary'
@@ -13,6 +13,12 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
   const t = useT()
   const lang = useLang()
   const [editing, setEditing] = useState(false)
+  const [compareNote, setCompareNote] = useState<string>()
+
+  async function addToCompare() {
+    const result = await addShelfToCompare(coffee)
+    setCompareNote(result === 'added' ? t.compare.addedFromShelf : result === 'duplicate' ? t.compare.alreadyAdded : t.compare.full(MAX_COMPARE))
+  }
   const [comment, setComment] = useState(coffee.comment)
   const prediction = useMemo(() => (coffee.rating == null ? predict(model, coffee) : null), [model, coffee])
 
@@ -44,6 +50,8 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
         {coffee.rating == null && <PredictionCard prediction={prediction} ratedCount={model.count} />}
         <CoffeeSummary coffee={coffee} />
         <p className="muted small" style={{ textAlign: 'center' }}>{t.coffee.scanned} {new Date(coffee.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+        <button className="btn ghost block" onClick={addToCompare}>{t.compare.add}</button>
+        {compareNote && <div className="notice" style={{ marginTop: 0 }}>{compareNote}</div>}
         <button className="btn danger block" onClick={remove}>{t.coffee.delete}</button>
       </div>
       {editing && (

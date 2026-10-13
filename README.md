@@ -41,6 +41,8 @@ in the app's Settings.
 Scan a bag → **Add to comparison** → scan the next one (up to 6). **Compare** on the Scan screen
 shows the bags side by side, best predicted match first, with SCA score, origin, process, roast,
 notes and the reasons behind each prediction. The comparison is kept on the device until cleared.
+Coffees already on the shelf can join the comparison too (**Add from shelf** in Compare, or **Add
+to comparison** on a coffee's page); rated ones show your own rating instead of a prediction.
 
 ## How predictions work (`src/recommend.ts`)
 
