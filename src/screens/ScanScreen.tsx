@@ -16,6 +16,7 @@ import { PredictionCard } from '../components/PredictionCard'
 import { Stars } from '../components/Stars'
 import { BeanIcon, CameraIcon, PlusIcon } from '../components/icons'
 import { Avatar } from '../components/Avatar'
+import { PourOver } from '../components/PourOver'
 import { focusDriveSection } from '../gdrive'
 import { Linkify } from '../components/Linkify'
 import { openPhoto } from '../components/PhotoViewer'
@@ -314,7 +315,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
 
       {reading ? (
         <div className="card brewing">
-          <BeanIcon />
+          <PourOver />
           {provider === 'ocr' ? (
             <>
               <div className="verdict" style={{ marginTop: 14 }}>

@@ -179,8 +179,30 @@ h2.section {
 .file-input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; }
 
 /* Loading */
-.brewing { text-align: center; padding: 44px 0 28px; }
-.brewing svg { width: 64px; height: 64px; color: var(--accent); animation: bob 1.6s ease-in-out infinite; }
+.brewing {
+  text-align: center; padding: 30px 20px 26px;
+  background: linear-gradient(160deg, #3a2a20, #1e1612); color: #f5efe8;
+}
+.brewing .verdict { color: #f5efe8; }
+.brewing .muted { color: #cdb8a4; }
+.brewing .btn.ghost { background: rgba(255, 255, 255, 0.12); color: #f5efe8; }
+
+/* Pour-over line drawing while a label is read */
+.pourover { width: 104px; height: 135px; color: #f3e6d6; overflow: visible; }
+.po-stream { stroke-dasharray: 5 4; animation: po-pour 0.6s linear infinite; }
+.po-rib { opacity: 0.45; }
+.po-drip { opacity: 0; animation: po-drip 1.5s ease-in infinite; }
+.po-drip.d2 { animation-delay: 0.5s; }
+.po-drip.d3 { animation-delay: 1s; }
+.po-coffee { opacity: 0.3; transform-box: fill-box; transform-origin: bottom; animation: po-fill 9s ease-in-out infinite; }
+@keyframes po-pour { to { stroke-dashoffset: -9; } }
+@keyframes po-drip { 0% { opacity: 0; transform: translateY(0); } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(46px); } }
+@keyframes po-fill { 0% { transform: scaleY(0.04); } 85% { transform: scaleY(0.72); } 100% { transform: scaleY(0.72); } }
+@media (prefers-reduced-motion: reduce) {
+  .po-stream, .po-drip, .po-coffee { animation: none; }
+  .po-drip { opacity: 1; }
+  .po-coffee { transform: scaleY(0.4); }
+}
 @keyframes bob { 50% { transform: translateY(-6px) rotate(-8deg); } }
 .error { background: color-mix(in srgb, var(--pass) 12%, transparent); color: var(--pass); border-radius: 16px; padding: 14px 16px; }
 
