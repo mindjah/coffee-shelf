@@ -9,6 +9,26 @@ import { BagSchema, SYSTEM, USER_PROMPT, toDraft } from './extract'
 // Gemini takes plain JSON Schema; drop the $schema marker it doesn't accept.
 const { $schema: _, ...responseJsonSchema } = z.toJSONSchema(BagSchema) as Record<string, unknown>
 
+function toScanError(e: unknown): unknown {
+  if (e instanceof ApiError) {
+    if (e.status === 429) return new ScanError('rateLimit')
+    if (e.status === 401 || e.status === 403 || /api key/i.test(e.message)) return new ScanError('badKey')
+    if (e.status === 404) return new ScanError('noModel')
+    return new ScanError('api', `${e.status} ${e.message}`.slice(0, 200))
+  }
+  if (e instanceof TypeError) return new ScanError('offline')
+  return e
+}
+
+/** Checks the key and model with a model lookup, which spends no generation quota. */
+export async function testKey(apiKey: string, model: string): Promise<void> {
+  try {
+    await new GoogleGenAI({ apiKey }).models.get({ model })
+  } catch (e) {
+    throw toScanError(e)
+  }
+}
+
 export async function readBag(images: Blob[]): Promise<CoffeeDraft> {
   const { geminiKey, geminiModel } = getSettings()
   if (!geminiKey) throw new ScanError('noKey')
@@ -32,13 +52,7 @@ export async function readBag(images: Blob[]): Promise<CoffeeDraft> {
       },
     })
   } catch (e) {
-    if (e instanceof ApiError) {
-      if (e.status === 429) throw new ScanError('rateLimit')
-      if (e.status === 401 || e.status === 403 || /api key/i.test(e.message)) throw new ScanError('badKey')
-      throw new ScanError('api', `${e.status} ${e.message}`.slice(0, 200))
-    }
-    if (e instanceof TypeError) throw new ScanError('offline')
-    throw e
+    throw toScanError(e)
   }
 
   if (response.promptFeedback?.blockReason) throw new ScanError('refusal')

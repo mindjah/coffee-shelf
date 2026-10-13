@@ -7,6 +7,24 @@ import { ScanError } from './errors'
 import { BagSchema, SYSTEM, USER_PROMPT, toDraft } from './extract'
 
 
+function toScanError(e: unknown): unknown {
+  if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) return new ScanError('badKey')
+  if (e instanceof Anthropic.NotFoundError) return new ScanError('noModel')
+  if (e instanceof Anthropic.RateLimitError) return new ScanError('rateLimit')
+  if (e instanceof Anthropic.APIConnectionError) return new ScanError('offline')
+  if (e instanceof Anthropic.APIError) return new ScanError('api', `${e.status ?? ''} ${e.message}`.trim())
+  return e
+}
+
+/** Checks the key and model with a model lookup, which costs nothing. */
+export async function testKey(apiKey: string, model: string): Promise<void> {
+  try {
+    await new Anthropic({ apiKey, dangerouslyAllowBrowser: true }).models.retrieve(model)
+  } catch (e) {
+    throw toScanError(e)
+  }
+}
+
 export async function readBag(images: Blob[]): Promise<CoffeeDraft> {
   const { apiKey, model } = getSettings()
   if (!apiKey) throw new ScanError('noKey')
@@ -34,11 +52,7 @@ export async function readBag(images: Blob[]): Promise<CoffeeDraft> {
       ...(model === 'claude-opus-5' ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
     })
   } catch (e) {
-    if (e instanceof Anthropic.AuthenticationError) throw new ScanError('badKey')
-    if (e instanceof Anthropic.RateLimitError) throw new ScanError('rateLimit')
-    if (e instanceof Anthropic.APIConnectionError) throw new ScanError('offline')
-    if (e instanceof Anthropic.APIError) throw new ScanError('api', `${e.status ?? ''} ${e.message}`.trim())
-    throw e
+    throw toScanError(e)
   }
 
   if (response.stop_reason === 'refusal') throw new ScanError('refusal')

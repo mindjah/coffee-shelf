@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { exportBackup, importBackup, requestPersistence } from '../db'
 import { GEMINI_MODELS, MODELS, saveSettings, useSettings, type Provider, type Settings } from '../settings'
 import { LANG_NAMES, useT } from '../i18n'
+import { ScanError } from '../errors'
 
 export function SettingsScreen() {
   const t = useT()
@@ -15,6 +16,23 @@ export function SettingsScreen() {
   useEffect(() => setKey(settings[keyField]), [keyField, settings])
   const [persisted, setPersisted] = useState<boolean>()
   const [status, setStatus] = useState<string>()
+  const [check, setCheck] = useState<{ state: 'testing' | 'ok' | 'fail'; message?: string }>()
+  // A result only describes the key, provider and model it was run with.
+  useEffect(() => setCheck(undefined), [key, settings.provider, settings[modelField]])
+
+  async function testKey() {
+    const trimmed = key.trim()
+    setCheck({ state: 'testing' })
+    try {
+      const { testKey } = await import('../scan')
+      await testKey(settings.provider, trimmed, settings[modelField])
+      saveSettings({ [keyField]: trimmed }) // a key that works is worth keeping
+      setCheck({ state: 'ok' })
+    } catch (e) {
+      const message = e instanceof ScanError ? t.errors[e.code] + (e.detail ? `: ${e.detail}` : '') : `${t.errors.unknown}: ${(e as Error).message}`
+      setCheck({ state: 'fail', message })
+    }
+  }
   const importRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -100,6 +118,11 @@ export function SettingsScreen() {
         <button className="btn block" style={{ marginTop: 14 }} disabled={key.trim() === settings[keyField]} onClick={() => saveSettings({ [keyField]: key.trim() })}>
           {key.trim() === settings[keyField] && settings[keyField] ? t.settings.keySaved : t.settings.saveKey}
         </button>
+        <button className="btn ghost block" style={{ marginTop: 10 }} disabled={!key.trim() || check?.state === 'testing'} onClick={testKey}>
+          {check?.state === 'testing' ? t.settings.testing : t.settings.testKey}
+        </button>
+        {check?.state === 'ok' && <div className="small" style={{ margin: '10px 4px 0', color: 'var(--accent)', fontWeight: 600 }}>✓ {t.settings.keyWorks}</div>}
+        {check?.state === 'fail' && <div className="error small" style={{ marginTop: 10 }}>{check.message}</div>}
         <p className="muted small" style={{ margin: '12px 4px 0' }}>{isClaude ? t.settings.keyHint : t.settings.geminiHint}</p>
       </div>
 
