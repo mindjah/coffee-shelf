@@ -16,6 +16,7 @@ import { PredictionCard } from '../components/PredictionCard'
 import { Stars } from '../components/Stars'
 import { BeanIcon, CameraIcon, PlusIcon } from '../components/icons'
 import { Avatar } from '../components/Avatar'
+import { focusDriveSection } from '../gdrive'
 import { openPhoto } from '../components/PhotoViewer'
 
 interface Props {
@@ -297,7 +298,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
       <div className="row title-row">
         <h1 className="screen-title">Coffee Shelf</h1>
         <span className="spacer" />
-        <Avatar onClick={onOpenSettings} label={t.tabs.settings} />
+        <Avatar onClick={() => (focusDriveSection(), onOpenSettings())} label={t.drive.title} />
       </div>
       <p className="screen-sub">{t.scan.subtitle}</p>
       {!reading && (

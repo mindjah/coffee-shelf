@@ -142,10 +142,25 @@ let cameBack = false
 /** True when this launch is the return from Google's sign-in page (the app opens on Settings). */
 export const cameBackFromSignIn = () => cameBack
 
+let focusRequested = false
+
+/** Ask Settings to open at the Google Drive section (e.g. after tapping the avatar). */
+export function focusDriveSection() {
+  focusRequested = true
+}
+
+/** True once per request: after sign-in, or after focusDriveSection(). */
+export function takeDriveFocus(): boolean {
+  const take = focusRequested
+  focusRequested = false
+  return take
+}
+
 /** Call once at startup: picks up the token Google puts in the URL fragment after sign-in. */
 export async function handleRedirect() {
   if (!location.hash.includes('access_token=') && !location.hash.includes('error=')) return
   cameBack = true
+  focusRequested = true
   const params = new URLSearchParams(location.hash.slice(1))
   history.replaceState(null, '', location.pathname + location.search)
   const pending = stored.pending

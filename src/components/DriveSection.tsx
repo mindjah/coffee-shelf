@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { backupNow, cameBackFromSignIn, restoreFromDrive, signIn, signOut, useDrive } from '../gdrive'
+import { backupNow, restoreFromDrive, signIn, signOut, takeDriveFocus, useDrive } from '../gdrive'
 import { useLang, useT } from '../i18n'
 import { Avatar } from './Avatar'
 
@@ -9,9 +9,9 @@ export function DriveSection() {
   const lang = useLang()
   const drive = useDrive()
   const anchor = useRef<HTMLHeadingElement>(null)
-  // Coming back from Google's sign-in page: bring the result into view (after the tab's own scroll reset).
+  // After sign-in or an avatar tap: bring this section into view (after the tab's own scroll reset).
   useEffect(() => {
-    if (cameBackFromSignIn()) setTimeout(() => anchor.current?.scrollIntoView({ block: 'start' }), 50)
+    if (takeDriveFocus()) setTimeout(() => anchor.current?.scrollIntoView({ block: 'start' }), 50)
   }, [])
   if (!drive.enabled) return null
   const when = (ms: number) => new Date(ms).toLocaleString(lang, { dateStyle: 'medium', timeStyle: 'short' })
