@@ -21,6 +21,12 @@ export const GearIcon = () => (
   <svg {...base}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
 )
 export const PlusIcon = () => <svg {...base}><path d="M12 5v14M5 12h14" /></svg>
+/** List view: rows with a picture block. */
+export const ListViewIcon = () => <svg {...base}><rect x="3.5" y="4.5" width="5" height="6" rx="1" /><rect x="3.5" y="13.5" width="5" height="6" rx="1" /><path d="M11.5 6.5h9M11.5 9h5.5M11.5 15.5h9M11.5 18h5.5" /></svg>
+/** Compact shelf view: three bags standing on a plank. */
+export const ShelfViewIcon = () => <svg {...base}><rect x="3" y="7" width="5" height="10" rx="1" /><rect x="9.5" y="7" width="5" height="10" rx="1" /><rect x="16" y="7" width="5" height="10" rx="1" /><path d="M2 20h20" /></svg>
+/** Sort: lines shortening downward with an arrow. */
+export const SortIcon = () => <svg {...base}><path d="M4 6h9M4 12h6M4 18h3" /><path d="M17.5 5v14M14.5 16l3 3 3-3" /></svg>
 export const ChevronIcon = () => <svg {...base}><path d="m6 9 6 6 6-6" /></svg>
 /** Share-style arrow out of a tray: save or send. */
 export const SaveIcon = () => <svg {...base}><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" /><path d="M5 12v6.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V12" /></svg>

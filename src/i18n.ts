@@ -216,7 +216,7 @@ const en = {
   shelf: {
     title: 'Shelf',
     logged: (n: number) => `${n} ${n === 1 ? 'coffee' : 'coffees'} logged`,
-    search: 'Search roaster, origin, notes',
+    search: 'Search the shelf',
     roaster: 'Roaster',
     country: 'Country',
     allRoasters: 'All roasters',
@@ -573,7 +573,7 @@ const ru: Dict = {
   shelf: {
     title: 'Полка',
     logged: (n) => `В дневнике: ${n} кофе`,
-    search: 'Поиск: обжарщик, страна, ноты',
+    search: 'Поиск по полке',
     roaster: 'Обжарщик',
     country: 'Страна',
     allRoasters: 'Все обжарщики',

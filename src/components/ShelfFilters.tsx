@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import type { Coffee } from '../types'
 import { countryName, useLang, useT } from '../i18n'
-import { FilterIcon } from './icons'
+import { FilterIcon, ListViewIcon, ShelfViewIcon, SortIcon } from './icons'
 import { groupRoasters } from '../roaster'
 
 // Search, the filter button and its panel (roaster, country, sort, view, rated) shared by the
@@ -113,6 +113,21 @@ export function useShelfFilters(coffees: Coffee[], { withView = false } = {}): S
     <>
       <div className="search-row">
         <input className="input" type="search" placeholder={t.shelf.search} value={query} onChange={(e) => setQuery(e.target.value)} />
+        {withView && coffees.length > 0 && (
+          // One tap swaps List ↔ Compact shelf; the icon shows the view you'll switch to.
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => {
+              const next: ShelfView = view === 'list' ? 'compact' : 'list'
+              setView(next)
+              remember(VIEW_KEY, next)
+            }}
+            aria-label={view === 'list' ? t.shelf.views.compact : t.shelf.views.list}
+          >
+            {view === 'list' ? <ShelfViewIcon /> : <ListViewIcon />}
+          </button>
+        )}
         {coffees.length > 0 && (
           <button
             type="button"
@@ -126,7 +141,7 @@ export function useShelfFilters(coffees: Coffee[], { withView = false } = {}): S
         )}
       </div>
       {coffees.length > 0 && open && (
-        <div className="grid-2 shelf-filters">
+        <div className="shelf-filters">
           <select className={`input${roaster ? ' active' : ''}`} value={roaster} onChange={(e) => setRoaster(e.target.value)} aria-label={t.shelf.roaster}>
             <option value="">{t.shelf.allRoasters}</option>
             {roasters.map(([k, o]) => <option key={k} value={k}>{o.label} ({o.n})</option>)}
@@ -135,19 +150,13 @@ export function useShelfFilters(coffees: Coffee[], { withView = false } = {}): S
             <option value="">{t.shelf.allCountries}</option>
             {countries.map(([k, o]) => <option key={k} value={k}>{o.label} ({o.n})</option>)}
           </select>
-          <select
-            className={`input${withView ? '' : ' shelf-sort'}`}
-            value={sort}
-            onChange={(e) => (setSort(e.target.value as Sort), remember(SORT_KEY, e.target.value))}
-            aria-label={t.shelf.sort}
-          >
-            {SORTS.map((s) => <option key={s} value={s}>{t.shelf.sorts[s]}</option>)}
-          </select>
-          {withView && (
-            <select className="input" value={view} onChange={(e) => (setView(e.target.value as ShelfView), remember(VIEW_KEY, e.target.value))} aria-label={t.shelf.view}>
-              {VIEWS.map((v) => <option key={v} value={v}>{t.shelf.views[v]}</option>)}
+          {/* Sort as an icon: the invisible select on top opens the usual sort picker. */}
+          <label className={`icon-btn icon-select${sort !== 'newest' ? ' active' : ''}`} title={t.shelf.sorts[sort]}>
+            <SortIcon />
+            <select value={sort} onChange={(e) => (setSort(e.target.value as Sort), remember(SORT_KEY, e.target.value))} aria-label={t.shelf.sort}>
+              {SORTS.map((s) => <option key={s} value={s}>{t.shelf.sorts[s]}</option>)}
             </select>
-          )}
+          </label>
           <div className="segmented shelf-sort" style={{ marginBottom: 0 }}>
             {(['all', 'rated', 'todo'] as Filter[]).map((f) => (
               <button key={f} className={filter === f ? 'on' : ''} onClick={() => setFilter(f)}>

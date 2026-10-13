@@ -319,9 +319,17 @@ textarea.input { min-height: 84px; resize: vertical; }
   background: var(--accent); box-shadow: 0 0 0 2px var(--surface);
 }
 .icon-btn.open.filtering::after { display: none; }
-.shelf-filters { margin-bottom: 14px; animation: fade 0.15s ease; }
-.shelf-filters .input { min-height: 42px; padding: 8px 12px; font-size: 16px; text-overflow: ellipsis; }
+.shelf-filters {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 10px;
+  margin-bottom: 14px; animation: fade 0.15s ease;
+}
 .shelf-filters .shelf-sort { grid-column: 1 / -1; }
+/* Icon that opens a native picker: the select covers it invisibly. */
+.icon-select { position: relative; overflow: hidden; cursor: pointer; }
+.icon-select select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; font-size: 16px; -webkit-appearance: none; appearance: none; }
+.shelf-filters .icon-btn { width: 42px; height: 42px; border-radius: 12px; }
+.icon-btn.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.shelf-filters .input { min-height: 42px; padding: 8px 12px; font-size: 16px; text-overflow: ellipsis; }
 .shelf-filters .input.active { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
 .segmented { display: flex; padding: 3px; border-radius: 12px; background: var(--surface-2); margin-bottom: 14px; }
 .segmented button { flex: 1; min-height: 34px; border: 0; border-radius: 9px; background: transparent; font-size: 14px; font-weight: 600; color: var(--muted); }
