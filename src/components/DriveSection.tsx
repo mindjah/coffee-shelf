@@ -41,7 +41,13 @@ export function DriveSection() {
                 <button className="btn plain block" onClick={() => confirm(t.drive.confirmReplace) && backupNow(true)}>{t.drive.usePhone}</button>
               </div>
             )}
-            {drive.error && <div className="error small">{t.drive.errors[drive.error]}</div>}
+            {drive.error && (
+              <div className="error small">
+                {t.drive.errors[drive.error]}
+                {drive.errorDetail && <div style={{ marginTop: 6, opacity: 0.75, fontSize: 12, overflowWrap: 'anywhere' }}>{t.drive.details}: {drive.errorDetail}</div>}
+              </div>
+            )}
+            {drive.error === 'scope' && <button className="btn block" onClick={() => signIn('connect', true)}>{t.drive.signInAgain}</button>}
             {!drive.choose && (
               <>
                 <button className="btn block" disabled={!!drive.busy} onClick={() => backupNow()}>{t.drive.backupNow}</button>

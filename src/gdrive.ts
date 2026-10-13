@@ -34,7 +34,7 @@ interface Stored {
   pending?: { state: string; intent: Intent }
 }
 
-export type DriveError = 'signin' | 'expired' | 'network' | 'quota' | 'failed'
+export type DriveError = 'signin' | 'expired' | 'network' | 'quota' | 'apiDisabled' | 'scope' | 'failed'
 
 export interface DriveState extends Stored {
   enabled: boolean
@@ -43,6 +43,8 @@ export interface DriveState extends Stored {
   connected: boolean
   busy: 'backup' | 'restore' | null
   error?: DriveError
+  /** Google's own reason, e.g. "403 SERVICE_DISABLED", shown small under the message. */
+  errorDetail?: string
   /** Drive has a backup but this device hasn't chosen between restoring and replacing it. */
   choose?: { remoteTime: number }
   /** Shelf changed since the last backup from this device. */
@@ -52,6 +54,7 @@ export interface DriveState extends Stored {
 let stored: Stored = load()
 let busy: DriveState['busy'] = null
 let error: DriveError | undefined
+let errorDetail: string | undefined
 let choose: DriveState['choose']
 let snapshot = build()
 const listeners = new Set<() => void>()
@@ -73,6 +76,7 @@ function build(): DriveState {
     connected,
     busy,
     error,
+    errorDetail,
     choose,
     unsaved: !!stored.email && lastChange() > (stored.lastBackup ?? 0),
   }
@@ -101,7 +105,8 @@ export function useDrive(): DriveState {
 const redirectUri = () => new URL(import.meta.env.BASE_URL, location.origin).href
 
 /** Leaves the app for Google's sign-in page; handleRedirect() finishes on return. */
-export function signIn(intent: Intent = 'connect') {
+/** `forceConsent` shows Google's permission screen again, e.g. after the Drive box was left unticked. */
+export function signIn(intent: Intent = 'connect', forceConsent = false) {
   const state = crypto.randomUUID()
   update({ pending: { state, intent } })
   const params = new URLSearchParams({
@@ -112,7 +117,8 @@ export function signIn(intent: Intent = 'connect') {
     state,
     include_granted_scopes: 'true',
     // A known account comes straight back without the account picker.
-    ...(stored.email ? { login_hint: stored.email } : { prompt: 'select_account' }),
+    ...(forceConsent ? { prompt: 'consent', ...(stored.email ? { login_hint: stored.email } : {}) }
+      : stored.email ? { login_hint: stored.email } : { prompt: 'select_account' }),
   })
   location.assign(`https://accounts.google.com/o/oauth2/v2/auth?${params}`)
 }
@@ -121,6 +127,7 @@ export function signOut() {
   const token = stored.token
   stored = {}
   error = undefined
+  errorDetail = undefined
   choose = undefined
   update()
   if (token) fetch(`https://oauth2.googleapis.com/revoke?token=${token}`, { method: 'POST' }).catch(() => {})
@@ -150,6 +157,13 @@ export async function handleRedirect() {
     update({ email: (await me.json()).email })
   } catch {
     // The email is only for display; carry on without it.
+  }
+  // Google's permission screen has a checkbox per permission; without Drive there's nothing to do.
+  const granted = params.get('scope') ?? ''
+  if (granted && !granted.includes('drive.appdata')) {
+    error = 'scope'
+    errorDetail = `scope: ${granted}`
+    return update()
   }
   if (pending.intent === 'restore') await restoreFromDrive()
   else await afterConnect()
@@ -189,15 +203,32 @@ async function upload(body: string, fileId?: string): Promise<{ modifiedTime: st
   return res.json()
 }
 
+/** Google's machine-readable reason from an error body, e.g. "SERVICE_DISABLED". */
+function reasonOf(body: string): string {
+  try {
+    const err = JSON.parse(body).error ?? {}
+    const detail = (err.details ?? []).find((d: { reason?: string }) => d.reason)?.reason
+    return detail ?? err.errors?.[0]?.reason ?? err.status ?? ''
+  } catch {
+    return body.slice(0, 80)
+  }
+}
+
 function fail(e: unknown) {
   if (e instanceof DriveHttpError) {
+    const reason = reasonOf(e.body)
+    errorDetail = `${e.status} ${reason}`.trim()
     if (e.status === 401) {
       error = 'expired'
       return update({ token: undefined, expiresAt: undefined })
     }
-    error = /storageQuotaExceeded|quotaExceeded/.test(e.body) ? 'quota' : 'failed'
+    error = /SERVICE_DISABLED|accessNotConfigured/.test(reason) ? 'apiDisabled'
+      : /SCOPE_INSUFFICIENT|insufficientPermissions|insufficientScopes/.test(reason) ? 'scope'
+      : /storageQuotaExceeded|quotaExceeded/.test(reason) ? 'quota'
+      : 'failed'
   } else {
     error = 'network'
+    errorDetail = (e as Error)?.message
   }
   update()
 }
@@ -206,6 +237,7 @@ async function run<T>(kind: 'backup' | 'restore', work: () => Promise<T>): Promi
   if (busy) return
   busy = kind
   error = undefined
+  errorDetail = undefined
   update()
   try {
     return await work()
