@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
-import { db } from '../db'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { clearPendingScan, db, loadPendingScan, savePendingScan } from '../db'
 import { ScanError } from '../errors'
 import { resizeImage } from '../image'
 import { MIN_RATINGS, predict, type Model } from '../recommend'
@@ -44,6 +44,52 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const [editing, setEditing] = useState(false)
   const [rating, setRating] = useState<number | null>(null)
   const [comment, setComment] = useState('')
+
+  // Restore an unsaved scan from the last session, then keep it saved as it changes so it
+  // survives iOS closing the app in the background. An interrupted read just needs a retry.
+  const restored = useRef(false)
+  const latest = useRef({ shots, draft, rating, comment })
+  latest.current = { shots, draft, rating, comment }
+
+  useEffect(() => {
+    loadPendingScan()
+      .then((p) => {
+        if (!p) return
+        setShots(p.shots.map((b) => new Blob([b], { type: 'image/jpeg' })))
+        setDraft(p.draft)
+        setRating(p.rating)
+        setComment(p.comment)
+      })
+      .catch(() => {})
+      .finally(() => (restored.current = true))
+  }, [])
+
+  const persist = useCallback(async () => {
+    if (!restored.current) return
+    const { shots, draft, rating, comment } = latest.current
+    try {
+      if (!shots.length && !draft) await clearPendingScan()
+      else await savePendingScan({ shots: await Promise.all(shots.map((s) => s.arrayBuffer())), draft, rating, comment })
+    } catch {
+      // Storage unavailable (e.g. private mode): the scan still works, it just won't survive a restart.
+    }
+  }, [])
+
+  useEffect(() => {
+    const id = setTimeout(persist, 300)
+    return () => clearTimeout(id)
+  }, [shots, draft, rating, comment, persist])
+
+  useEffect(() => {
+    // iOS may close a backgrounded app without warning; flush pending typing right away.
+    const flush = () => document.visibilityState === 'hidden' && persist()
+    document.addEventListener('visibilitychange', flush)
+    window.addEventListener('pagehide', persist)
+    return () => {
+      document.removeEventListener('visibilitychange', flush)
+      window.removeEventListener('pagehide', persist)
+    }
+  }, [persist])
 
   const prediction = useMemo(() => (draft ? predict(model, draft) : null), [model, draft])
   const seenBefore = useMemo(() => {

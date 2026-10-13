@@ -1,10 +1,27 @@
-import Dexie, { type EntityTable } from 'dexie'
-import type { Coffee } from './types'
+import Dexie, { type EntityTable, type Table } from 'dexie'
+import type { Coffee, CoffeeDraft } from './types'
 import { blobToBase64 } from './image'
 
-export const db = new Dexie('coffee-shelf') as Dexie & { coffees: EntityTable<Coffee, 'id'> }
+/** The scan not yet saved to the shelf, kept so it survives iOS closing the app. */
+export interface PendingScan {
+  /** JPEG bytes; ArrayBuffer because WebKit can refuse Blobs in IndexedDB. */
+  shots: ArrayBuffer[]
+  draft?: CoffeeDraft
+  rating: number | null
+  comment: string
+}
 
-db.version(1).stores({ coffees: '++id, createdAt, rating, roaster' })
+export const db = new Dexie('coffee-shelf') as Dexie & {
+  coffees: EntityTable<Coffee, 'id'>
+  pending: Table<PendingScan, string>
+}
+
+db.version(2).stores({ coffees: '++id, createdAt, rating, roaster', pending: '' })
+
+const PENDING_KEY = 'scan'
+export const loadPendingScan = () => db.pending.get(PENDING_KEY)
+export const savePendingScan = (scan: PendingScan) => db.pending.put(scan, PENDING_KEY)
+export const clearPendingScan = () => db.pending.delete(PENDING_KEY)
 
 /** Asks Safari not to evict our data under storage pressure. */
 export async function requestPersistence(): Promise<boolean> {
