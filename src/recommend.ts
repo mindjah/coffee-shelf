@@ -10,17 +10,19 @@ import { FLAVORS, type Coffee, type CoffeeDraft, type Region } from './types'
 
 type Kind = 'presence' | 'roast' | 'acidity' | 'body' | 'sweetness' | 'altitude'
 interface Feature {
-  /** Key into the i18n `reasons` table. */
+  /** Key into the i18n `reasons` table, or "country:XX" for a country. */
   id: string
   kind: Kind
   weight: number
   get: (c: CoffeeDraft) => number
+  /** Helps matching but isn't shown as a reason (broad regions; countries are shown instead). */
+  hidden?: boolean
 }
 
 const ROAST_VALUE = { light: 0, 'medium-light': 0.25, medium: 0.5, 'medium-dark': 0.75, dark: 1, unknown: 0.35 }
 const scale = (v: number | null) => (v == null ? 0.5 : (v - 1) / 4)
 
-const FEATURES: Feature[] = [
+const BASE_FEATURES: Feature[] = [
   ...FLAVORS.map((f) => ({
     id: f,
     kind: 'presence' as const,
@@ -33,11 +35,13 @@ const FEATURES: Feature[] = [
     weight: 0.8,
     get: (c: CoffeeDraft) => (c.process === p ? 1 : 0),
   })),
+  // Lets a bag from a country you haven't rated still match its neighbours (Burundi ~ Kenya).
   ...(['east-africa', 'other-africa', 'central-america', 'south-america', 'asia-pacific'] as Region[]).map((r) => ({
     id: r,
     kind: 'presence' as const,
-    weight: 0.6,
+    weight: 0.3,
     get: (c: CoffeeDraft) => (c.region === r ? 1 : 0),
+    hidden: true,
   })),
   { id: 'espresso', kind: 'presence', weight: 0.4, get: (c) => (c.roastFor === 'espresso' ? 1 : 0) },
   { id: 'roast', kind: 'roast', weight: 1, get: (c) => ROAST_VALUE[c.roast] },
@@ -52,7 +56,24 @@ const FEATURES: Feature[] = [
   },
 ]
 
-const vec = (c: CoffeeDraft) => FEATURES.map((f) => f.get(c) * Math.sqrt(f.weight))
+/** Countries become their own factor once you've rated at least this many coffees from them. */
+const COUNTRY_MIN_RATED = 2
+
+function countryFeatures(rated: Coffee[]): Feature[] {
+  const counts = new Map<string, number>()
+  for (const c of rated) for (const code of new Set(c.countryCodes ?? [])) counts.set(code, (counts.get(code) ?? 0) + 1)
+  return [...counts.entries()]
+    .filter(([, n]) => n >= COUNTRY_MIN_RATED)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([code]) => ({
+      id: `country:${code}`,
+      kind: 'presence' as const,
+      weight: 0.6,
+      get: (c: CoffeeDraft) => ((c.countryCodes ?? []).includes(code) ? 1 : 0),
+    }))
+}
+
+const vec = (features: Feature[], c: CoffeeDraft) => features.map((f) => f.get(c) * Math.sqrt(f.weight))
 
 function dist2(a: number[], b: number[]) {
   let s = 0
@@ -84,6 +105,8 @@ function solve(A: number[][], b: number[]): number[] {
 }
 
 export interface Model {
+  /** Base features plus one per country you've rated enough of. */
+  features: Feature[]
   count: number
   mean: number
   rated: { coffee: Coffee; x: number[] }[]
@@ -97,10 +120,11 @@ const RIDGE_FROM = 6
 
 export function buildModel(all: Coffee[]): Model {
   const ratedCoffees = all.filter((c) => c.rating != null)
-  const rated = ratedCoffees.map((coffee) => ({ coffee, x: vec(coffee) }))
+  const features = [...BASE_FEATURES, ...countryFeatures(ratedCoffees)]
+  const rated = ratedCoffees.map((coffee) => ({ coffee, x: vec(features, coffee) }))
   const n = rated.length
   const mean = n ? rated.reduce((s, r) => s + r.coffee.rating!, 0) / n : 3
-  const d = FEATURES.length
+  const d = features.length
   const featureMean = new Array(d).fill(0)
   for (const r of rated) r.x.forEach((v, j) => (featureMean[j] += v / n))
 
@@ -125,7 +149,7 @@ export function buildModel(all: Coffee[]): Model {
     }
     beta = solve(A, b)
   }
-  return { count: n, mean, rated, sigma2, featureMean, beta }
+  return { features, count: n, mean, rated, sigma2, featureMean, beta }
 }
 
 export interface Reason {
@@ -152,7 +176,7 @@ export function predict(model: Model, c: CoffeeDraft, excludeId?: number): Predi
   const pool = model.rated.filter((r) => r.coffee.id !== excludeId)
   if (pool.length < MIN_RATINGS) return null
   const mean = pool.reduce((s, r) => s + r.coffee.rating!, 0) / pool.length
-  const x = vec(c)
+  const x = vec(model.features, c)
 
   const sims = pool
     .map((r) => ({ coffee: r.coffee, similarity: Math.exp(-dist2(x, r.x) / (2 * model.sigma2)) }))
@@ -164,10 +188,11 @@ export function predict(model: Model, c: CoffeeDraft, excludeId?: number): Predi
   let score = knn
   const reasons: Reason[] = []
   if (model.beta && excludeId == null) {
-    const contrib = FEATURES.map((f, j) => ({ f, delta: x[j] - model.featureMean[j], impact: model.beta![j] * (x[j] - model.featureMean[j]) }))
+    const contrib = model.features.map((f, j) => ({ f, delta: x[j] - model.featureMean[j], impact: model.beta![j] * (x[j] - model.featureMean[j]) }))
     const ridge = model.mean + contrib.reduce((s, c) => s + c.impact, 0)
     score = 0.5 * knn + 0.5 * ridge
-    for (const c of contrib.sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact)).slice(0, 4)) {
+    const shown = contrib.filter((c) => !c.f.hidden)
+    for (const c of shown.sort((a, b) => Math.abs(b.impact) - Math.abs(a.impact)).slice(0, 4)) {
       if (Math.abs(c.impact) >= 0.08) reasons.push({ id: c.f.id, up: c.delta > 0, impact: c.impact })
     }
   }
@@ -194,8 +219,8 @@ export interface Taste {
 /** Strongest ridge weights, read as "what moves your ratings". */
 export function tasteSummary(model: Model): Taste | null {
   if (!model.beta) return null
-  const items = FEATURES.map((f, j) => ({ f, w: model.beta![j] * Math.sqrt(f.weight) }))
-    .filter((i) => Math.abs(i.w) >= 0.1)
+  const items = model.features.map((f, j) => ({ f, w: model.beta![j] * Math.sqrt(f.weight) }))
+    .filter((i) => !i.f.hidden && Math.abs(i.w) >= 0.1)
     .sort((a, b) => b.w - a.w)
   return {
     likes: items.filter((i) => i.w > 0).slice(0, 5).map((i) => ({ id: i.f.id, up: true, impact: i.w })),

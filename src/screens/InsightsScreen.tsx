@@ -1,6 +1,6 @@
 import { MIN_RATINGS, tasteSummary, type Model } from '../recommend'
 import type { Coffee } from '../types'
-import { reasonText, useT } from '../i18n'
+import { countryName, reasonText, useLang, useT } from '../i18n'
 import { TasteIcon } from '../components/icons'
 
 function groupAverages(rated: Coffee[], key: (c: Coffee) => string | null) {
@@ -35,6 +35,7 @@ function Breakdown({ title, rows }: { title: string; rows: { label: string; avg:
 
 export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: Model }) {
   const t = useT()
+  const lang = useLang()
   const rated = coffees.filter((c) => c.rating != null)
   const taste = tasteSummary(model)
   const roasters = groupAverages(rated, (c) => c.roaster || null).filter((r) => r.n >= 2).slice(0, 3)
@@ -63,7 +64,7 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
                 <>
                   <h2 className="section">{t.taste.higher}</h2>
                   <div className="card"><ul className="taste-list">
-                    {taste.likes.map((r) => <li key={r.id}><span className="sign up">+</span>{reasonText(t, r, true)}</li>)}
+                    {taste.likes.map((r) => <li key={r.id}><span className="sign up">+</span>{reasonText(t, r, lang, true)}</li>)}
                   </ul></div>
                 </>
               )}
@@ -71,7 +72,7 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
                 <>
                   <h2 className="section">{t.taste.lower}</h2>
                   <div className="card"><ul className="taste-list">
-                    {taste.dislikes.map((r) => <li key={r.id}><span className="sign down">−</span>{reasonText(t, r, true)}</li>)}
+                    {taste.dislikes.map((r) => <li key={r.id}><span className="sign down">−</span>{reasonText(t, r, lang, true)}</li>)}
                   </ul></div>
                 </>
               )}
@@ -81,7 +82,7 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
           )}
 
           <Breakdown title={t.taste.byProcess} rows={groupAverages(rated, (c) => (c.process === 'unknown' ? null : t.process[c.process]))} />
-          <Breakdown title={t.taste.byOrigin} rows={groupAverages(rated, (c) => (c.region === 'unknown' ? null : t.region[c.region]))} />
+          <Breakdown title={t.taste.byOrigin} rows={groupAverages(rated, (c) => countryName(c, lang) || null)} />
           <Breakdown title={t.taste.byRoast} rows={groupAverages(rated, (c) => (c.roast === 'unknown' ? null : t.roast[c.roast]))} />
           {roasters.length > 0 && <Breakdown title={t.taste.roasters} rows={roasters} />}
         </>

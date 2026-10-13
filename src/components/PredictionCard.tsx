@@ -1,10 +1,11 @@
 import type { Prediction } from '../recommend'
 import { MIN_RATINGS } from '../recommend'
-import { reasonText, useT } from '../i18n'
+import { reasonText, useLang, useT } from '../i18n'
 import { Stars } from './Stars'
 
 export function PredictionCard({ prediction, ratedCount }: { prediction: Prediction | null; ratedCount: number }) {
   const t = useT()
+  const lang = useLang()
   if (!prediction) {
     return (
       <div className="card">
@@ -31,7 +32,7 @@ export function PredictionCard({ prediction, ratedCount }: { prediction: Predict
           {p.reasons.map((r) => (
             <li key={r.id}>
               <span className={`sign ${r.impact > 0 ? 'up' : 'down'}`}>{r.impact > 0 ? '+' : '−'}</span>
-              {reasonText(t, r)}
+              {reasonText(t, r, lang)}
             </li>
           ))}
         </ul>

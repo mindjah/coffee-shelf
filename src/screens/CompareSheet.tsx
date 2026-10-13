@@ -164,7 +164,7 @@ export function CompareSheet({ items, model, coffees, onClose }: Props) {
                 p?.reasons.length ? (
                   <ul className="reasons" style={{ margin: 0 }}>
                     {p.reasons.slice(0, 3).map((r) => (
-                      <li key={r.id}><span className={`sign ${r.impact > 0 ? 'up' : 'down'}`}>{r.impact > 0 ? '+' : '−'}</span>{reasonText(t, r)}</li>
+                      <li key={r.id}><span className={`sign ${r.impact > 0 ? 'up' : 'down'}`}>{r.impact > 0 ? '+' : '−'}</span>{reasonText(t, r, lang)}</li>
                     ))}
                   </ul>
                 ) : dash,

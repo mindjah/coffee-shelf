@@ -221,7 +221,7 @@ const en = {
     lower: 'You rate lower',
     fewMore: 'A few more ratings and Coffee Shelf will spot which flavors and processes push your scores up or down.',
     byProcess: 'By process',
-    byOrigin: 'By origin',
+    byOrigin: 'By country',
     byRoast: 'By roast',
     roasters: 'Favourite roasters',
   },
@@ -293,6 +293,7 @@ const en = {
     blend: 'Blend',
     unknown: 'Unknown origin',
   } satisfies Record<Region, string>,
+  notFromCountry: (name: string) => `Not from ${name}`,
   /** [pushes the score up because it is present / higher, … because it is absent / lower] */
   reasons: {
     berry: ['Berry notes', 'No berry notes'],
@@ -545,7 +546,7 @@ const ru: Dict = {
     lower: 'Оцениваете ниже',
     fewMore: 'Ещё несколько оценок — и Coffee Shelf увидит, какие ноты и обработки поднимают или опускают ваши оценки.',
     byProcess: 'По обработке',
-    byOrigin: 'По происхождению',
+    byOrigin: 'По странам',
     byRoast: 'По обжарке',
     roasters: 'Любимые обжарщики',
   },
@@ -617,6 +618,7 @@ const ru: Dict = {
     blend: 'Смесь',
     unknown: 'Происхождение неизвестно',
   },
+  notFromCountry: (name) => `Не ${name}`,
   reasons: {
     berry: ['Ягодные ноты', 'Нет ягодных нот'],
     citrus: ['Цитрусовые ноты', 'Нет цитрусовых нот'],
@@ -669,7 +671,12 @@ export function useT(): Dict {
 }
 
 /** Explanation text for a recommender reason; `short` drops "than you usually drink". */
-export function reasonText(t: Dict, r: Pick<Reason, 'id' | 'up'>, short = false): string {
+export function reasonText(t: Dict, r: Pick<Reason, 'id' | 'up'>, lang: Lang, short = false): string {
+  if (r.id.startsWith('country:')) {
+    const code = r.id.slice('country:'.length)
+    const name = countryName({ country: code, countryCodes: [code] }, lang)
+    return r.up ? name : t.notFromCountry(name)
+  }
   const pair = t.reasons[short && r.id === 'roast' ? 'roastShort' : r.id]
   return pair ? pair[r.up ? 0 : 1] : r.id
 }
