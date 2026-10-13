@@ -5,6 +5,12 @@ import { LANG_NAMES, useLang, useT } from '../i18n'
 import { ScanError } from '../errors'
 import { DriveSection } from '../components/DriveSection'
 
+/**
+ * "Add coffees from a file" was needed for a one-off import (e.g. from Notion), so it stays out of
+ * sight; open the app with ?import in the address to show it again.
+ */
+const SHOW_MERGE = new URLSearchParams(location.search).has('import')
+
 export function SettingsScreen() {
   const t = useT()
   const lang = useLang()
@@ -157,8 +163,12 @@ export function SettingsScreen() {
           {persisted ? <span className="muted">{t.settings.yes}</span> : <button className="btn plain" onClick={async () => setPersisted(await requestPersistence())}>{t.settings.turnOn}</button>}
         </div>
         <button className="btn ghost block" onClick={doExport}>{t.settings.export}</button>
-        <button className="btn ghost block" onClick={() => mergeRef.current?.click()}>{t.settings.merge}</button>
-        <input ref={mergeRef} className="file-input" type="file" accept="application/json,.json" onChange={(e) => (doMerge(e.target.files?.[0]), (e.target.value = ''))} />
+        {SHOW_MERGE && (
+          <>
+            <button className="btn ghost block" onClick={() => mergeRef.current?.click()}>{t.settings.merge}</button>
+            <input ref={mergeRef} className="file-input" type="file" accept="application/json,.json" onChange={(e) => (doMerge(e.target.files?.[0]), (e.target.value = ''))} />
+          </>
+        )}
         <button className="btn ghost block" onClick={() => importRef.current?.click()}>{t.settings.restore}</button>
         <input ref={importRef} className="file-input" type="file" accept="application/json,.json" onChange={(e) => (doImport(e.target.files?.[0]), (e.target.value = ''))} />
         {status && <div className="muted small">{status}</div>}
