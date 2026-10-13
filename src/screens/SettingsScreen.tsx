@@ -132,7 +132,7 @@ export function SettingsScreen() {
           <p className="muted small" style={{ margin: '12px 4px 0' }}>{isClaude ? t.settings.keyHint : t.settings.geminiHint}</p>
         </div>
       ) : (
-        <p className="muted small" style={{ margin: '12px 4px 0' }}>{settings.provider === 'ocr' ? t.settings.ocrHint : t.settings.manualHint}</p>
+        <p className="muted small" style={{ margin: '12px 4px 0' }}>{t.settings.ocrHint}</p>
       )}
 
       <h2 className="section">{t.settings.yourData}</h2>

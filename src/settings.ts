@@ -12,9 +12,9 @@ export const GEMINI_MODELS = [
   { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash-Lite' },
 ] as const
 
-/** How new coffees are added: AI reading (Gemini, Claude), on-device text recognition, or by hand. */
-export type Provider = 'gemini' | 'claude' | 'ocr' | 'manual'
-export const PROVIDERS: Provider[] = ['gemini', 'claude', 'ocr', 'manual']
+/** How a bag photo is read: AI (Gemini, Claude) or on-device text recognition. Manual entry is a switch on the Scan screen. */
+export type Provider = 'gemini' | 'claude' | 'ocr'
+export const PROVIDERS: Provider[] = ['gemini', 'claude', 'ocr']
 
 export interface Settings {
   /** Gemini is the free default. */
@@ -50,7 +50,10 @@ const listeners = new Set<() => void>()
 
 function read(): Settings {
   try {
-    return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') }
+    const saved = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') }
+    // "manual" used to be a provider; it now lives on the Scan screen.
+    if (!PROVIDERS.includes(saved.provider)) saved.provider = DEFAULTS.provider
+    return saved
   } catch {
     return DEFAULTS
   }

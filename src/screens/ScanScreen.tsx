@@ -23,6 +23,17 @@ interface Props {
 
 const READ_TIMEOUT_MS = 90_000
 
+/** Scan screen switch: read a bag photo, or type everything in by hand. Remembered per device. */
+type EntryMode = 'scan' | 'manual'
+const ENTRY_MODE_KEY = 'coffee-shelf.entryMode'
+function readEntryMode(): EntryMode {
+  try {
+    return localStorage.getItem(ENTRY_MODE_KEY) === 'manual' ? 'manual' : 'scan'
+  } catch {
+    return 'scan'
+  }
+}
+
 /** Settles as soon as the signal aborts, so the UI never waits on a request that won't stop. */
 function untilAborted<T>(work: Promise<T>, signal: AbortSignal): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -49,7 +60,16 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const t = useT()
   const settings = useSettings()
   const provider = settings.provider
-  const missingKey = needsKey(settings)
+  const [mode, setMode] = useState<EntryMode>(readEntryMode)
+  const chooseMode = (m: EntryMode) => {
+    setMode(m)
+    try {
+      localStorage.setItem(ENTRY_MODE_KEY, m)
+    } catch {
+      // Not remembered in private mode; the switch still works.
+    }
+  }
+  const missingKey = mode === 'scan' && needsKey(settings)
   const cameraRef = useRef<HTMLInputElement>(null)
   const libraryRef = useRef<HTMLInputElement>(null)
   const [shots, setShots] = useState<Blob[]>([])
@@ -135,7 +155,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   }
 
   async function read() {
-    if (provider === 'manual') {
+    if (mode === 'manual') {
       setDraft({ ...emptyDraft(), photo: await thumbnail() })
       return setEditing(true)
     }
@@ -256,6 +276,15 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
       {inputs}
       <h1 className="screen-title">Coffee Shelf</h1>
       <p className="screen-sub">{t.scan.subtitle}</p>
+      {!reading && (
+        <div className="segmented" role="tablist">
+          {(['scan', 'manual'] as EntryMode[]).map((m) => (
+            <button key={m} role="tab" aria-selected={mode === m} className={mode === m ? 'on' : ''} onClick={() => chooseMode(m)}>
+              {t.scan.modes[m]}
+            </button>
+          ))}
+        </div>
+      )}
 
       {reading ? (
         <div className="card brewing">
@@ -277,8 +306,8 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
         </div>
       ) : shots.length === 0 ? (
         <div className="hero">
-          <img className="hero-bean" src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
-          {provider === 'manual' ? (
+          <span className="hero-bean" aria-hidden="true"><BeanIcon /></span>
+          {mode === 'manual' ? (
             <>
               <h2>{t.scan.manualTitle}</h2>
               <p>{t.scan.manualText}</p>
@@ -318,7 +347,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             )}
           </div>
           <button className="btn block" style={{ marginTop: 14 }} onClick={read}>
-            {provider === 'manual' ? t.scan.continue : provider === 'ocr' ? t.scan.recognize : t.scan.readLabel}
+            {mode === 'manual' ? t.scan.continue : provider === 'ocr' ? t.scan.recognize : t.scan.readLabel}
           </button>
           <button className="btn plain block" onClick={reset}>{t.scan.startOver}</button>
         </div>
