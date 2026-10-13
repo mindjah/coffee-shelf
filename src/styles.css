@@ -208,6 +208,8 @@ h2.section {
 .coffee-head { display: flex; gap: 14px; }
 .thumb { flex: none; width: 64px; height: 84px; border-radius: 12px; object-fit: cover; background: var(--surface-2); }
 .roaster { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); }
+.hint-link { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.error .hint-link { color: inherit; }
 .thumb-empty { display: grid; place-items: center; color: var(--accent); }
 .thumb-empty svg { width: 46%; height: 46%; opacity: 0.35; }
 .thumb-photo { cursor: zoom-in; }

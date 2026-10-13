@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { backupNow, restoreFromDrive, signIn, signOut, takeDriveFocus, useDrive } from '../gdrive'
 import { useLang, useT } from '../i18n'
 import { Avatar } from './Avatar'
+import { Linkify } from './Linkify'
 
 /** Settings block for Google Drive backup; hidden until a Google client ID is configured. */
 export function DriveSection() {
@@ -49,7 +50,7 @@ export function DriveSection() {
             )}
             {drive.error && (
               <div className="error small">
-                {t.drive.errors[drive.error]}
+                <Linkify text={t.drive.errors[drive.error]} />
                 {drive.errorDetail && <div style={{ marginTop: 6, opacity: 0.75, fontSize: 12, overflowWrap: 'anywhere' }}>{t.drive.details}: {drive.errorDetail}</div>}
               </div>
             )}

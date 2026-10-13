@@ -4,6 +4,7 @@ import { GEMINI_MODELS, MODELS, PROVIDERS, saveSettings, usesAI, useSettings } f
 import { LANG_NAMES, useLang, useT } from '../i18n'
 import { ScanError } from '../errors'
 import { DriveSection } from '../components/DriveSection'
+import { Linkify } from '../components/Linkify'
 
 /**
  * "Add coffees from a file" was needed for a one-off import (e.g. from Notion), so it stays out of
@@ -147,7 +148,7 @@ export function SettingsScreen() {
           </button>
           {check?.state === 'ok' && <div className="small" style={{ margin: '10px 4px 0', color: 'var(--accent)', fontWeight: 600 }}>✓ {t.settings.keyWorks}</div>}
           {check?.state === 'fail' && <div className="error small" style={{ marginTop: 10 }}>{check.message}</div>}
-          <p className="muted small" style={{ margin: '12px 4px 0' }}>{isClaude ? t.settings.keyHint : t.settings.geminiHint}</p>
+          <p className="muted small" style={{ margin: '12px 4px 0' }}><Linkify text={isClaude ? t.settings.keyHint : t.settings.geminiHint} /></p>
         </div>
       ) : (
         <p className="muted small" style={{ margin: '12px 4px 0' }}>{t.settings.ocrHint}</p>
