@@ -1,16 +1,15 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../db'
 import type { Model } from '../recommend'
 import { CompareSheet } from './CompareSheet'
 import type { Coffee } from '../types'
-import { countryName, useLang, useT } from '../i18n'
+import { useLang, useT } from '../i18n'
 import { originLine } from '../components/CoffeeSummary'
 import { CoffeeThumb } from '../components/CoffeeThumb'
-import { CompareIcon, FilterIcon, ShelfIcon } from '../components/icons'
+import { CompareIcon, ShelfIcon } from '../components/icons'
 import { DriveBanner } from '../components/DriveSection'
-
-type Filter = 'all' | 'rated' | 'todo'
+import { useShelfFilters } from '../components/ShelfFilters'
 
 function Row({ coffee, onOpen }: { coffee: Coffee; onOpen: () => void }) {
   const t = useT()
@@ -31,89 +30,46 @@ function Row({ coffee, onOpen }: { coffee: Coffee; onOpen: () => void }) {
   )
 }
 
-/** Everything a search might match: printed text plus every translation and display name. */
-function haystack(c: Coffee) {
-  return [
-    c.roaster, c.name, c.country, c.area, c.producer, c.process, ...c.varieties, ...c.notes,
-    ...Object.values(c.translations ?? {}).flatMap((tr) => tr?.notes ?? []),
-    countryName(c, 'en'), countryName(c, 'ru'),
-  ].join(' ').toLowerCase()
+const GENERIC_WORDS = new Set(['coffee', 'coffees', 'roaster', 'roasters', 'roastery', 'roasting', 'roasted', 'roastworks', 'cafe', 'café', 'the', 'co', 'company', 'lab', 'кофе', 'кофейня', 'обжарщик', 'обжарка'])
+
+/** One word for the label above a bag: the first distinctive word of the roaster's name. */
+function roasterWord(roaster: string): string {
+  const words = roaster.replace(/\(.*?\)/g, ' ').split(/[\s&+,.·/-]+/).filter(Boolean)
+  return words.find((w) => !GENERIC_WORDS.has(w.toLowerCase())) ?? words[0] ?? ''
 }
 
-/** Country used for grouping: ISO codes when known (so "Колумбия" and "Colombia" match), else the typed name. */
-const countryKey = (c: Coffee) => (c.countryCodes?.length ? c.countryCodes.join('/') : c.country.trim().toLowerCase())
-
-/** Distinct values on the shelf with counts, most common first, then alphabetical. */
-function options(coffees: Coffee[], key: (c: Coffee) => string, label: (c: Coffee) => string) {
-  const m = new Map<string, { label: string; n: number }>()
-  for (const c of coffees) {
-    const k = key(c)
-    if (!k) continue
-    m.set(k, { label: m.get(k)?.label ?? label(c), n: (m.get(k)?.n ?? 0) + 1 })
-  }
-  return [...m.entries()].sort((a, b) => b[1].n - a[1].n || a[1].label.localeCompare(b[1].label))
-}
-
-type Sort = 'newest' | 'ratingDesc' | 'ratingAsc'
-const SORTS: Sort[] = ['newest', 'ratingDesc', 'ratingAsc']
-const SORT_KEY = 'coffee-shelf.shelfSort'
-
-function readSort(): Sort {
-  try {
-    const s = localStorage.getItem(SORT_KEY) as Sort
-    return SORTS.includes(s) ? s : 'newest'
-  } catch {
-    return 'newest'
-  }
-}
-
-/** Rating orders keep unrated coffees at the end; ties fall back to newest first. */
-function compare(sort: Sort) {
-  return (a: Coffee, b: Coffee) => {
-    if (sort !== 'newest') {
-      if (a.rating == null || b.rating == null) {
-        if (a.rating != null) return -1
-        if (b.rating != null) return 1
-      } else if (a.rating !== b.rating) {
-        return sort === 'ratingDesc' ? b.rating - a.rating : a.rating - b.rating
-      }
-    }
-    return b.createdAt - a.createdAt
-  }
+/** Compact view: bags standing three to a wooden shelf, roaster word above each. */
+function Bookcase({ coffees, onOpen }: { coffees: Coffee[]; onOpen: (id: number) => void }) {
+  const t = useT()
+  const shelves: Coffee[][] = []
+  for (let i = 0; i < coffees.length; i += 3) shelves.push(coffees.slice(i, i + 3))
+  return (
+    <div className="bookcase">
+      {shelves.map((row, i) => (
+        <div className="bookcase-shelf" key={i}>
+          <div className="bookcase-row">
+            {row.map((c) => (
+              <button key={c.id} className="bag" onClick={() => onOpen(c.id!)} aria-label={`${c.roaster} ${c.name}`.trim()}>
+                <span className="bag-label">{roasterWord(c.roaster) || t.common.unknownRoaster}</span>
+                <span className="bag-body">
+                  <CoffeeThumb photo={c.photo} className="bag-photo" zoomable={false} />
+                  {c.rating != null && <span className="bag-rating">{c.rating.toFixed(1)}</span>}
+                </span>
+              </button>
+            ))}
+          </div>
+          <div className="plank" />
+        </div>
+      ))}
+    </div>
+  )
 }
 
 export function LibraryScreen({ coffees, model, onOpen }: { coffees: Coffee[]; model: Model; onOpen: (id: number) => void }) {
   const t = useT()
   const compareItems = useLiveQuery(() => db.compare.orderBy('addedAt').toArray(), []) ?? []
   const [comparing, setComparing] = useState(false)
-  const lang = useLang()
-  const [filter, setFilter] = useState<Filter>('all')
-  const [query, setQuery] = useState('')
-  const [roaster, setRoaster] = useState('')
-  const [country, setCountry] = useState('')
-  const [sort, setSort] = useState<Sort>(readSort)
-  const [showFilters, setShowFilters] = useState(false)
-  // Filters that hide coffees (sort only reorders), flagged on the button while the panel is closed.
-  const filtering = !!roaster || !!country || filter !== 'all'
-  const clearFilters = () => (setRoaster(''), setCountry(''), setFilter('all'))
-  const chooseSort = (s: Sort) => {
-    setSort(s)
-    try {
-      localStorage.setItem(SORT_KEY, s)
-    } catch {
-      // Not remembered in private mode; sorting still works.
-    }
-  }
-  const q = query.trim().toLowerCase()
-  const roasterKey = (c: Coffee) => c.roaster.trim().toLowerCase()
-  const roasters = useMemo(() => options(coffees, roasterKey, (c) => c.roaster.trim()), [coffees])
-  const countries = useMemo(() => options(coffees, countryKey, (c) => countryName(c, lang)), [coffees, lang])
-  const shown = coffees
-    .filter((c) => (filter === 'rated' ? c.rating != null : filter === 'todo' ? c.rating == null : true))
-    .filter((c) => !roaster || roasterKey(c) === roaster)
-    .filter((c) => !country || countryKey(c) === country)
-    .filter((c) => !q || haystack(c).includes(q))
-    .sort(compare(sort))
+  const { controls, shown, view, filtering, clearFilters } = useShelfFilters(coffees, { withView: true })
 
   return (
     <div className="screen">
@@ -127,45 +83,7 @@ export function LibraryScreen({ coffees, model, onOpen }: { coffees: Coffee[]; m
       </div>
       <p className="screen-sub">{t.shelf.logged(coffees.length)}</p>
       <DriveBanner />
-      <div className="search-row">
-        <input className="input" type="search" placeholder={t.shelf.search} value={query} onChange={(e) => setQuery(e.target.value)} />
-        {coffees.length > 0 && (
-          <button
-            type="button"
-            className={`icon-btn${showFilters ? ' open' : ''}${filtering ? ' filtering' : ''}`}
-            onClick={() => setShowFilters((v) => !v)}
-            aria-label={t.shelf.filters}
-            aria-expanded={showFilters}
-          >
-            <FilterIcon />
-          </button>
-        )}
-      </div>
-      {coffees.length > 0 && showFilters && (
-        <div className="grid-2 shelf-filters">
-          <select className={`input${roaster ? ' active' : ''}`} value={roaster} onChange={(e) => setRoaster(e.target.value)} aria-label={t.shelf.roaster}>
-            <option value="">{t.shelf.allRoasters}</option>
-            {roasters.map(([k, o]) => <option key={k} value={k}>{o.label} ({o.n})</option>)}
-          </select>
-          <select className={`input${country ? ' active' : ''}`} value={country} onChange={(e) => setCountry(e.target.value)} aria-label={t.shelf.country}>
-            <option value="">{t.shelf.allCountries}</option>
-            {countries.map(([k, o]) => <option key={k} value={k}>{o.label} ({o.n})</option>)}
-          </select>
-          <select className="input shelf-sort" value={sort} onChange={(e) => chooseSort(e.target.value as Sort)} aria-label={t.shelf.sort}>
-            {SORTS.map((s) => <option key={s} value={s}>{t.shelf.sorts[s]}</option>)}
-          </select>
-          <div className="segmented shelf-sort" style={{ marginBottom: 0 }}>
-            {(['all', 'rated', 'todo'] as Filter[]).map((f) => (
-              <button key={f} className={filter === f ? 'on' : ''} onClick={() => setFilter(f)}>
-                {t.shelf[f]}
-              </button>
-            ))}
-          </div>
-          {filtering && (
-            <button className="btn plain shelf-sort" style={{ minHeight: 36 }} onClick={clearFilters}>{t.shelf.clearFilters}</button>
-          )}
-        </div>
-      )}
+      {controls}
       {shown.length === 0 ? (
         <div className="empty">
           <ShelfIcon />
@@ -174,6 +92,8 @@ export function LibraryScreen({ coffees, model, onOpen }: { coffees: Coffee[]; m
             <button className="btn plain" onClick={clearFilters}>{t.shelf.clearFilters}</button>
           )}
         </div>
+      ) : view === 'compact' ? (
+        <Bookcase coffees={shown} onOpen={onOpen} />
       ) : (
         shown.map((c) => <Row key={c.id} coffee={c} onOpen={() => onOpen(c.id!)} />)
       )}

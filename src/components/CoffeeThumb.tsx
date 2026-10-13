@@ -4,7 +4,8 @@ import { openPhoto } from './PhotoViewer'
 import { BeanIcon } from './icons'
 
 /** Bag photo that opens full screen when tapped, or a coffee-bean placeholder when there's none. */
-export function CoffeeThumb({ photo, className = 'thumb' }: { photo?: Blob | ArrayBuffer; className?: string }) {
+/** `zoomable={false}` when the whole tile is a button (e.g. a bag on the compact shelf). */
+export function CoffeeThumb({ photo, className = 'thumb', zoomable = true }: { photo?: Blob | ArrayBuffer; className?: string; zoomable?: boolean }) {
   const url = usePhotoUrl(photo)
   if (!photo || !url) {
     return (
@@ -13,6 +14,7 @@ export function CoffeeThumb({ photo, className = 'thumb' }: { photo?: Blob | Arr
       </span>
     )
   }
+  if (!zoomable) return <img className={className} src={url} alt="" />
   const open = (e: MouseEvent) => {
     // Thumbnails sit inside tappable rows; the photo tap shouldn't also open the row.
     e.stopPropagation()

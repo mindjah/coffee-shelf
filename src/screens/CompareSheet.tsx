@@ -7,6 +7,7 @@ import { originLine } from '../components/CoffeeSummary'
 import { CoffeeThumb } from '../components/CoffeeThumb'
 import { Sheet } from '../components/Sheet'
 import { Stars } from '../components/Stars'
+import { useShelfFilters } from '../components/ShelfFilters'
 
 interface Props {
   items: CompareItem[]
@@ -23,12 +24,9 @@ const sameCoffee = (a: CoffeeDraft, b: CoffeeDraft) =>
 function ShelfPicker({ coffees, items, onClose }: { coffees: Coffee[]; items: CompareItem[]; onClose: () => void }) {
   const t = useT()
   const lang = useLang()
-  const [query, setQuery] = useState('')
   const [message, setMessage] = useState<string>()
-  const q = query.trim().toLowerCase()
-  const shown = coffees
-    .filter((c) => !q || `${c.roaster} ${c.name} ${c.country}`.toLowerCase().includes(q))
-    .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || b.createdAt - a.createdAt)
+  // Same search, filters and order as the Shelf.
+  const { controls, shown, filtering, clearFilters } = useShelfFilters(coffees)
 
   async function toggle(c: Coffee) {
     const existing = items.find((i) => i.coffeeId === c.id)
@@ -43,8 +41,14 @@ function ShelfPicker({ coffees, items, onClose }: { coffees: Coffee[]; items: Co
         <div className="empty">{t.compare.shelfEmpty}</div>
       ) : (
         <>
-          <input className="input" type="search" placeholder={t.shelf.search} value={query} onChange={(e) => setQuery(e.target.value)} style={{ marginBottom: 12 }} />
+          {controls}
           {message && <div className="notice" style={{ margin: '0 0 12px' }}>{message}</div>}
+          {shown.length === 0 && (
+            <div className="empty">
+              <div>{t.shelf.noMatch}</div>
+              {filtering && <button className="btn plain" onClick={clearFilters}>{t.shelf.clearFilters}</button>}
+            </div>
+          )}
           {shown.map((c) => {
             const on = items.some((i) => i.coffeeId === c.id)
             return (
