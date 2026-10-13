@@ -32,10 +32,10 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   const [varieties, setVarieties] = useState(coffee.varieties.join(', '))
   const [fillNote, setFillNote] = useState<string>()
   const set = <K extends keyof CoffeeDraft>(k: K, v: CoffeeDraft[K]) => setC((p) => ({ ...p, [k]: v }))
-  const text = (k: 'roaster' | 'name' | 'area' | 'producer', label: string) => (
+  const text = (k: 'roaster' | 'name' | 'area' | 'producer', label: string, placeholder?: string) => (
     <label className="field">
       <span>{label}</span>
-      <input className="input" value={c[k]} onChange={(e) => set(k, e.target.value)} />
+      <input className="input" value={c[k]} placeholder={placeholder} onChange={(e) => set(k, e.target.value)} />
     </label>
   )
 
@@ -77,8 +77,8 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   return (
     <Sheet title={t.editor.title} closeLabel={t.common.cancel} onClose={onClose} action={{ label: t.common.done, onClick: save }}>
       <div className="card">
-        {text('roaster', t.editor.roaster)}
-        {text('name', t.editor.name)}
+        {text('roaster', t.editor.roaster, t.editor.roasterPlaceholder)}
+        {text('name', t.editor.name, t.editor.namePlaceholder)}
         <div className="grid-2" style={{ marginTop: 12 }}>
           <label className="field">
             <span>{t.editor.country}</span>

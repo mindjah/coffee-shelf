@@ -101,7 +101,9 @@ const en = {
   editor: {
     title: 'Edit coffee',
     roaster: 'Roaster',
-    name: 'Coffee',
+    roasterPlaceholder: 'e.g. Friedhats',
+    name: 'Coffee name',
+    namePlaceholder: 'Farm, lot or blend, e.g. Hambela',
     country: 'Country',
     area: 'Region',
     producer: 'Producer',
@@ -347,7 +349,9 @@ const ru: Dict = {
   editor: {
     title: 'Редактирование',
     roaster: 'Обжарщик',
-    name: 'Название',
+    roasterPlaceholder: 'Например, Friedhats',
+    name: 'Название кофе',
+    namePlaceholder: 'Ферма, лот или бленд, например Hambela',
     country: 'Страна',
     area: 'Регион',
     producer: 'Производитель',
