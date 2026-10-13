@@ -51,7 +51,7 @@ export default function App() {
       <div hidden={tab !== 'scan'}>
         <ScanScreen model={model} coffees={coffees} onSaved={(id) => (setTab('shelf'), setOpenId(id))} onOpenSettings={() => setTab('settings')} />
       </div>
-      {tab === 'shelf' && <LibraryScreen coffees={coffees} onOpen={setOpenId} />}
+      {tab === 'shelf' && <LibraryScreen coffees={coffees} model={model} onOpen={setOpenId} />}
       {tab === 'taste' && <InsightsScreen coffees={coffees} model={model} />}
       {tab === 'settings' && <SettingsScreen />}
 

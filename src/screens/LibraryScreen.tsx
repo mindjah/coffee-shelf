@@ -1,9 +1,13 @@
 import { useMemo, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../db'
+import type { Model } from '../recommend'
+import { CompareSheet } from './CompareSheet'
 import type { Coffee } from '../types'
 import { countryName, useLang, useT } from '../i18n'
 import { originLine } from '../components/CoffeeSummary'
 import { CoffeeThumb } from '../components/CoffeeThumb'
-import { FilterIcon, ShelfIcon } from '../components/icons'
+import { CompareIcon, FilterIcon, ShelfIcon } from '../components/icons'
 import { DriveBanner } from '../components/DriveSection'
 
 type Filter = 'all' | 'rated' | 'todo'
@@ -78,8 +82,10 @@ function compare(sort: Sort) {
   }
 }
 
-export function LibraryScreen({ coffees, onOpen }: { coffees: Coffee[]; onOpen: (id: number) => void }) {
+export function LibraryScreen({ coffees, model, onOpen }: { coffees: Coffee[]; model: Model; onOpen: (id: number) => void }) {
   const t = useT()
+  const compareItems = useLiveQuery(() => db.compare.orderBy('addedAt').toArray(), []) ?? []
+  const [comparing, setComparing] = useState(false)
   const lang = useLang()
   const [filter, setFilter] = useState<Filter>('all')
   const [query, setQuery] = useState('')
@@ -111,7 +117,14 @@ export function LibraryScreen({ coffees, onOpen }: { coffees: Coffee[]; onOpen: 
 
   return (
     <div className="screen">
-      <h1 className="screen-title">{t.shelf.title}</h1>
+      <div className="row title-row">
+        <h1 className="screen-title">{t.shelf.title}</h1>
+        <span className="spacer" />
+        <button type="button" className="icon-btn title-btn" onClick={() => setComparing(true)} aria-label={t.compare.title}>
+          <CompareIcon />
+          {compareItems.length > 0 && <span className="count-badge">{compareItems.length}</span>}
+        </button>
+      </div>
       <p className="screen-sub">{t.shelf.logged(coffees.length)}</p>
       <DriveBanner />
       <div className="search-row">
@@ -164,6 +177,7 @@ export function LibraryScreen({ coffees, onOpen }: { coffees: Coffee[]; onOpen: 
       ) : (
         shown.map((c) => <Row key={c.id} coffee={c} onOpen={() => onOpen(c.id!)} />)
       )}
+      {comparing && <CompareSheet items={compareItems} model={model} coffees={coffees} onClose={() => setComparing(false)} />}
     </div>
   )
 }

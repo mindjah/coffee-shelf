@@ -266,6 +266,14 @@ textarea.input { min-height: 84px; resize: vertical; }
   border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--text);
 }
 .icon-btn svg { width: 22px; height: 22px; }
+/* Round header button, on one line with the screen title (like the Scan tab avatar) */
+.icon-btn.title-btn { width: 40px; height: 40px; border-radius: 50%; margin-top: 10px; }
+.icon-btn.title-btn svg { width: 21px; height: 21px; }
+.count-badge {
+  position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+  background: var(--accent); color: var(--on-accent); font-size: 11px; font-weight: 700; line-height: 18px; text-align: center;
+  box-shadow: 0 0 0 2px var(--bg);
+}
 .icon-btn.open { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 /* Active filters while the panel is closed */
 .icon-btn.filtering::after {
