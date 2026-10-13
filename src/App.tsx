@@ -59,9 +59,10 @@ export default function App() {
 
       <PhotoViewer />
 
+      {/* Tapping the tab you're already on scrolls it back to the top, as in iOS apps. */}
       <nav className="tabbar">
         {TABS.map(({ id, icon: Icon }) => (
-          <button key={id} className={`tab${tab === id ? ' active' : ''}`} onClick={() => setTab(id)} aria-current={tab === id ? 'page' : undefined}>
+          <button key={id} className={`tab${tab === id ? ' active' : ''}`} onClick={() => (id === tab ? window.scrollTo({ top: 0, behavior: 'smooth' }) : setTab(id))} aria-current={tab === id ? 'page' : undefined}>
             <Icon />
             {t.tabs[id]}
           </button>
