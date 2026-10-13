@@ -155,7 +155,6 @@ const en = {
   },
   settings: {
     title: 'Settings',
-    subtitle: 'Everything stays on this iPhone.',
     language: 'Language',
     labelReading: 'Adding coffee',
     providers: {
@@ -406,7 +405,6 @@ const ru: Dict = {
   },
   settings: {
     title: 'Настройки',
-    subtitle: 'Все данные остаются на этом iPhone.',
     language: 'Язык',
     labelReading: 'Добавление кофе',
     providers: {

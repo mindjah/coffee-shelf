@@ -160,8 +160,12 @@ function findAltitude(text: string): number | null {
   return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null
 }
 
+/** Cupping score (80–99) written as "SCA 87", "Q-grade 86", "Каппинг 88" or "87 points / puntos / баллов". */
 function findScore(text: string): number | null {
-  const m = text.match(/(?:sca|score|puntaje|puntuaci[oó]n|балл[а-я]*)\D{0,12}((?:8\d|9\d)(?:[.,]\d{1,2})?)/iu)
+  const score = String.raw`((?:8\d|9\d)(?:[.,]\d{1,2})?)`
+  const before = new RegExp(String.raw`(?:sca|score|q[\s-]?grade|cupping|puntaje|puntuaci[oó]n|каппинг[а-я]*|оценк[а-я]*|балл[а-я]*)\D{0,12}` + score, 'iu')
+  const after = new RegExp(score + String.raw`\+?\s*(?:points?|pts\.?|puntos|балл[а-я]*)(?![\p{L}])`, 'iu')
+  const m = text.match(before) ?? text.match(after)
   return m ? Number(m[1].replace(',', '.')) : null
 }
 

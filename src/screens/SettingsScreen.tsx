@@ -75,7 +75,6 @@ export function SettingsScreen() {
   return (
     <div className="screen">
       <h1 className="screen-title">{t.settings.title}</h1>
-      <p className="screen-sub">{t.settings.subtitle}</p>
 
       <h2 className="section">{t.settings.language}</h2>
       <div className="segmented">
