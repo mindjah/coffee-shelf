@@ -12,7 +12,7 @@
   --like: #9a6c46;
   --maybe: #b8a08a;
   --pass: #a85f48;
-  --glass: rgba(251, 248, 244, 0.97);
+  --glass: #fbf8f4;
   --shadow: 0 1px 2px rgba(30, 23, 20, 0.04), 0 8px 24px rgba(30, 23, 20, 0.06);
   --serif: ui-serif, 'New York', Georgia, serif;
   --sans: -apple-system, system-ui, 'SF Pro Text', sans-serif;
@@ -37,7 +37,7 @@
     --like: #b88a62;
     --maybe: #7d6b5c;
     --pass: #c47a60;
-    --glass: rgba(20, 17, 15, 0.96);
+    --glass: #14110f;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
   }
 }
@@ -47,6 +47,8 @@ html, body { margin: 0; }
 /* iOS Home Screen apps size short pages to the screen minus the status bar, which lifts
    bottom-pinned elements off the edge; a full-height document keeps them anchored. */
 html { min-height: calc(100% + env(safe-area-inset-top)); }
+/* App-like: no pinch or double-tap zoom, no sideways drift; vertical (and strip) scrolling still works. */
+html, body { overflow-x: hidden; touch-action: pan-x pan-y; }
 body {
   background: var(--bg);
   color: var(--text);
@@ -160,7 +162,8 @@ h2.section {
   border: 1.5px dashed var(--line); background: transparent; color: var(--muted); font-size: 13px;
 }
 
-.file-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+/* Visually hidden but still clickable from code; clipped so its built-in button can't widen the page. */
+.file-input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; }
 
 /* Loading */
 .brewing { text-align: center; padding: 44px 0 28px; }
@@ -252,6 +255,30 @@ textarea.input { min-height: 84px; resize: vertical; }
 .sheet-bar .btn.plain { min-width: 72px; }
 @keyframes rise { from { transform: translateY(100%); } }
 @keyframes fade { from { opacity: 0; } }
+
+/* Settings: way of adding coffee */
+.choices { display: grid; gap: 8px; }
+.choice {
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+  padding: 14px 16px; border-radius: 18px; border: 1.5px solid transparent;
+  background: var(--surface); box-shadow: var(--shadow);
+}
+.choice.on { border-color: var(--accent); }
+.choice .radio { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; }
+.choice.on .radio { border-color: var(--accent); }
+.choice.on .radio::after { content: ''; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); }
+.choice b { display: block; font-size: 16px; }
+.choice .sub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* Editor: taste profile dots */
+.dots-row { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.dots-row + .dots-row { border-top: 0.5px solid var(--line); }
+.dots-row > span { flex: 1; min-width: 0; font-size: 15px; }
+.dots { display: flex; gap: 6px; }
+.dot { width: 30px; height: 30px; border: 0; padding: 0; background: none; display: grid; place-items: center; }
+.dot i { width: 16px; height: 16px; border-radius: 50%; background: var(--surface-2); border: 1.5px solid var(--line); transition: transform 0.1s ease; }
+.dot.on i { background: var(--accent); border-color: var(--accent); }
+.dot:active i { transform: scale(1.2); }
 
 /* Insights */
 .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }

@@ -12,17 +12,19 @@ export const GEMINI_MODELS = [
   { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash-Lite' },
 ] as const
 
-export type Provider = 'gemini' | 'claude'
+/** How new coffees are added: AI reading (Gemini, Claude), on-device text recognition, or by hand. */
+export type Provider = 'gemini' | 'claude' | 'ocr' | 'manual'
+export const PROVIDERS: Provider[] = ['gemini', 'claude', 'ocr', 'manual']
 
 export interface Settings {
-  /** Gemini is the free default; Claude is the paid alternative. */
+  /** Gemini is the free default. */
   provider: Provider
   geminiKey: string
   geminiModel: string
   /** Anthropic API key. */
   apiKey: string
   model: string
-  /** 'auto' follows the iPhone's language. */
+  /** 'auto' (until the user picks) follows the iPhone: Russian if it's in Russian, else English. */
   lang: 'auto' | 'en' | 'ru'
 }
 
@@ -36,9 +38,14 @@ const DEFAULTS: Settings = {
   lang: 'auto',
 }
 
+export const usesAI = (p: Provider) => p === 'gemini' || p === 'claude'
+
 export function activeKey(s: Settings): string {
-  return s.provider === 'claude' ? s.apiKey : s.geminiKey
+  return s.provider === 'claude' ? s.apiKey : s.provider === 'gemini' ? s.geminiKey : ''
 }
+
+/** True when the chosen way of adding coffee can't work until a key is entered. */
+export const needsKey = (s: Settings) => usesAI(s.provider) && !activeKey(s)
 const listeners = new Set<() => void>()
 
 function read(): Settings {

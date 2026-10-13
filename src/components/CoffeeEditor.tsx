@@ -1,9 +1,25 @@
 import { useState } from 'react'
-import { PROCESSES, REGIONS, ROASTS, ROAST_FOR, type CoffeeDraft } from '../types'
+import { FLAVORS, PROCESSES, REGIONS, ROASTS, ROAST_FOR, type CoffeeDraft, type Flavor, type Structure } from '../types'
+import { estimateFlavors, findNotes, flavorsFromNotes, lookupCountry } from '../parse'
 import { countryName, localized, useLang, useT } from '../i18n'
 import { Sheet } from './Sheet'
 
 const list = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean)
+const blankProfile = (f: Record<Flavor, number>) => FLAVORS.every((k) => !f[k])
+
+/** Tap a dot to set the level; tapping the current level clears it. */
+function Dots({ count, value, onChange, label }: { count: number; value: number; onChange: (v: number) => void; label: string }) {
+  return (
+    <div className="dots" role="radiogroup" aria-label={label}>
+      {Array.from({ length: count }, (_, i) => i + 1).map((n) => (
+        <button key={n} type="button" className={`dot${n <= value ? ' on' : ''}`} aria-label={`${label}: ${n}`} aria-checked={n === value} role="radio"
+          onClick={() => onChange(n === value ? 0 : n)}>
+          <i />
+        </button>
+      ))}
+    </div>
+  )
+}
 
 export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft; onSave: (c: CoffeeDraft) => void; onClose: () => void }) {
   const t = useT()
@@ -14,6 +30,7 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   const [notes, setNotes] = useState(shown.notes.join(', '))
   const [processDetail, setProcessDetail] = useState(shown.processDetail)
   const [varieties, setVarieties] = useState(coffee.varieties.join(', '))
+  const [fillNote, setFillNote] = useState<string>()
   const set = <K extends keyof CoffeeDraft>(k: K, v: CoffeeDraft[K]) => setC((p) => ({ ...p, [k]: v }))
   const text = (k: 'roaster' | 'name' | 'area' | 'producer', label: string) => (
     <label className="field">
@@ -22,10 +39,31 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
     </label>
   )
 
+  const setFlavor = (f: Flavor, level: number) =>
+    setC((p) => ({ ...p, flavors: { ...p.flavors, [f]: level / 3 }, flavorsEstimated: false }))
+  const setStructure = (k: keyof Structure, v: number) => setC((p) => ({ ...p, structure: { ...p.structure, [k]: v || null } }))
+
+  function fillFromNotes() {
+    const found = findNotes(notes)
+    if (!found.length) return setFillNote(t.editor.noKnownNotes)
+    setC((p) => ({ ...p, flavors: flavorsFromNotes(found), flavorsEstimated: false }))
+    setFillNote(t.editor.filledFrom(found.length))
+  }
+
   function save() {
     const next: CoffeeDraft = { ...c, varieties: list(varieties) }
-    // A hand-typed country replaces the ISO codes that drive translated names.
-    if (country !== countryName(coffee, lang)) Object.assign(next, { country: country.trim(), countryCodes: [] })
+    // A typed country is matched to ISO codes (for translated names) and an origin group.
+    if (country !== countryName(coffee, lang)) {
+      const match = lookupCountry(country)
+      Object.assign(next, { country: country.trim(), countryCodes: match?.codes ?? [] })
+      if (match && next.region === coffee.region) next.region = match.region
+    }
+    // Predictions need a profile: take it from known notes, else estimate from origin/process/roast.
+    if (blankProfile(next.flavors)) {
+      const found = findNotes(notes)
+      next.flavors = found.length ? flavorsFromNotes(found) : estimateFlavors(next.region, next.process, next.roast)
+      next.flavorsEstimated = !found.length
+    }
     // Notes and process wording are edited in the language they're shown in.
     const tr = coffee.translations?.[lang]
     if (tr) {
@@ -94,6 +132,28 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
           <input className="input" value={notes} onChange={(e) => setNotes(e.target.value)} />
         </label>
         <p className="muted small" style={{ margin: '10px 4px 0' }}>{t.editor.notesHint}</p>
+      </div>
+      <h2 className="section">{t.editor.tasteProfile}</h2>
+      <div className="card">
+        <button type="button" className="btn ghost block" onClick={fillFromNotes} disabled={!notes.trim()}>{t.editor.fillFromNotes}</button>
+        {fillNote && <p className="muted small" style={{ margin: '8px 4px 4px' }}>{fillNote}</p>}
+        <div style={{ marginTop: 8 }}>
+          {FLAVORS.map((f) => (
+            <div className="dots-row" key={f}>
+              <span>{t.flavor[f]}</span>
+              <Dots count={3} value={Math.round(c.flavors[f] * 3)} onChange={(v) => setFlavor(f, v)} label={t.flavor[f]} />
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 14 }}>
+          {(['acidity', 'body', 'sweetness'] as const).map((k) => (
+            <div className="dots-row" key={k}>
+              <span>{t.editor[k]}</span>
+              <Dots count={5} value={c.structure[k] ?? 0} onChange={(v) => setStructure(k, v)} label={t.editor[k]} />
+            </div>
+          ))}
+        </div>
+        <p className="muted small" style={{ margin: '10px 4px 0' }}>{t.editor.tasteHint}</p>
       </div>
     </Sheet>
   )

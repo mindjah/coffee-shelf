@@ -3,7 +3,9 @@ import { clearPendingScan, db, loadPendingScan, savePendingScan } from '../db'
 import { ScanError } from '../errors'
 import { resizeImage } from '../image'
 import { MIN_RATINGS, predict, type Model } from '../recommend'
-import { activeKey, useSettings } from '../settings'
+import { needsKey, useSettings } from '../settings'
+import { emptyDraft, isBlankDraft, parseLabel } from '../parse'
+import type { OcrProgress } from '../ocr'
 import { useT, type Dict } from '../i18n'
 import type { Coffee, CoffeeDraft } from '../types'
 import { CoffeeSummary, usePhotoUrl } from '../components/CoffeeSummary'
@@ -34,7 +36,9 @@ function Shot({ blob, onRemove }: { blob: Blob; onRemove: () => void }) {
 
 export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const t = useT()
-  const apiKey = activeKey(useSettings())
+  const settings = useSettings()
+  const provider = settings.provider
+  const missingKey = needsKey(settings)
   const cameraRef = useRef<HTMLInputElement>(null)
   const libraryRef = useRef<HTMLInputElement>(null)
   const [shots, setShots] = useState<Blob[]>([])
@@ -44,6 +48,8 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const [editing, setEditing] = useState(false)
   const [rating, setRating] = useState<number | null>(null)
   const [comment, setComment] = useState('')
+  const [ocr, setOcr] = useState<OcrProgress>()
+  const [ocrText, setOcrText] = useState('')
 
   // Restore an unsaved scan from the last session, then keep it saved as it changes so it
   // survives iOS closing the app in the background. An interrupted read just needs a retry.
@@ -109,17 +115,38 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     }
   }
 
+  const thumbnail = async () => (shots[0] ? (await resizeImage(shots[0], 600, 0.8)).arrayBuffer() : undefined)
+
+  function startManual() {
+    setDraft(emptyDraft())
+    setEditing(true)
+  }
+
   async function read() {
+    if (provider === 'manual') {
+      setDraft({ ...emptyDraft(), photo: await thumbnail() })
+      return setEditing(true)
+    }
     setReading(true)
     setError(undefined)
     try {
-      const { readBag } = await import('../scan')
-      const d = await readBag(shots)
-      setDraft({ ...d, photo: await (await resizeImage(shots[0], 600, 0.8)).arrayBuffer() })
+      if (provider === 'ocr') {
+        // On-device text recognition, then rule-based parsing; the user reviews the result.
+        const { recognize } = await import('../ocr')
+        const text = await recognize(shots, setOcr)
+        setOcrText(text)
+        setDraft({ ...parseLabel(text), photo: await thumbnail() })
+        setEditing(true)
+      } else {
+        const { readBag } = await import('../scan')
+        const d = await readBag(shots)
+        setDraft({ ...d, photo: await thumbnail() })
+      }
     } catch (e) {
       setError(e instanceof ScanError ? { code: e.code, detail: e.detail } : { code: 'unknown', detail: (e as Error).message })
     } finally {
       setReading(false)
+      setOcr(undefined)
     }
   }
 
@@ -129,6 +156,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     setRating(null)
     setComment('')
     setError(undefined)
+    setOcrText('')
   }
 
   async function save(withRating: boolean) {
@@ -159,7 +187,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
           <span className="spacer" />
           <button className="btn plain" onClick={() => setEditing(true)}>{t.common.edit}</button>
         </div>
-        <p className="screen-sub">{t.scan.newBagHint}</p>
+        <p className="screen-sub">{ocrText ? t.scan.reviewHint : t.scan.newBagHint}</p>
         <div className="stack">
           {seenBefore && (
             <div className="card row small">
@@ -170,6 +198,12 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
           )}
           <PredictionCard prediction={prediction} ratedCount={model.count} />
           <CoffeeSummary coffee={draft} />
+          {ocrText && (
+            <details className="card small">
+              <summary style={{ fontWeight: 600 }}>{t.scan.recognizedText}</summary>
+              <pre className="muted" style={{ whiteSpace: 'pre-wrap', font: 'inherit', margin: '10px 0 0' }}>{ocrText}</pre>
+            </details>
+          )}
           <div className="card">
             <div className="row">
               <div style={{ fontWeight: 600 }}>{t.scan.tasted}</div>
@@ -184,7 +218,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
           <button className="btn danger block" onClick={reset}>{t.scan.discard}</button>
         </div>
         {editing && (
-          <CoffeeEditor coffee={draft} onClose={() => setEditing(false)} onSave={(c) => (setDraft(c), setEditing(false))} />
+          <CoffeeEditor coffee={draft} onClose={() => (setEditing(false), isBlankDraft(draft) && reset())} onSave={(c) => (setDraft(c), setEditing(false))} />
         )}
       </div>
     )
@@ -199,21 +233,47 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
       {reading ? (
         <div className="card brewing">
           <BeanIcon />
-          <div className="verdict" style={{ marginTop: 14 }}>{t.scan.reading}</div>
-          <div className="muted small">{t.scan.readingHint}</div>
+          {provider === 'ocr' ? (
+            <>
+              <div className="verdict" style={{ marginTop: 14 }}>
+                {ocr?.stage === 'reading' ? t.scan.ocrReading : t.scan.ocrLoading} {ocr ? `${Math.round(ocr.progress * 100)}%` : ''}
+              </div>
+              <div className="muted small">{ocr?.stage === 'reading' ? '' : t.scan.ocrFirstTime}</div>
+            </>
+          ) : (
+            <>
+              <div className="verdict" style={{ marginTop: 14 }}>{t.scan.reading}</div>
+              <div className="muted small">{t.scan.readingHint}</div>
+            </>
+          )}
         </div>
       ) : shots.length === 0 ? (
         <div className="hero">
           <img className="hero-bean" src={`${import.meta.env.BASE_URL}icon.svg`} alt="" />
-          <h2>{t.scan.heroTitle}</h2>
-          <p>{t.scan.heroText}</p>
-          <button className="btn block" onClick={() => (apiKey ? cameraRef.current?.click() : onOpenSettings())}>
-            <CameraIcon /> {apiKey ? t.scan.takePhoto : t.scan.needKey}
-          </button>
-          {apiKey && (
-            <button className="btn plain block" style={{ marginTop: 6 }} onClick={() => libraryRef.current?.click()}>
-              {t.scan.fromPhotos}
-            </button>
+          {provider === 'manual' ? (
+            <>
+              <h2>{t.scan.manualTitle}</h2>
+              <p>{t.scan.manualText}</p>
+              <button className="btn block" onClick={startManual}>
+                <PlusIcon /> {t.scan.enterManually}
+              </button>
+              <button className="btn plain block" style={{ marginTop: 6 }} onClick={() => cameraRef.current?.click()}>
+                {t.scan.addPhoto}
+              </button>
+            </>
+          ) : (
+            <>
+              <h2>{t.scan.heroTitle}</h2>
+              <p>{t.scan.heroText}</p>
+              <button className="btn block" onClick={() => (missingKey ? onOpenSettings() : cameraRef.current?.click())}>
+                <CameraIcon /> {missingKey ? t.scan.needKey : t.scan.takePhoto}
+              </button>
+              {!missingKey && (
+                <button className="btn plain block" style={{ marginTop: 6 }} onClick={() => libraryRef.current?.click()}>
+                  {t.scan.fromPhotos}
+                </button>
+              )}
+            </>
           )}
         </div>
       ) : (
@@ -229,7 +289,9 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
               </button>
             )}
           </div>
-          <button className="btn block" style={{ marginTop: 14 }} onClick={read}>{t.scan.readLabel}</button>
+          <button className="btn block" style={{ marginTop: 14 }} onClick={read}>
+            {provider === 'manual' ? t.scan.continue : provider === 'ocr' ? t.scan.recognize : t.scan.readLabel}
+          </button>
           <button className="btn plain block" onClick={reset}>{t.scan.startOver}</button>
         </div>
       )}

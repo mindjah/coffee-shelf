@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { exportBackup, importBackup, requestPersistence } from '../db'
-import { GEMINI_MODELS, MODELS, saveSettings, useSettings, type Provider, type Settings } from '../settings'
-import { LANG_NAMES, useT } from '../i18n'
+import { GEMINI_MODELS, MODELS, PROVIDERS, saveSettings, usesAI, useSettings } from '../settings'
+import { LANG_NAMES, useLang, useT } from '../i18n'
 import { ScanError } from '../errors'
 
 export function SettingsScreen() {
   const t = useT()
+  const lang = useLang()
   const settings = useSettings()
   const isClaude = settings.provider === 'claude'
   const keyField = isClaude ? 'apiKey' : 'geminiKey'
@@ -69,7 +70,7 @@ export function SettingsScreen() {
     }
   }
 
-  const langs: [Settings['lang'], string][] = [['auto', t.settings.langAuto], ['en', LANG_NAMES.en], ['ru', LANG_NAMES.ru]]
+  const langs: ['en' | 'ru', string][] = [['en', LANG_NAMES.en], ['ru', LANG_NAMES.ru]]
 
   return (
     <div className="screen">
@@ -79,52 +80,60 @@ export function SettingsScreen() {
       <h2 className="section">{t.settings.language}</h2>
       <div className="segmented">
         {langs.map(([id, label]) => (
-          <button key={id} className={settings.lang === id ? 'on' : ''} onClick={() => saveSettings({ lang: id })}>
+          <button key={id} className={lang === id ? 'on' : ''} onClick={() => saveSettings({ lang: id })}>
             {label}
           </button>
         ))}
       </div>
 
       <h2 className="section">{t.settings.labelReading}</h2>
-      <div className="segmented">
-        {(['gemini', 'claude'] as Provider[]).map((p) => (
-          <button key={p} className={settings.provider === p ? 'on' : ''} onClick={() => saveSettings({ provider: p })}>
-            {p === 'gemini' ? t.settings.providerFree : t.settings.providerPaid}
+      <div className="choices">
+        {PROVIDERS.map((p) => (
+          <button key={p} className={`choice${settings.provider === p ? ' on' : ''}`} onClick={() => saveSettings({ provider: p })} aria-pressed={settings.provider === p}>
+            <span className="radio" />
+            <span>
+              <b>{t.settings.providers[p][0]}</b>
+              <span className="sub">{t.settings.providers[p][1]}</span>
+            </span>
           </button>
         ))}
       </div>
-      <div className="card">
-        <label className="field">
-          <span>{isClaude ? t.settings.apiKey : t.settings.geminiKey}</span>
-          <input
-            className="input"
-            type="password"
-            autoComplete="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            placeholder={isClaude ? 'sk-ant-…' : 'AIza…'}
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-            onBlur={() => saveSettings({ [keyField]: key.trim() })}
-          />
-        </label>
-        <label className="field">
-          <span>{t.settings.model}</span>
-          <select className="input" value={settings[modelField]} onChange={(e) => saveSettings({ [modelField]: e.target.value })}>
-            {models.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
-          </select>
-          <span className="muted small" style={{ display: 'block', margin: '6px 4px 0' }}>{t.settings.modelHints[settings[modelField]]}</span>
-        </label>
-        <button className="btn block" style={{ marginTop: 14 }} disabled={key.trim() === settings[keyField]} onClick={() => saveSettings({ [keyField]: key.trim() })}>
-          {key.trim() === settings[keyField] && settings[keyField] ? t.settings.keySaved : t.settings.saveKey}
-        </button>
-        <button className="btn ghost block" style={{ marginTop: 10 }} disabled={!key.trim() || check?.state === 'testing'} onClick={testKey}>
-          {check?.state === 'testing' ? t.settings.testing : t.settings.testKey}
-        </button>
-        {check?.state === 'ok' && <div className="small" style={{ margin: '10px 4px 0', color: 'var(--accent)', fontWeight: 600 }}>✓ {t.settings.keyWorks}</div>}
-        {check?.state === 'fail' && <div className="error small" style={{ marginTop: 10 }}>{check.message}</div>}
-        <p className="muted small" style={{ margin: '12px 4px 0' }}>{isClaude ? t.settings.keyHint : t.settings.geminiHint}</p>
-      </div>
+      {usesAI(settings.provider) ? (
+        <div className="card" style={{ marginTop: 12 }}>
+          <label className="field">
+            <span>{isClaude ? t.settings.apiKey : t.settings.geminiKey}</span>
+            <input
+              className="input"
+              type="password"
+              autoComplete="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              placeholder={isClaude ? 'sk-ant-…' : 'AIza…'}
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              onBlur={() => saveSettings({ [keyField]: key.trim() })}
+            />
+          </label>
+          <label className="field">
+            <span>{t.settings.model}</span>
+            <select className="input" value={settings[modelField]} onChange={(e) => saveSettings({ [modelField]: e.target.value })}>
+              {models.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+            </select>
+            <span className="muted small" style={{ display: 'block', margin: '6px 4px 0' }}>{t.settings.modelHints[settings[modelField]]}</span>
+          </label>
+          <button className="btn block" style={{ marginTop: 14 }} disabled={key.trim() === settings[keyField]} onClick={() => saveSettings({ [keyField]: key.trim() })}>
+            {key.trim() === settings[keyField] && settings[keyField] ? t.settings.keySaved : t.settings.saveKey}
+          </button>
+          <button className="btn ghost block" style={{ marginTop: 10 }} disabled={!key.trim() || check?.state === 'testing'} onClick={testKey}>
+            {check?.state === 'testing' ? t.settings.testing : t.settings.testKey}
+          </button>
+          {check?.state === 'ok' && <div className="small" style={{ margin: '10px 4px 0', color: 'var(--accent)', fontWeight: 600 }}>✓ {t.settings.keyWorks}</div>}
+          {check?.state === 'fail' && <div className="error small" style={{ marginTop: 10 }}>{check.message}</div>}
+          <p className="muted small" style={{ margin: '12px 4px 0' }}>{isClaude ? t.settings.keyHint : t.settings.geminiHint}</p>
+        </div>
+      ) : (
+        <p className="muted small" style={{ margin: '12px 4px 0' }}>{settings.provider === 'ocr' ? t.settings.ocrHint : t.settings.manualHint}</p>
+      )}
 
       <h2 className="section">{t.settings.yourData}</h2>
       <div className="card stack">

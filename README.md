@@ -11,6 +11,11 @@ directly from the device with your own key, chosen in Settings:
 - **Google Gemini (default, free)** — key from aistudio.google.com, no card. Free-tier requests
   have daily limits and may be used by Google to improve its products.
 - **Anthropic Claude (paid)** — key from console.anthropic.com.
+- **Without AI** — Tesseract.js reads the text on the phone (English, Spanish, Russian; ~10 MB
+  download on first use), then `src/parse.ts` fills the fields from the coffee dictionary in
+  `src/lexicon.ts`. The user reviews the result in the editor.
+- **Manual** — type the details and set the taste profile with dots; known tasting notes can
+  fill the profile automatically.
 
 `src/extract.ts` holds the shared prompt, schema and mapping; `src/gemini.ts` and `src/claude.ts`
 only handle the API calls.
