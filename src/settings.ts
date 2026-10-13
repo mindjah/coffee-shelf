@@ -12,9 +12,17 @@ export const GEMINI_MODELS = [
   { id: 'gemini-3.5-flash-lite', label: 'Gemini 3.5 Flash-Lite' },
 ] as const
 
-/** How a bag photo is read: AI (Gemini, Claude) or on-device text recognition. Manual entry is a switch on the Scan screen. */
-export type Provider = 'gemini' | 'claude' | 'ocr'
-export const PROVIDERS: Provider[] = ['gemini', 'claude', 'ocr']
+/** Sol is the default: plenty for reading a label at a fraction of Astra's price. */
+export const OPENAI_MODELS = [
+  { id: 'gpt-6.1-sol', label: 'GPT-6.1 Sol' },
+  { id: 'gpt-6-astra', label: 'GPT-6 Astra' },
+  { id: 'gpt-6-luna', label: 'GPT-6 Luna' },
+] as const
+
+/** How a bag photo is read: AI (Gemini, Claude, ChatGPT) or on-device text recognition. Manual entry is a switch on the Scan screen. */
+export type Provider = 'gemini' | 'claude' | 'openai' | 'ocr'
+export const PROVIDERS: Provider[] = ['gemini', 'claude', 'openai', 'ocr']
+export type AIProvider = Exclude<Provider, 'ocr'>
 
 export interface Settings {
   /** Gemini is the free default. */
@@ -24,6 +32,9 @@ export interface Settings {
   /** Anthropic API key. */
   apiKey: string
   model: string
+  /** OpenAI API key (ChatGPT). */
+  openaiKey: string
+  openaiModel: string
   /** 'auto' (until the user picks) follows the iPhone: Russian if it's in Russian, else English. */
   lang: 'auto' | 'en' | 'ru'
 }
@@ -35,13 +46,22 @@ const DEFAULTS: Settings = {
   geminiModel: GEMINI_MODELS[0].id,
   apiKey: '',
   model: MODELS[0].id,
+  openaiKey: '',
+  openaiModel: OPENAI_MODELS[0].id,
   lang: 'auto',
 }
 
-export const usesAI = (p: Provider) => p === 'gemini' || p === 'claude'
+export const usesAI = (p: Provider): p is AIProvider => p !== 'ocr'
+
+/** Where each AI provider keeps its key and model in Settings. */
+export const AI_FIELDS = {
+  gemini: { key: 'geminiKey', model: 'geminiModel', models: GEMINI_MODELS },
+  claude: { key: 'apiKey', model: 'model', models: MODELS },
+  openai: { key: 'openaiKey', model: 'openaiModel', models: OPENAI_MODELS },
+} as const
 
 export function activeKey(s: Settings): string {
-  return s.provider === 'claude' ? s.apiKey : s.provider === 'gemini' ? s.geminiKey : ''
+  return usesAI(s.provider) ? s[AI_FIELDS[s.provider].key] : ''
 }
 
 /** True when the chosen way of adding coffee can't work until a key is entered. */

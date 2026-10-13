@@ -17,6 +17,7 @@ import { Stars } from '../components/Stars'
 import { BeanIcon, CameraIcon, PlusIcon } from '../components/icons'
 import { Avatar } from '../components/Avatar'
 import { focusDriveSection } from '../gdrive'
+import { Linkify } from '../components/Linkify'
 import { openPhoto } from '../components/PhotoViewer'
 
 interface Props {
@@ -388,7 +389,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
 
       {error && (
         <div className="error" style={{ marginTop: 14 }}>
-          {error.code === 'photo' ? t.scan.photoError : t.errors[error.code]}
+          {error.code === 'photo' ? t.scan.photoError : <Linkify text={t.errors[error.code]} />}
           {error.detail && `: ${error.detail}`}
         </div>
       )}

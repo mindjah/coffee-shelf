@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { exportBackup, importBackup, mergeBackup, requestPersistence } from '../db'
-import { GEMINI_MODELS, MODELS, PROVIDERS, saveSettings, usesAI, useSettings } from '../settings'
+import { AI_FIELDS, PROVIDERS, saveSettings, usesAI, useSettings, type AIProvider } from '../settings'
 import { LANG_NAMES, useLang, useT } from '../i18n'
 import { ScanError } from '../errors'
 import { DriveSection } from '../components/DriveSection'
@@ -16,10 +16,14 @@ export function SettingsScreen() {
   const t = useT()
   const lang = useLang()
   const settings = useSettings()
-  const isClaude = settings.provider === 'claude'
-  const keyField = isClaude ? 'apiKey' : 'geminiKey'
-  const modelField = isClaude ? 'model' : 'geminiModel'
-  const models = isClaude ? MODELS : GEMINI_MODELS
+  // The key card belongs to the selected AI provider (Without AI has none; Gemini fields fill in).
+  const ai: AIProvider = usesAI(settings.provider) ? settings.provider : 'gemini'
+  const { key: keyField, model: modelField, models } = AI_FIELDS[ai]
+  const keyCopy = {
+    gemini: { label: t.settings.geminiKey, placeholder: 'AIza…', hint: t.settings.geminiHint },
+    claude: { label: t.settings.apiKey, placeholder: 'sk-ant-…', hint: t.settings.keyHint },
+    openai: { label: t.settings.openaiKey, placeholder: 'sk-…', hint: t.settings.openaiHint },
+  }[ai]
   const [key, setKey] = useState(settings[keyField])
   // Show the stored key of whichever provider is selected.
   useEffect(() => setKey(settings[keyField]), [keyField, settings])
@@ -34,7 +38,7 @@ export function SettingsScreen() {
     setCheck({ state: 'testing' })
     try {
       const { testKey } = await import('../scan')
-      await testKey(settings.provider, trimmed, settings[modelField])
+      await testKey(ai, trimmed, settings[modelField])
       saveSettings({ [keyField]: trimmed }) // a key that works is worth keeping
       setCheck({ state: 'ok' })
     } catch (e) {
@@ -120,14 +124,14 @@ export function SettingsScreen() {
       {usesAI(settings.provider) ? (
         <div className="card" style={{ marginTop: 12 }}>
           <label className="field">
-            <span>{isClaude ? t.settings.apiKey : t.settings.geminiKey}</span>
+            <span>{keyCopy.label}</span>
             <input
               className="input"
               type="password"
               autoComplete="off"
               autoCapitalize="off"
               spellCheck={false}
-              placeholder={isClaude ? 'sk-ant-…' : 'AIza…'}
+              placeholder={keyCopy.placeholder}
               value={key}
               onChange={(e) => setKey(e.target.value)}
               onBlur={() => saveSettings({ [keyField]: key.trim() })}
@@ -147,8 +151,8 @@ export function SettingsScreen() {
             {check?.state === 'testing' ? t.settings.testing : t.settings.testKey}
           </button>
           {check?.state === 'ok' && <div className="small" style={{ margin: '10px 4px 0', color: 'var(--accent)', fontWeight: 600 }}>✓ {t.settings.keyWorks}</div>}
-          {check?.state === 'fail' && <div className="error small" style={{ marginTop: 10 }}>{check.message}</div>}
-          <p className="muted small" style={{ margin: '12px 4px 0' }}><Linkify text={isClaude ? t.settings.keyHint : t.settings.geminiHint} /></p>
+          {check?.state === 'fail' && <div className="error small" style={{ marginTop: 10 }}><Linkify text={check.message ?? ''} /></div>}
+          <p className="muted small" style={{ margin: '12px 4px 0' }}><Linkify text={keyCopy.hint} /></p>
         </div>
       ) : (
         <p className="muted small" style={{ margin: '12px 4px 0' }}>{t.settings.ocrHint}</p>

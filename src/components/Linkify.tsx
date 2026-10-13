@@ -5,6 +5,7 @@ const DEEP_LINKS: Record<string, string> = {
   'aistudio.google.com': 'https://aistudio.google.com/apikey',
   'console.anthropic.com': 'https://console.anthropic.com/settings/keys',
   'console.cloud.google.com': 'https://console.cloud.google.com/apis/library/drive.googleapis.com',
+  'platform.openai.com': 'https://platform.openai.com/api-keys',
 }
 
 // Bare domains like "aistudio.google.com" or full URLs; a trailing full stop isn't part of the link.
