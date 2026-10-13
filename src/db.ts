@@ -55,7 +55,7 @@ export async function exportBackup(): Promise<Blob> {
   return new Blob([JSON.stringify({ app: 'coffee-shelf', version: 1, coffees: rows })], { type: 'application/json' })
 }
 
-export async function importBackup(file: File): Promise<number> {
+export async function importBackup(file: Blob): Promise<number> {
   const data = JSON.parse(await file.text())
   if (data?.app !== 'coffee-shelf' || !Array.isArray(data.coffees)) throw new Error('notBackup')
   const rows: Coffee[] = await Promise.all(
@@ -82,3 +82,35 @@ export async function addShelfToCompare(coffee: Coffee): Promise<AddResult> {
   await db.compare.add({ addedAt: Date.now(), draft, coffeeId: id })
   return 'added'
 }
+
+// --- change tracking (drives automatic Google Drive backup) ------------------
+
+const LAST_CHANGE_KEY = 'coffee-shelf.lastChange'
+const changeListeners = new Set<() => void>()
+
+export function lastChange(): number {
+  try {
+    return Number(localStorage.getItem(LAST_CHANGE_KEY)) || 0
+  } catch {
+    return 0
+  }
+}
+
+export function onShelfChange(listener: () => void): () => void {
+  changeListeners.add(listener)
+  return () => void changeListeners.delete(listener)
+}
+
+function markChanged() {
+  try {
+    localStorage.setItem(LAST_CHANGE_KEY, String(Date.now()))
+  } catch {
+    // Without storage, automatic backup just won't notice this change.
+  }
+  // After the transaction settles, so a backup reads the new data.
+  setTimeout(() => changeListeners.forEach((l) => l()), 0)
+}
+
+db.coffees.hook('creating', markChanged)
+db.coffees.hook('updating', markChanged)
+db.coffees.hook('deleting', markChanged)

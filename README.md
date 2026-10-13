@@ -36,6 +36,15 @@ The workflow in `.github/workflows/deploy.yml` builds with the right `/<repo>/` 
 On the iPhone: open the Pages URL in Safari → Share → **Add to Home Screen**, then add your API key
 in the app's Settings.
 
+## Google Drive backup (optional)
+
+Set `GOOGLE_CLIENT_ID` in `src/config.ts` to an OAuth "Web application" client ID (Google Cloud
+Console, Drive API enabled, redirect URI = the app URL). Settings then offers **Sign in with
+Google**: the phone talks to Google directly — still no backend — and keeps one backup file in the
+hidden app-data folder (`drive.appdata` scope). Backups run a few seconds after changes while the
+browser token is valid (~1 h); after that the Shelf shows a one-tap reminder. A new device is asked
+whether to restore or replace before anything is overwritten.
+
 ## In the shop
 
 Scan a bag → **Add to comparison** → scan the next one (up to 6). **Compare** on the Scan screen

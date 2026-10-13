@@ -9,6 +9,7 @@ import { SettingsScreen } from './screens/SettingsScreen'
 import { CoffeeDetail } from './screens/CoffeeDetail'
 import { CameraIcon, GearIcon, ShelfIcon, TasteIcon } from './components/icons'
 import { useLang, useT } from './i18n'
+import { cameBackFromSignIn } from './gdrive'
 
 type Tab = 'scan' | 'shelf' | 'taste' | 'settings'
 
@@ -22,7 +23,8 @@ const TABS: { id: Tab; icon: () => React.JSX.Element }[] = [
 export default function App() {
   const t = useT()
   const lang = useLang()
-  const [tab, setTab] = useState<Tab>('scan')
+  // Back from Google sign-in → show the Google Drive status in Settings.
+  const [tab, setTab] = useState<Tab>(() => (cameBackFromSignIn() ? 'settings' : 'scan'))
   const [openId, setOpenId] = useState<number>()
   const coffees = useLiveQuery(() => db.coffees.toArray(), [])
   const model = useMemo(() => buildModel(coffees ?? []), [coffees])

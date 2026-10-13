@@ -3,6 +3,7 @@ import type { Coffee } from '../types'
 import { countryName, useLang, useT } from '../i18n'
 import { originLine, usePhotoUrl } from '../components/CoffeeSummary'
 import { ShelfIcon } from '../components/icons'
+import { DriveBanner } from '../components/DriveSection'
 
 type Filter = 'all' | 'rated' | 'todo'
 
@@ -49,6 +50,7 @@ export function LibraryScreen({ coffees, onOpen }: { coffees: Coffee[]; onOpen: 
     <div className="screen">
       <h1 className="screen-title">{t.shelf.title}</h1>
       <p className="screen-sub">{t.shelf.logged(coffees.length)}</p>
+      <DriveBanner />
       <input className="input" type="search" placeholder={t.shelf.search} value={query} onChange={(e) => setQuery(e.target.value)} style={{ marginBottom: 12 }} />
       <div className="segmented">
         {(['all', 'rated', 'todo'] as Filter[]).map((f) => (

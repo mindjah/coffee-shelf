@@ -3,6 +3,7 @@ import { exportBackup, importBackup, requestPersistence } from '../db'
 import { GEMINI_MODELS, MODELS, PROVIDERS, saveSettings, usesAI, useSettings } from '../settings'
 import { LANG_NAMES, useLang, useT } from '../i18n'
 import { ScanError } from '../errors'
+import { DriveSection } from '../components/DriveSection'
 
 export function SettingsScreen() {
   const t = useT()
@@ -133,6 +134,8 @@ export function SettingsScreen() {
       ) : (
         <p className="muted small" style={{ margin: '12px 4px 0' }}>{t.settings.ocrHint}</p>
       )}
+
+      <DriveSection />
 
       <h2 className="section">{t.settings.yourData}</h2>
       <div className="card stack">

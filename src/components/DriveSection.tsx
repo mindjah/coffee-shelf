@@ -1,0 +1,71 @@
+import { useEffect, useRef } from 'react'
+import { backupNow, cameBackFromSignIn, restoreFromDrive, signIn, signOut, useDrive } from '../gdrive'
+import { useLang, useT } from '../i18n'
+
+/** Settings block for Google Drive backup; hidden until a Google client ID is configured. */
+export function DriveSection() {
+  const t = useT()
+  const lang = useLang()
+  const drive = useDrive()
+  const anchor = useRef<HTMLHeadingElement>(null)
+  // Coming back from Google's sign-in page: bring the result into view (after the tab's own scroll reset).
+  useEffect(() => {
+    if (cameBackFromSignIn()) setTimeout(() => anchor.current?.scrollIntoView({ block: 'start' }), 50)
+  }, [])
+  if (!drive.enabled) return null
+  const when = (ms: number) => new Date(ms).toLocaleString(lang, { dateStyle: 'medium', timeStyle: 'short' })
+
+  return (
+    <>
+      <h2 className="section" ref={anchor} style={{ scrollMarginTop: 'calc(var(--safe-top) + 12px)' }}>{t.drive.title}</h2>
+      <div className="card stack">
+        {!drive.signedIn ? (
+          <>
+            <p className="muted small" style={{ margin: 0 }}>{t.drive.hint}</p>
+            <button className="btn block" onClick={() => signIn('connect')}>{t.drive.signIn}</button>
+          </>
+        ) : (
+          <>
+            {drive.email && <div style={{ fontWeight: 600 }}>{t.drive.signedInAs(drive.email)}</div>}
+            {!drive.choose && <div className="muted small">
+              {drive.busy === 'backup' ? t.drive.backingUp
+                : drive.busy === 'restore' ? t.drive.restoring
+                : drive.lastBackup ? t.drive.lastBackup(when(drive.lastBackup))
+                : t.drive.never}
+              {!drive.busy && drive.unsaved && drive.lastBackup ? ` ${t.drive.unsaved}` : ''}
+            </div>}
+            {drive.choose && (
+              <div className="notice" style={{ marginTop: 0 }}>
+                <p style={{ margin: '0 0 10px' }}>{t.drive.choose(when(drive.choose.remoteTime))}</p>
+                <button className="btn block" onClick={restoreFromDrive}>{t.drive.useDrive}</button>
+                <button className="btn plain block" onClick={() => confirm(t.drive.confirmReplace) && backupNow(true)}>{t.drive.usePhone}</button>
+              </div>
+            )}
+            {drive.error && <div className="error small">{t.drive.errors[drive.error]}</div>}
+            {!drive.choose && (
+              <>
+                <button className="btn block" disabled={!!drive.busy} onClick={() => backupNow()}>{t.drive.backupNow}</button>
+                <button className="btn ghost block" disabled={!!drive.busy} onClick={() => confirm(t.drive.confirmRestore) && restoreFromDrive()}>{t.drive.restore}</button>
+              </>
+            )}
+            <p className="muted small" style={{ margin: 0 }}>{t.drive.auto}</p>
+            <button className="btn plain block" onClick={signOut}>{t.drive.signOut}</button>
+          </>
+        )}
+      </div>
+    </>
+  )
+}
+
+/** Shelf reminder when changes are waiting and the Google connection has lapsed. */
+export function DriveBanner() {
+  const t = useT()
+  const drive = useDrive()
+  if (!drive.enabled || !drive.signedIn || !drive.linked || !drive.unsaved || drive.connected || drive.busy) return null
+  return (
+    <div className="card compare-bar" style={{ marginTop: 0, marginBottom: 12 }}>
+      <span className="small" style={{ flex: 1 }}>{t.drive.banner}</span>
+      <button className="btn" onClick={() => backupNow()}>{t.drive.bannerAction}</button>
+    </div>
+  )
+}
