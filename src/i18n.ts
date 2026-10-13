@@ -232,7 +232,7 @@ const en = {
   settings: {
     title: 'Settings',
     language: 'Language',
-    labelReading: 'Adding coffee',
+    labelReading: 'Coffee bag scanning',
     providers: {
       gemini: ['Gemini', 'Free AI · reads the whole label · needs a Google key'],
       claude: ['Claude', 'Paid AI · most accurate · needs an Anthropic key'],
@@ -567,7 +567,7 @@ const ru: Dict = {
   settings: {
     title: 'Настройки',
     language: 'Язык',
-    labelReading: 'Добавление кофе',
+    labelReading: 'Сканирование пачек',
     providers: {
       gemini: ['Gemini', 'Бесплатный ИИ · читает всю этикетку · нужен ключ Google'],
       claude: ['Claude', 'Платный ИИ · самый точный · нужен ключ Anthropic'],
