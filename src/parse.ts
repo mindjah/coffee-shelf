@@ -112,18 +112,50 @@ function labelled(all: string[], words: string[]): string {
       const m = find(n, w)
       if (m && m.index < 4) {
         const rest = line.slice(m.index + m[0].length).replace(/^[\s:–—-]+/, '').trim()
-        if (rest) return rest.slice(0, 60)
+        const own = segments(rest).filter((seg) => !otherField(seg))[0]
+        if (own) return own.slice(0, 60)
       }
     }
   }
   return ''
 }
 
+/** Labels often pack several facts on one line ("Natural | SCA 87 pts"); split them apart. */
+function segments(s: string): string[] {
+  return s.split(/\s*[|·•;/]\s*|\s+[-–—]\s+|\s{3,}/).map((x) => x.trim()).filter(Boolean)
+}
+
+/** A piece of a line that belongs to another field and must not leak into this one. */
+function otherField(seg: string): boolean {
+  const n = normalize(seg)
+  return findScore(seg) != null || findAltitude(seg) != null || SCA_WORD.test(seg)
+    || hasAny(n, ROAST_WORDS) || hasAny(n, VARIETY_WORDS) || hasAny(n, ALTITUDE_WORDS)
+}
+
+// OCR reading Latin and Cyrillic at once can mix look-alike letters inside one word ("SСА"),
+// so words are mapped to whichever alphabet most of their letters are in.
+const LAT_TO_CYR: Record<string, string> = { a: 'а', c: 'с', e: 'е', o: 'о', p: 'р', x: 'х', y: 'у', k: 'к', m: 'м', t: 'т', h: 'н', b: 'в', A: 'А', C: 'С', E: 'Е', O: 'О', P: 'Р', X: 'Х', Y: 'У', K: 'К', M: 'М', T: 'Т', H: 'Н', B: 'В' }
+const CYR_TO_LAT: Record<string, string> = Object.fromEntries(Object.entries(LAT_TO_CYR).map(([l, c]) => [c, l]))
+
+export function fixMixedScript(text: string): string {
+  return text.replace(/[\p{L}]+/gu, (w) => {
+    const lat = (w.match(/[A-Za-z]/g) ?? []).length
+    const cyr = (w.match(/[\u0400-\u04FF]/g) ?? []).length
+    if (!lat || !cyr) return w
+    const map = lat >= cyr ? CYR_TO_LAT : LAT_TO_CYR
+    return [...w].map((ch) => map[ch] ?? ch).join('')
+  })
+}
+
 function findProcess(all: string[]): { process: Process; detail: string } {
   for (const [process, terms] of PROCESS_TERMS) {
     const line = all.find((l) => hasAny(normalize(l), terms))
     if (!line) continue
-    const detail = line.replace(/^[^:]{0,20}:\s*/, '').slice(0, 60)
+    // Keep only the processing part of the line, not a score or altitude printed beside it.
+    const detail = segments(line.replace(/^[^:]{0,20}:\s*/, ''))
+      .filter((seg) => !otherField(seg))
+      .join(', ')
+      .slice(0, 60)
     // A bare "Lavado"/"Washed" adds nothing over the translated process name, so drop it.
     return { process, detail: detail.split(/\s+/).length <= 2 ? '' : detail }
   }
@@ -160,10 +192,13 @@ function findAltitude(text: string): number | null {
   return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null
 }
 
+/** "SCA" as OCR may return it: "S.C.A.", Cyrillic look-alikes ("SСА"), or 5/$ for S. */
+const SCA_WORD = /(?<![\p{L}])[sѕ5$]\.?\s?[cс]\.?\s?[aа]{1,2}\.?(?![\p{L}])/iu
+
 /** Cupping score (80–99) written as "SCA 87", "Q-grade 86", "Каппинг 88" or "87 points / puntos / баллов". */
 function findScore(text: string): number | null {
   const score = String.raw`((?:8\d|9\d)(?:[.,]\d{1,2})?)`
-  const before = new RegExp(String.raw`(?:sca|score|q[\s-]?grade|cupping|puntaje|puntuaci[oó]n|каппинг[а-я]*|оценк[а-я]*|балл[а-я]*)\D{0,12}` + score, 'iu')
+  const before = new RegExp(String.raw`(?:${SCA_WORD.source}|(?<![\p{L}])(?:score|q[\s-]?grade|cupping|puntaje|puntuaci[oó]n|каппинг[а-я]*|оценк[а-я]*|балл[а-я]*))\D{0,12}` + score, 'iu')
   const after = new RegExp(score + String.raw`\+?\s*(?:points?|pts\.?|puntos|балл[а-я]*)(?![\p{L}])`, 'iu')
   const m = text.match(before) ?? text.match(after)
   return m ? Number(m[1].replace(',', '.')) : null
@@ -213,7 +248,7 @@ function findNames(all: string[], skip: (l: string) => boolean): { roaster: stri
 }
 
 export function parseLabel(raw: string): CoffeeDraft {
-  const all = lines(raw)
+  const all = lines(fixMixedScript(raw))
   const text = all.join('\n')
   const countries = findCountries(text)
   const { process, detail } = findProcess(all)
