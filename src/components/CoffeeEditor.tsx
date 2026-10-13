@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { resizeImage } from '../image'
+import { usePhotoUrl } from './CoffeeSummary'
 import { FLAVORS, PROCESSES, REGIONS, ROASTS, ROAST_FOR, type CoffeeDraft, type Flavor, type Structure } from '../types'
 import { estimateFlavors, findNotes, flavorsFromNotes, lookupCountry } from '../parse'
 import { countryName, localized, useLang, useT } from '../i18n'
@@ -32,6 +34,18 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   const [varieties, setVarieties] = useState(coffee.varieties.join(', '))
   const [sca, setSca] = useState(coffee.scaScore?.toString() ?? '')
   const [fillNote, setFillNote] = useState<string>()
+  const photoRef = useRef<HTMLInputElement>(null)
+  const photoUrl = usePhotoUrl(c.photo)
+
+  /** Bag picture from Photos or Files, e.g. one saved from the roaster's website. */
+  async function pickPhoto(file?: File) {
+    if (!file) return
+    try {
+      set('photo', await (await resizeImage(file, 600, 0.8)).arrayBuffer())
+    } catch {
+      // Unreadable image: keep the current photo.
+    }
+  }
   const set = <K extends keyof CoffeeDraft>(k: K, v: CoffeeDraft[K]) => setC((p) => ({ ...p, [k]: v }))
   const text = (k: 'roaster' | 'name' | 'area' | 'producer', label: string, placeholder?: string) => (
     <label className="field">
@@ -79,6 +93,16 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
 
   return (
     <Sheet title={t.editor.title} closeLabel={t.common.cancel} onClose={onClose} action={{ label: t.common.done, onClick: save }}>
+      <div className="card row" style={{ marginBottom: 12 }}>
+        {photoUrl ? <img className="thumb" src={photoUrl} alt="" /> : <div className="thumb" />}
+        <div className="stack" style={{ flex: 1 }}>
+          <button type="button" className="btn ghost block" onClick={() => photoRef.current?.click()}>
+            {c.photo ? t.editor.changePhoto : t.editor.addPhoto}
+          </button>
+          {c.photo && <button type="button" className="btn plain block" onClick={() => set('photo', undefined)}>{t.editor.removePhoto}</button>}
+        </div>
+        <input ref={photoRef} className="file-input" type="file" accept="image/*" onChange={(e) => (pickPhoto(e.target.files?.[0]), (e.target.value = ''))} />
+      </div>
       <div className="card">
         {text('roaster', t.editor.roaster, t.editor.roasterPlaceholder)}
         {text('name', t.editor.name, t.editor.namePlaceholder)}

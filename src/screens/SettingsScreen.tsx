@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { exportBackup, importBackup, requestPersistence } from '../db'
+import { exportBackup, importBackup, mergeBackup, requestPersistence } from '../db'
 import { GEMINI_MODELS, MODELS, PROVIDERS, saveSettings, usesAI, useSettings } from '../settings'
 import { LANG_NAMES, useLang, useT } from '../i18n'
 import { ScanError } from '../errors'
@@ -36,6 +36,7 @@ export function SettingsScreen() {
     }
   }
   const importRef = useRef<HTMLInputElement>(null)
+  const mergeRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     navigator.storage?.persisted?.().then(setPersisted).catch(() => setPersisted(false))
@@ -65,6 +66,17 @@ export function SettingsScreen() {
     if (!confirm(t.settings.confirmRestore)) return
     try {
       setStatus(t.settings.restored(await importBackup(file)))
+    } catch (e) {
+      const msg = (e as Error).message
+      setStatus(`${t.settings.importFailed}: ${msg === 'notBackup' ? t.settings.notBackup : msg}`)
+    }
+  }
+
+  async function doMerge(file?: File) {
+    if (!file) return
+    try {
+      const { added, skipped } = await mergeBackup(file)
+      setStatus(t.settings.merged(added, skipped))
     } catch (e) {
       const msg = (e as Error).message
       setStatus(`${t.settings.importFailed}: ${msg === 'notBackup' ? t.settings.notBackup : msg}`)
@@ -145,6 +157,8 @@ export function SettingsScreen() {
           {persisted ? <span className="muted">{t.settings.yes}</span> : <button className="btn plain" onClick={async () => setPersisted(await requestPersistence())}>{t.settings.turnOn}</button>}
         </div>
         <button className="btn ghost block" onClick={doExport}>{t.settings.export}</button>
+        <button className="btn ghost block" onClick={() => mergeRef.current?.click()}>{t.settings.merge}</button>
+        <input ref={mergeRef} className="file-input" type="file" accept="application/json,.json" onChange={(e) => (doMerge(e.target.files?.[0]), (e.target.value = ''))} />
         <button className="btn ghost block" onClick={() => importRef.current?.click()}>{t.settings.restore}</button>
         <input ref={importRef} className="file-input" type="file" accept="application/json,.json" onChange={(e) => (doImport(e.target.files?.[0]), (e.target.value = ''))} />
         {status && <div className="muted small">{status}</div>}

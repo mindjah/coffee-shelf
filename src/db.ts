@@ -55,20 +55,38 @@ export async function exportBackup(): Promise<Blob> {
   return new Blob([JSON.stringify({ app: 'coffee-shelf', version: 1, coffees: rows })], { type: 'application/json' })
 }
 
-export async function importBackup(file: Blob): Promise<number> {
+async function readBackup(file: Blob): Promise<Coffee[]> {
   const data = JSON.parse(await file.text())
   if (data?.app !== 'coffee-shelf' || !Array.isArray(data.coffees)) throw new Error('notBackup')
-  const rows: Coffee[] = await Promise.all(
+  return Promise.all(
     data.coffees.map(async ({ id: _id, photo, ...c }: Coffee & { photo: string | null }) => ({
       ...c,
       photo: photo ? await (await fetch(photo)).arrayBuffer() : undefined,
     })),
   )
+}
+
+/** Replaces the whole shelf with a backup. */
+export async function importBackup(file: Blob): Promise<number> {
+  const rows = await readBackup(file)
   await db.transaction('rw', db.coffees, async () => {
     await db.coffees.clear()
     await db.coffees.bulkAdd(rows)
   })
   return rows.length
+}
+
+const coffeeKey = (c: Pick<Coffee, 'roaster' | 'name'>) => `${c.roaster}|${c.name}`.toLowerCase().replace(/\s+/g, ' ').trim()
+
+/** Adds coffees from a file to the shelf, skipping ones already there (same roaster and name). */
+export async function mergeBackup(file: Blob): Promise<{ added: number; skipped: number }> {
+  const rows = await readBackup(file)
+  return db.transaction('rw', db.coffees, async () => {
+    const existing = new Set((await db.coffees.toArray()).map(coffeeKey))
+    const fresh = rows.filter((c) => !existing.has(coffeeKey(c)))
+    await db.coffees.bulkAdd(fresh)
+    return { added: fresh.length, skipped: rows.length - fresh.length }
+  })
 }
 
 export type AddResult = 'added' | 'full' | 'duplicate'
