@@ -1,5 +1,6 @@
 import { MIN_RATINGS, tasteSummary, type Model } from '../recommend'
 import type { Coffee } from '../types'
+import { groupRoasters } from '../roaster'
 import { countryName, reasonText, useLang, useT } from '../i18n'
 import { TasteIcon } from '../components/icons'
 
@@ -38,7 +39,8 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
   const lang = useLang()
   const rated = coffees.filter((c) => c.rating != null)
   const taste = tasteSummary(model)
-  const roasters = groupAverages(rated, (c) => c.roaster || null).filter((r) => r.n >= 2).slice(0, 3)
+  const roasterOf = groupRoasters(coffees.map((c) => c.roaster))
+  const roasters = groupAverages(rated, (c) => roasterOf(c.roaster)?.label ?? null).filter((r) => r.n >= 2).slice(0, 3)
 
   return (
     <div className="screen">

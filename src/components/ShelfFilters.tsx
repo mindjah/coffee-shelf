@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react'
 import type { Coffee } from '../types'
 import { countryName, useLang, useT } from '../i18n'
 import { FilterIcon } from './icons'
+import { groupRoasters } from '../roaster'
 
 // Search, the filter button and its panel (roaster, country, sort, view, rated) shared by the
 // Shelf and Compare's "Add from shelf", so both list coffees the same way.
@@ -44,7 +45,6 @@ function haystack(c: Coffee) {
 
 /** Country used for grouping: ISO codes when known (so "Колумбия" and "Colombia" match), else the typed name. */
 const countryKey = (c: Coffee) => (c.countryCodes?.length ? c.countryCodes.join('/') : c.country.trim().toLowerCase())
-const roasterKey = (c: Coffee) => c.roaster.trim().toLowerCase()
 
 /** Distinct values on the shelf with counts, most common first, then alphabetical. */
 function options(coffees: Coffee[], key: (c: Coffee) => string, label: (c: Coffee) => string) {
@@ -96,7 +96,10 @@ export function useShelfFilters(coffees: Coffee[], { withView = false } = {}): S
 
   const filtering = !!roaster || !!country || filter !== 'all'
   const clearFilters = () => (setRoaster(''), setCountry(''), setFilter('all'))
-  const roasters = useMemo(() => options(coffees, roasterKey, (c) => c.roaster.trim()), [coffees])
+  // Spellings of the same roaster ("Martines", "Martines family roastery") filter as one.
+  const roasterOf = useMemo(() => groupRoasters(coffees.map((c) => c.roaster)), [coffees])
+  const roasterKey = (c: Coffee) => roasterOf(c.roaster)?.key ?? ''
+  const roasters = useMemo(() => options(coffees, roasterKey, (c) => roasterOf(c.roaster)?.label ?? c.roaster), [coffees, roasterOf])
   const countries = useMemo(() => options(coffees, countryKey, (c) => countryName(c, lang)), [coffees, lang])
   const q = query.trim().toLowerCase()
   const shown = coffees

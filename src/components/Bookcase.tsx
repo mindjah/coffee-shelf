@@ -2,15 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { Coffee } from '../types'
 import { useT } from '../i18n'
 import { CoffeeThumb } from './CoffeeThumb'
+import { GENERIC_WORDS } from '../roaster'
 
-/** Words that describe the business rather than name it; they don't count toward a label's score. */
-const GENERIC_WORDS = new Set([
-  'coffee', 'coffees', 'kaffe', 'kaffee', 'koffie', 'café', 'cafe', 'caffè', 'caffe',
-  'roaster', 'roasters', 'roastery', 'roasteries', 'roasting', 'roasted', 'roastworks', 'roast',
-  'specialty', 'speciality', 'special', 'micro', 'microroastery', 'craft', 'artisan', 'fresh',
-  'company', 'co', 'inc', 'ltd', 'lab', 'labs', 'house', 'shop', 'bar', 'store', 'the',
-  'кофе', 'кофейня', 'кофейная', 'обжарщик', 'обжарка', 'обжарочная', 'спешелти', 'компания', 'лаборатория',
-])
 
 let canvas: CanvasRenderingContext2D | null | undefined
 
