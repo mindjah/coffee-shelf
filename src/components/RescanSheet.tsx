@@ -24,10 +24,15 @@ function Shot({ blob, onRemove }: { blob: Blob; onRemove: () => void }) {
 type ErrorState = { code: keyof Dict['errors'] | 'photo'; detail?: string }
 
 /**
- * Photograph a bag again and read it with the method chosen in Settings. Hands the result (and the
+ * Photograph a bag again (or reuse its saved photo) and read it with the method chosen in Settings. Hands the result (and the
  * first photo) back to the editor, which fills its fields for review; nothing is saved here.
  */
-export function RescanSheet({ onResult, onClose }: { onResult: (draft: CoffeeDraft, firstShot: Blob) => void; onClose: () => void }) {
+export function RescanSheet({ photo, onResult, onClose }: {
+  /** The coffee's saved photo, offered as a shot so the bag needn't be at hand. */
+  photo?: ArrayBuffer
+  onResult: (draft: CoffeeDraft, firstShot: Blob) => void
+  onClose: () => void
+}) {
   const t = useT()
   const cameraRef = useRef<HTMLInputElement>(null)
   const libraryRef = useRef<HTMLInputElement>(null)
@@ -92,6 +97,11 @@ export function RescanSheet({ onResult, onClose }: { onResult: (draft: CoffeeDra
             <CameraIcon /> {t.scan.takePhoto}
           </button>
           <button className="btn plain block" style={{ marginTop: 6 }} onClick={() => libraryRef.current?.click()}>{t.scan.fromPhotos}</button>
+          {photo && (
+            <button className="btn plain block" style={{ marginTop: 6 }} onClick={() => setShots([new Blob([photo], { type: 'image/jpeg' })])}>
+              {t.editor.rescanSaved}
+            </button>
+          )}
         </div>
       ) : (
         <div className="card">

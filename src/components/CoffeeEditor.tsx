@@ -168,7 +168,7 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
         <CameraIcon /> {t.editor.rescan}
       </button>
       {rescanned && <div className="notice" style={{ margin: '0 0 12px' }}>{t.editor.rescanned}</div>}
-      {rescanning && <RescanSheet onResult={applyRescan} onClose={() => setRescanning(false)} />}
+      {rescanning && <RescanSheet photo={c.photo} onResult={applyRescan} onClose={() => setRescanning(false)} />}
       <div className="card">
         {text('roaster', t.editor.roaster, t.editor.roasterPlaceholder)}
         {text('name', t.editor.name, t.editor.namePlaceholder)}
