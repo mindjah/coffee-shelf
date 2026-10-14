@@ -6,7 +6,7 @@ import { ScanError } from '../errors'
 import { PHOTO_SIDE, resizeImage } from '../image'
 import { MIN_RATINGS, predict, type Model } from '../recommend'
 import { needsKey, useSettings } from '../settings'
-import { emptyDraft, isBlankDraft, parseLabel } from '../parse'
+import { emptyDraft, isBlankDraft } from '../parse'
 import type { OcrProgress } from '../ocr'
 import { useT, type Dict } from '../i18n'
 import type { Coffee, CoffeeDraft } from '../types'
@@ -28,8 +28,6 @@ interface Props {
   onOpenSettings: () => void
 }
 
-const READ_TIMEOUT_MS = 90_000
-
 /** Scan screen switch: read a bag photo, or type everything in by hand. Remembered per device. */
 type EntryMode = 'scan' | 'manual'
 const ENTRY_MODE_KEY = 'coffee-shelf.entryMode'
@@ -39,15 +37,6 @@ function readEntryMode(): EntryMode {
   } catch {
     return 'scan'
   }
-}
-
-/** Settles as soon as the signal aborts, so the UI never waits on a request that won't stop. */
-function untilAborted<T>(work: Promise<T>, signal: AbortSignal): Promise<T> {
-  return new Promise((resolve, reject) => {
-    if (signal.aborted) return reject(signal.reason)
-    signal.addEventListener('abort', () => reject(signal.reason), { once: true })
-    work.then(resolve, reject)
-  })
 }
 
 type ErrorState = { code: keyof Dict['errors'] | 'photo'; detail?: string }
@@ -172,30 +161,22 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     }
     const ac = new AbortController()
     reader.current = ac
-    // AI reading can hang without an answer; on-device OCR has no limit because the first run downloads files.
-    const timer = provider === 'ocr' ? undefined : setTimeout(() => ac.abort(new ScanError('timeout')), READ_TIMEOUT_MS)
     setReading(true)
     setError(undefined)
     try {
-      if (provider === 'ocr') {
-        // On-device text recognition, then rule-based parsing; the user reviews the result.
-        const { recognize } = await import('../ocr')
-        const text = await untilAborted(recognize(shots, setOcr, ac.signal), ac.signal)
+      const { readLabel } = await import('../scan')
+      const { draft: d, ocrText: text } = await readLabel(shots, ac.signal, setOcr)
+      setDraft({ ...d, photo: await thumbnail() })
+      if (text) {
+        // Read without AI: open the editor so the fields get checked.
         setOcrText(text)
-        setDraft({ ...parseLabel(text), photo: await thumbnail() })
         setEditing(true)
-      } else {
-        const { readBag } = await import('../scan')
-        const d = await untilAborted(readBag(shots, ac.signal), ac.signal)
-        setDraft({ ...d, photo: await thumbnail() })
       }
-    } catch (e) {
-      const err = ac.signal.aborted ? ac.signal.reason : e
-      // A user cancel just returns to the photos; anything else is shown.
+    } catch (err) {
+      // A user cancel just returns to the photos; anything else (including the time limit) is shown.
       if (ac.signal.aborted && !(err instanceof ScanError)) return
       setError(err instanceof ScanError ? { code: err.code, detail: err.detail } : { code: 'unknown', detail: (err as Error).message })
     } finally {
-      clearTimeout(timer)
       if (reader.current === ac) {
         reader.current = undefined
         setReading(false)

@@ -1,12 +1,53 @@
 import { useRef, useState } from 'react'
 import { PHOTO_SIDE, resizeImage } from '../image'
 import { CoffeeThumb } from './CoffeeThumb'
+import { CameraIcon } from './icons'
 import { FLAVORS, PROCESSES, REGIONS, ROASTS, ROAST_FOR, type CoffeeDraft, type Flavor, type Structure } from '../types'
 import { estimateFlavors, findNotes, flavorsFromNotes, lookupCountry } from '../parse'
 import { countryName, localized, useLang, useT } from '../i18n'
 import { Sheet } from './Sheet'
+import { RescanSheet } from './RescanSheet'
 
 const list = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean)
+
+/**
+ * Applies a fresh scan to a coffee: whatever the scan read replaces the old value, but anything it
+ * missed (empty text, no notes, "unknown") keeps what was there. Rating, comment and dates aren't
+ * part of a draft, so they're untouched.
+ */
+function mergeScan<T extends CoffeeDraft>(old: T, scan: CoffeeDraft): T {
+  const pick = <V,>(next: V, prev: V, missing: (v: V) => boolean) => (missing(next) ? prev : next)
+  const noText = (v: string) => !v.trim()
+  const unknown = (v: string) => v === 'unknown'
+  const hasNotes = scan.notes.length > 0
+  const keepProfile = scan.flavorsEstimated && !old.flavorsEstimated && !blankProfile(old.flavors)
+  return {
+    ...old,
+    roaster: pick(scan.roaster, old.roaster, noText),
+    name: pick(scan.name, old.name, noText),
+    country: pick(scan.country, old.country, noText),
+    countryCodes: scan.countryCodes?.length ? scan.countryCodes : old.countryCodes,
+    area: pick(scan.area, old.area, noText),
+    producer: pick(scan.producer, old.producer, noText),
+    varieties: scan.varieties.length ? scan.varieties : old.varieties,
+    process: pick(scan.process, old.process, unknown),
+    processDetail: pick(scan.processDetail, old.processDetail, noText),
+    altitude: scan.altitude ?? old.altitude,
+    roast: pick(scan.roast, old.roast, unknown),
+    roastFor: pick(scan.roastFor, old.roastFor, unknown),
+    region: pick(scan.region, old.region, unknown),
+    notes: hasNotes ? scan.notes : old.notes,
+    translations: hasNotes ? scan.translations : old.translations,
+    flavors: keepProfile ? old.flavors : scan.flavors,
+    flavorsEstimated: keepProfile ? old.flavorsEstimated : scan.flavorsEstimated,
+    structure: {
+      acidity: scan.structure.acidity ?? old.structure.acidity,
+      body: scan.structure.body ?? old.structure.body,
+      sweetness: scan.structure.sweetness ?? old.structure.sweetness,
+    },
+    scaScore: scan.scaScore ?? old.scaScore,
+  }
+}
 const blankProfile = (f: Record<Flavor, number>) => FLAVORS.every((k) => !f[k])
 
 /** Tap a dot to set the level; tapping the current level clears it. */
@@ -27,6 +68,8 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   const t = useT()
   const lang = useLang()
   const shown = localized(coffee, lang)
+  // What the text fields were filled from: the coffee, or a re-scan of it. Edits are compared to this.
+  const [base, setBase] = useState(coffee)
   const [c, setC] = useState(coffee)
   const [country, setCountry] = useState(countryName(coffee, lang))
   const [notes, setNotes] = useState(shown.notes.join(', '))
@@ -35,6 +78,25 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   const [sca, setSca] = useState(coffee.scaScore?.toString() ?? '')
   const [fillNote, setFillNote] = useState<string>()
   const photoRef = useRef<HTMLInputElement>(null)
+  const [rescanning, setRescanning] = useState(false)
+  const [rescanned, setRescanned] = useState(false)
+
+  /** Fills the editor from a new scan; the current photo stays unless the coffee had none. */
+  async function applyRescan(scan: CoffeeDraft, firstShot: Blob) {
+    const photo = c.photo ?? (await (await resizeImage(firstShot, PHOTO_SIDE, 0.82)).arrayBuffer())
+    const next = { ...mergeScan(c, scan), photo }
+    const text = localized(next, lang)
+    setBase(next)
+    setC(next)
+    setCountry(countryName(next, lang))
+    setNotes(text.notes.join(', '))
+    setProcessDetail(text.processDetail)
+    setVarieties(next.varieties.join(', '))
+    setSca(next.scaScore?.toString() ?? '')
+    setFillNote(undefined)
+    setRescanning(false)
+    setRescanned(true)
+  }
 
   /** Bag picture from Photos or Files, e.g. one saved from the roaster's website. */
   async function pickPhoto(file?: File) {
@@ -69,10 +131,10 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
     const score = Number(sca.replace(',', '.'))
     const next: CoffeeDraft = { ...c, varieties: list(varieties), scaScore: sca.trim() && score > 0 && score <= 100 ? score : null }
     // A typed country is matched to ISO codes (for translated names) and an origin group.
-    if (country !== countryName(coffee, lang)) {
+    if (country !== countryName(base, lang)) {
       const match = lookupCountry(country)
       Object.assign(next, { country: country.trim(), countryCodes: match?.codes ?? [] })
-      if (match && next.region === coffee.region) next.region = match.region
+      if (match && next.region === base.region) next.region = match.region
     }
     // Predictions need a profile: take it from known notes, else estimate from origin/process/roast.
     if (blankProfile(next.flavors)) {
@@ -81,9 +143,9 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
       next.flavorsEstimated = !found.length
     }
     // Notes and process wording are edited in the language they're shown in.
-    const tr = coffee.translations?.[lang]
+    const tr = base.translations?.[lang]
     if (tr) {
-      next.translations = { ...coffee.translations, [lang]: { notes: list(notes), processDetail: processDetail.trim() } }
+      next.translations = { ...base.translations, [lang]: { notes: list(notes), processDetail: processDetail.trim() } }
     } else {
       Object.assign(next, { notes: list(notes), processDetail: processDetail.trim() })
     }
@@ -102,6 +164,11 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
         </div>
         <input ref={photoRef} className="file-input" type="file" accept="image/*" onChange={(e) => (pickPhoto(e.target.files?.[0]), (e.target.value = ''))} />
       </div>
+      <button type="button" className="btn ghost block" style={{ marginBottom: 12 }} onClick={() => setRescanning(true)}>
+        <CameraIcon /> {t.editor.rescan}
+      </button>
+      {rescanned && <div className="notice" style={{ margin: '0 0 12px' }}>{t.editor.rescanned}</div>}
+      {rescanning && <RescanSheet onResult={applyRescan} onClose={() => setRescanning(false)} />}
       <div className="card">
         {text('roaster', t.editor.roaster, t.editor.roasterPlaceholder)}
         {text('name', t.editor.name, t.editor.namePlaceholder)}
