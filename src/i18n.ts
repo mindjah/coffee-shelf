@@ -183,8 +183,8 @@ const en = {
   editor: {
     title: 'Edit coffee',
     rescan: 'Re-scan bag',
-    rescanHint: 'Photograph the bag again or use its saved photo; the fields are filled from the new reading for you to check. Your rating, notes and photo stay as they are.',
-    rescanSaved: 'Use saved photo',
+    rescanHint: 'Photograph the bag again or use its current photo; the fields are filled from the new reading for you to check. Your rating, notes and photo stay as they are.',
+    rescanSaved: 'Use current photo',
     rescanned: 'Fields updated from the new scan. Check them and tap Done to save, or Cancel to keep everything as it was.',
     addPhoto: 'Add photo',
     changePhoto: 'Change photo',
@@ -545,8 +545,8 @@ const ru: Dict = {
   editor: {
     title: 'Редактирование',
     rescan: 'Пересканировать пачку',
-    rescanHint: 'Сфотографируйте пачку заново или используйте сохранённое фото — поля заполнятся по новому распознаванию, чтобы вы их проверили. Оценка, заметки и фото не изменятся.',
-    rescanSaved: 'Взять сохранённое фото',
+    rescanHint: 'Сфотографируйте пачку заново или используйте текущее фото — поля заполнятся по новому распознаванию, чтобы вы их проверили. Оценка, заметки и фото не изменятся.',
+    rescanSaved: 'Использовать текущее фото',
     rescanned: 'Поля обновлены по новому скану. Проверьте их и нажмите «Готово», чтобы сохранить, или «Отмена», чтобы оставить всё как было.',
     addPhoto: 'Добавить фото',
     changePhoto: 'Заменить фото',
