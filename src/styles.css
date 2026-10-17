@@ -511,3 +511,10 @@ textarea.input { min-height: 84px; resize: vertical; }
 
 .progress { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; margin-top: 12px; }
 .progress i { display: block; height: 100%; background: var(--accent); }
+
+/* Scan result's first card: one fact per row, divided like a list. */
+.scan-facts > * + * {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}

@@ -10,7 +10,7 @@ import { emptyDraft, isBlankDraft } from '../parse'
 import type { OcrProgress } from '../ocr'
 import { useT, type Dict } from '../i18n'
 import type { Coffee, CoffeeDraft } from '../types'
-import { CoffeeSummary, usePhotoUrl } from '../components/CoffeeSummary'
+import { brewWhy, CoffeeSummary, usePhotoUrl } from '../components/CoffeeSummary'
 import { CoffeeEditor } from '../components/CoffeeEditor'
 import { PredictionCard } from '../components/PredictionCard'
 import { Stars } from '../components/Stars'
@@ -21,6 +21,7 @@ import { focusDriveSection } from '../gdrive'
 import { Linkify } from '../components/Linkify'
 import { openPhoto } from '../components/PhotoViewer'
 import { shelfHistory } from '../history'
+import { guessBrewMethod } from '../brew'
 
 interface Props {
   model: Model
@@ -131,6 +132,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
 
   const prediction = useMemo(() => (draft ? predict(model, draft) : null), [model, draft])
   const history = useMemo(() => (draft ? shelfHistory(draft, coffees) : undefined), [coffees, draft])
+  const brew = useMemo(() => (draft ? guessBrewMethod(draft) : null), [draft])
 
   async function addFiles(files: FileList | null) {
     if (!files?.length) return
@@ -235,18 +237,19 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
         </div>
         <p className="screen-sub">{ocrText ? t.scan.reviewHint : t.scan.newBagHint}</p>
         <div className="stack">
-          {history && (history.tried.length > 0 || history.roaster) && (
-            // What the shelf already says about this bag: the coffee itself, then its roaster.
-            <div className="card small">
-              {history.tried.length > 0 && (
+          {((history && (history.tried.length > 0 || history.roaster)) || brew) && (
+            // First thing after a scan: this coffee and its roaster on your shelf, and what it's
+            // probably roasted for when the bag doesn't say.
+            <div className="card small scan-facts">
+              {history?.tried.length ? (
                 <div className="row">
                   <span>{history.rating != null ? t.scan.triedRated : t.scan.triedUnrated}</span>
                   <span className="spacer" />
                   {history.rating != null && <Stars value={history.rating} small />}
                 </div>
-              )}
-              {history.roaster && (
-                <div className={`row${history.tried.length > 0 ? ' muted' : ''}`} style={{ marginTop: history.tried.length > 0 ? 8 : 0 }}>
+              ) : null}
+              {history?.roaster && (
+                <div className="row">
                   <span>{history.roaster.bags ? t.scan.roasterBags(history.roaster.label, history.roaster.bags) : t.scan.roasterNew(history.roaster.label)}</span>
                   <span className="spacer" />
                   {history.roaster.average != null && (
@@ -254,10 +257,16 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
                   )}
                 </div>
               )}
+              {brew && (
+                <div>
+                  <div style={{ fontWeight: 600 }}>{t.coffee.brewGuess[brew.method]}</div>
+                  <div className="muted">{brewWhy(brew, t)}</div>
+                </div>
+              )}
             </div>
           )}
           <PredictionCard prediction={prediction} ratedCount={model.count} />
-          <CoffeeSummary coffee={draft} />
+          <CoffeeSummary coffee={draft} showBrewWhy={false} />
           {ocrText && (
             <details className="card small">
               <summary style={{ fontWeight: 600 }}>{t.scan.recognizedText}</summary>

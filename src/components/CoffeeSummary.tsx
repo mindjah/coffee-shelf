@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { FLAVORS, type CoffeeDraft, type Lang } from '../types'
 import { countryName, localized, useLang, useT, type Dict } from '../i18n'
 import { CoffeeThumb } from './CoffeeThumb'
-import { guessBrewMethod } from '../brew'
+import { guessBrewMethod, type BrewGuess } from '../brew'
 
 export function usePhotoUrl(photo?: Blob | ArrayBuffer) {
   const [url, setUrl] = useState<string>()
@@ -15,11 +15,17 @@ export function usePhotoUrl(photo?: Blob | ArrayBuffer) {
   return url
 }
 
+/** What a guessed brew method is based on, e.g. "light roast, floral or tea-like notes". */
+export function brewWhy(brew: BrewGuess, t: Dict) {
+  return brew.clues.map((c) => t.coffee.brewClue(c, (r) => t.roast[r])).join(', ')
+}
+
 export function originLine(c: CoffeeDraft, t: Dict, lang: Lang) {
   return [countryName(c, lang), c.area].filter(Boolean).join(' · ') || t.common.unknownOrigin
 }
 
-export function CoffeeSummary({ coffee, showFlavors = true }: { coffee: CoffeeDraft; showFlavors?: boolean }) {
+/** `showBrewWhy` adds the reasons behind a guessed brew method (the scan screen shows them in its own card). */
+export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }: { coffee: CoffeeDraft; showFlavors?: boolean; showBrewWhy?: boolean }) {
   const t = useT()
   const lang = useLang()
   const { notes, processDetail } = localized(coffee, lang)
@@ -53,9 +59,9 @@ export function CoffeeSummary({ coffee, showFlavors = true }: { coffee: CoffeeDr
           {facts.map((f) => <span key={`f-${f}`} className="chip">{f}</span>)}
         </div>
       )}
-      {brew && (
+      {brew && showBrewWhy && (
         <div className="muted small" style={{ marginTop: 8 }}>
-          {t.coffee.brewGuess[brew.method]}: {brew.clues.map((c) => t.coffee.brewClue(c, (r) => t.roast[r])).join(', ')}.
+          {t.coffee.brewGuess[brew.method]}: {brewWhy(brew, t)}.
         </div>
       )}
       {translated && (
