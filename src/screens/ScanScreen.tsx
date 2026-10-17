@@ -134,6 +134,15 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const history = useMemo(() => (draft ? shelfHistory(draft, coffees) : undefined), [coffees, draft])
   const brew = useMemo(() => (draft ? guessBrewMethod(draft) : null), [draft])
 
+  // A coffee you've rated before starts with that rating filled in, once per scanned bag.
+  const prefilled = useRef(false)
+  useEffect(() => {
+    if (!draft) return void (prefilled.current = false)
+    if (prefilled.current) return
+    prefilled.current = true
+    if (history?.rating != null) setRating((r) => r ?? history.rating)
+  }, [draft, history])
+
   async function addFiles(files: FileList | null) {
     if (!files?.length) return
     setError(undefined)
@@ -279,6 +288,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
               <span className="spacer" />
               {rating != null && <span className="muted">{rating.toFixed(1)}</span>}
             </div>
+            {history?.rating != null && <div className="muted small" style={{ marginTop: 6 }}>{t.scan.alreadyRated}</div>}
             <div style={{ margin: '12px 0' }}><Stars value={rating} onChange={setRating} /></div>
             <textarea className="input" placeholder={t.common.commentPlaceholder} value={comment} onChange={(e) => setComment(e.target.value)} />
           </div>
