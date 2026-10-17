@@ -229,6 +229,22 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     onSaved(id as number)
   }
 
+  /** Same coffee already on the shelf: the new rating, comment and bag photo go onto that entry. */
+  async function updateExisting() {
+    const existing = history?.tried[0]
+    if (!draft || !existing?.id) return
+    const note = comment.trim()
+    await db.coffees.update(existing.id, {
+      ...(rating !== existing.rating && { rating, ratedAt: rating != null ? Date.now() : null }),
+      ...(note && note !== existing.comment.trim() && { comment: existing.comment.trim() ? `${existing.comment.trim()}\n\n${note}` : note }),
+      ...(draft.photo && { photo: draft.photo }),
+      // Bought again, so it's back on the shelf.
+      archivedAt: null,
+    })
+    reset()
+    onSaved(existing.id)
+  }
+
   const inputs = (
     <>
       <input ref={cameraRef} className="file-input" type="file" accept="image/*" capture="environment" onChange={(e) => (addFiles(e.target.files), (e.target.value = ''))} />
@@ -292,8 +308,18 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             <div style={{ margin: '12px 0' }}><Stars value={rating} onChange={setRating} /></div>
             <textarea className="input" placeholder={t.common.commentPlaceholder} value={comment} onChange={(e) => setComment(e.target.value)} />
           </div>
-          <button className="btn block" disabled={rating == null} onClick={() => save(true)}>{t.scan.saveRated}</button>
-          <button className="btn ghost block" onClick={() => save(false)}>{t.scan.saveLater}</button>
+          {history?.tried.length ? (
+            // Already on the shelf: update that entry, or keep this bag as a separate one.
+            <>
+              <button className="btn block" onClick={updateExisting}>{t.scan.updateExisting}</button>
+              <button className="btn ghost block" onClick={() => save(true)}>{t.scan.saveNewAnyway}</button>
+            </>
+          ) : (
+            <>
+              <button className="btn block" disabled={rating == null} onClick={() => save(true)}>{t.scan.saveRated}</button>
+              <button className="btn ghost block" onClick={() => save(false)}>{t.scan.saveLater}</button>
+            </>
+          )}
           <button className="btn ghost block" onClick={addToCompare}>{t.compare.add}</button>
           {notice && <div className="notice">{notice}</div>}
           <button className="btn danger block" onClick={reset}>{t.scan.discard}</button>
