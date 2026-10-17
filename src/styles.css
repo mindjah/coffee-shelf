@@ -518,3 +518,9 @@ textarea.input { min-height: 84px; resize: vertical; }
   padding-top: 10px;
   border-top: 1px solid var(--line);
 }
+
+/* "filter" / "espresso" in the brew method line: the word you're looking for. */
+.brew-method {
+  font-weight: 700;
+  color: var(--text);
+}

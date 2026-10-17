@@ -15,9 +15,10 @@ export function usePhotoUrl(photo?: Blob | ArrayBuffer) {
   return url
 }
 
-/** "Roasted for filter" when stated, "Probably roasted for filter" when guessed. */
+/** "Roasted for filter" when stated, "Probably roasted for filter" when guessed; the method in bold. */
 export function brewTitle(brew: BrewGuess, t: Dict) {
-  return (brew.stated ? t.coffee.brewStated : t.coffee.brewGuess)[brew.method]
+  const text = (brew.stated ? t.coffee.brewStated : t.coffee.brewGuess)[brew.method]
+  return text.split('**').map((part, i) => (i % 2 ? <b key={i} className="brew-method">{part}</b> : part))
 }
 
 /** Where the brew method comes from, e.g. "light roast, floral or tea-like notes". */

@@ -284,7 +284,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
               )}
               {brew && (
                 <div>
-                  <div style={{ fontWeight: 600 }}>{brewTitle(brew, t)}</div>
+                  <div>{brewTitle(brew, t)}</div>
                   <div className="muted">{brewWhy(brew, t)}</div>
                 </div>
               )}
