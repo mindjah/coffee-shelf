@@ -1,11 +1,27 @@
 import type { Prediction } from '../recommend'
-import { MIN_RATINGS } from '../recommend'
+import { MIN_RATINGS, toneFor } from '../recommend'
 import { reasonText, useLang, useT } from '../i18n'
 import { Stars } from './Stars'
 
-export function PredictionCard({ prediction, ratedCount }: { prediction: Prediction | null; ratedCount: number }) {
+/** `rated`: your own rating of this coffee from before, shown instead of a guess. */
+export function PredictionCard({ prediction, ratedCount, rated }: { prediction: Prediction | null; ratedCount: number; rated?: number | null }) {
   const t = useT()
   const lang = useLang()
+  if (rated != null) {
+    return (
+      <div className={`card tone-${toneFor(rated)}`}>
+        <div className="prediction">
+          <div className="dial" style={{ ['--p' as string]: (rated - 1) / 4 }}>
+            <span>{rated.toFixed(1)}</span>
+          </div>
+          <div>
+            <div className="verdict">{t.prediction.yourRating}</div>
+            <div className="muted small">{t.prediction.yourRatingHint}</div>
+          </div>
+        </div>
+      </div>
+    )
+  }
   if (!prediction) {
     return (
       <div className="card">

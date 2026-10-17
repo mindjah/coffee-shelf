@@ -164,6 +164,8 @@ const en = {
     unknown: 'Something went wrong',
   } satisfies Record<ScanErrorCode | 'unknown', string>,
   prediction: {
+    yourRating: 'Your rating',
+    yourRatingHint: "You've tasted this coffee — this is your own rating, not a prediction.",
     notEnough: 'Not enough ratings yet',
     rateMore: (n: number) => `Rate ${n} more ${n === 1 ? 'coffee' : 'coffees'} and Coffee Shelf will start predicting how much you'll like new bags.`,
     subtitle: (c: string) => `Predicted rating · ${c} confidence`,
@@ -546,6 +548,8 @@ const ru: Dict = {
     unknown: 'Что-то пошло не так',
   },
   prediction: {
+    yourRating: 'Ваша оценка',
+    yourRatingHint: 'Вы уже пробовали этот кофе — это ваша оценка, а не прогноз.',
     notEnough: 'Пока мало оценок',
     rateMore: (n) => `Оцените ещё ${n} кофе, и Coffee Shelf начнёт предсказывать, понравятся ли вам новые пачки.`,
     subtitle: (c) => `Прогноз оценки · ${c} уверенность`,

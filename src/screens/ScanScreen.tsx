@@ -265,7 +265,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
               )}
             </div>
           )}
-          <PredictionCard prediction={prediction} ratedCount={model.count} />
+          <PredictionCard prediction={prediction} ratedCount={model.count} rated={history?.rating} />
           <CoffeeSummary coffee={draft} showBrewWhy={false} />
           {ocrText && (
             <details className="card small">
