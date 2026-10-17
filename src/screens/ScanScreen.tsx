@@ -20,6 +20,7 @@ import { PourOver } from '../components/PourOver'
 import { focusDriveSection } from '../gdrive'
 import { Linkify } from '../components/Linkify'
 import { openPhoto } from '../components/PhotoViewer'
+import { shelfHistory } from '../history'
 
 interface Props {
   model: Model
@@ -129,11 +130,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   }, [persist])
 
   const prediction = useMemo(() => (draft ? predict(model, draft) : null), [model, draft])
-  const seenBefore = useMemo(() => {
-    if (!draft?.name) return undefined
-    const key = (c: CoffeeDraft) => `${c.roaster}|${c.name}`.toLowerCase().replace(/\s+/g, ' ').trim()
-    return coffees.find((c) => key(c) === key(draft))
-  }, [coffees, draft])
+  const history = useMemo(() => (draft ? shelfHistory(draft, coffees) : undefined), [coffees, draft])
 
   async function addFiles(files: FileList | null) {
     if (!files?.length) return
@@ -238,11 +235,25 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
         </div>
         <p className="screen-sub">{ocrText ? t.scan.reviewHint : t.scan.newBagHint}</p>
         <div className="stack">
-          {seenBefore && (
-            <div className="card row small">
-              <span>{seenBefore.rating != null ? t.scan.seenBeforeRated : t.scan.seenBefore}</span>
-              <span className="spacer" />
-              {seenBefore.rating != null && <Stars value={seenBefore.rating} small />}
+          {history && (history.tried.length > 0 || history.roaster) && (
+            // What the shelf already says about this bag: the coffee itself, then its roaster.
+            <div className="card small">
+              {history.tried.length > 0 && (
+                <div className="row">
+                  <span>{history.rating != null ? t.scan.triedRated : t.scan.triedUnrated}</span>
+                  <span className="spacer" />
+                  {history.rating != null && <Stars value={history.rating} small />}
+                </div>
+              )}
+              {history.roaster && (
+                <div className={`row${history.tried.length > 0 ? ' muted' : ''}`} style={{ marginTop: history.tried.length > 0 ? 8 : 0 }}>
+                  <span>{history.roaster.bags ? t.scan.roasterBags(history.roaster.label, history.roaster.bags) : t.scan.roasterNew(history.roaster.label)}</span>
+                  <span className="spacer" />
+                  {history.roaster.average != null && (
+                    <span className="muted" style={{ whiteSpace: 'nowrap' }}>{t.scan.roasterAverage} ★ {history.roaster.average.toFixed(1)}</span>
+                  )}
+                </div>
+              )}
             </div>
           )}
           <PredictionCard prediction={prediction} ratedCount={model.count} />

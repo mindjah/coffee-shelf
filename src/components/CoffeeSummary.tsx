@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { FLAVORS, type CoffeeDraft, type Lang } from '../types'
 import { countryName, localized, useLang, useT, type Dict } from '../i18n'
 import { CoffeeThumb } from './CoffeeThumb'
+import { guessBrewMethod } from '../brew'
 
 export function usePhotoUrl(photo?: Blob | ArrayBuffer) {
   const [url, setUrl] = useState<string>()
@@ -23,10 +24,12 @@ export function CoffeeSummary({ coffee, showFlavors = true }: { coffee: CoffeeDr
   const lang = useLang()
   const { notes, processDetail } = localized(coffee, lang)
   const translated = notes.join() !== coffee.notes.join()
+  // Not printed on the bag: shown as a likely method, with what it's based on.
+  const brew = guessBrewMethod(coffee)
   const facts = [
     coffee.process !== 'unknown' && (processDetail || t.process[coffee.process]),
     coffee.roast !== 'unknown' && t.coffee.roastChip(t.roast[coffee.roast]),
-    coffee.roastFor !== 'unknown' && t.roastFor[coffee.roastFor],
+    coffee.roastFor !== 'unknown' ? t.roastFor[coffee.roastFor] : brew && t.coffee.brewChip(t.roastFor[brew.method]),
     coffee.varieties.length > 0 && coffee.varieties.join(', '),
     coffee.altitude && `${coffee.altitude.toLocaleString(lang)} m`,
     coffee.producer,
@@ -48,6 +51,11 @@ export function CoffeeSummary({ coffee, showFlavors = true }: { coffee: CoffeeDr
         <div className="chips">
           {notes.map((n) => <span key={`n-${n}`} className="chip note">{n}</span>)}
           {facts.map((f) => <span key={`f-${f}`} className="chip">{f}</span>)}
+        </div>
+      )}
+      {brew && (
+        <div className="muted small" style={{ marginTop: 8 }}>
+          {t.coffee.brewGuess[brew.method]}: {brew.clues.map((c) => t.coffee.brewClue(c, (r) => t.roast[r])).join(', ')}.
         </div>
       )}
       {translated && (

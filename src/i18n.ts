@@ -1,6 +1,7 @@
 import { useSettings } from './settings'
 import type { Coffee, CoffeeDraft, Flavor, Lang, Process, Region, Roast, RoastFor } from './types'
 import type { Reason } from './recommend'
+import type { BrewClue, BrewMethod } from './brew'
 import type { ScanErrorCode } from './errors'
 
 type Pair = [up: string, down: string]
@@ -44,8 +45,11 @@ const en = {
     ],
     newBag: 'New bag',
     newBagHint: 'Check what was read, then rate it now or save it for later.',
-    seenBefore: "You've logged this coffee before",
-    seenBeforeRated: "You've logged this coffee before and rated it",
+    triedRated: "You've tried this coffee — your rating",
+    triedUnrated: "You've logged this coffee before, not rated yet",
+    roasterBags: (roaster: string, n: number) => `${n} ${n === 1 ? 'bag' : 'bags'} from ${roaster} on your shelf`,
+    roasterNew: (roaster: string) => `First coffee from ${roaster}`,
+    roasterAverage: 'avg',
     tasted: 'Already tasted it?',
     saveRated: 'Save with rating',
     saveLater: 'Save to try later',
@@ -171,6 +175,20 @@ const en = {
   coffee: {
     roastChip: (r: string) => `${r} roast`,
     estimated: 'No notes on the bag — profile estimated from origin, process and roast.',
+    brewChip: (method: string) => `${method} (likely)`,
+    brewGuess: { filter: 'Probably roasted for filter', espresso: 'Probably roasted for espresso', omni: 'Should suit both filter and espresso' } satisfies Record<BrewMethod, string>,
+    brewClue: (clue: BrewClue, roast: (r: Roast) => string) => ({
+      roast: clue.id === 'roast' ? `${roast(clue.roast).toLowerCase()} roast` : '',
+      blend: 'a blend',
+      floral: 'floral or tea-like notes',
+      bright: 'bright fruit notes',
+      chocolate: 'chocolate and nutty notes',
+      anaerobic: 'anaerobic process',
+      geisha: 'Geisha variety',
+      sca: 'high SCA score',
+      eastAfrica: 'East African origin',
+      brazil: 'Brazilian origin',
+    })[clue.id],
     onBag: 'On the bag',
     scanned: 'Scanned',
     rateAfter: 'Rate after tasting',
@@ -406,8 +424,14 @@ const ru: Dict = {
     ],
     newBag: 'Новая пачка',
     newBagHint: 'Проверьте распознанное, затем оцените сразу или сохраните на потом.',
-    seenBefore: 'Этот кофе уже есть в дневнике',
-    seenBeforeRated: 'Этот кофе уже есть в дневнике, ваша оценка',
+    triedRated: 'Вы уже пробовали этот кофе — ваша оценка',
+    triedUnrated: 'Этот кофе уже есть в дневнике, ещё без оценки',
+    roasterBags: (roaster, n) => {
+      const word = n % 10 === 1 && n % 100 !== 11 ? 'пачка' : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? 'пачки' : 'пачек'
+      return `${n} ${word} от ${roaster} в дневнике`
+    },
+    roasterNew: (roaster) => `Первый кофе от ${roaster}`,
+    roasterAverage: 'в среднем',
     tasted: 'Уже пробовали?',
     saveRated: 'Сохранить с оценкой',
     saveLater: 'Попробовать позже',
@@ -533,6 +557,20 @@ const ru: Dict = {
   coffee: {
     roastChip: (r) => `${r} обжарка`,
     estimated: 'На пачке нет дескрипторов — профиль оценён по происхождению, обработке и обжарке.',
+    brewChip: (method) => `${method} (вероятно)`,
+    brewGuess: { filter: 'Скорее всего, обжарен под фильтр', espresso: 'Скорее всего, обжарен под эспрессо', omni: 'Подойдёт и для фильтра, и для эспрессо' },
+    brewClue: (clue, roast) => ({
+      roast: clue.id === 'roast' ? `${roast(clue.roast).toLowerCase()} обжарка` : '',
+      blend: 'бленд',
+      floral: 'цветочные или чайные ноты',
+      bright: 'яркие фруктовые ноты',
+      chocolate: 'шоколадные и ореховые ноты',
+      anaerobic: 'анаэробная обработка',
+      geisha: 'сорт гейша',
+      sca: 'высокая оценка SCA',
+      eastAfrica: 'Восточная Африка',
+      brazil: 'Бразилия',
+    })[clue.id],
     onBag: 'На пачке',
     scanned: 'Отсканировано',
     rateAfter: 'Оцените после дегустации',

@@ -72,6 +72,7 @@ A descriptor can feed several categories (e.g. "cherry cola" -> berry and sweet)
 If no tasting notes are printed, estimate a typical profile from origin, process and roast, set flavors_estimated to true, and leave notes empty.
 
 Set acidity, body and sweetness only when the bag shows a scale, words like "bright" or "heavy body", or when notes make it obvious; otherwise null.
+roast_for: filter, espresso or omni only when the bag says so — in words, or with a printed brew recipe (V60, Chemex, pour-over, AeroPress → filter; "18 g in, 36 g out", moka → espresso; both → omni). Otherwise "unknown": the app estimates it from roast, origin and notes.
 region: east-africa = Ethiopia, Kenya, Rwanda, Burundi, Uganda, Tanzania; blend = more than one origin country.`
 
 export const USER_PROMPT = 'Extract this coffee.'
