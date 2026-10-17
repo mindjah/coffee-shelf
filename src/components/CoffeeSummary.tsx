@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { FLAVORS, type CoffeeDraft, type Lang } from '../types'
 import { countryName, localized, useLang, useT, type Dict } from '../i18n'
 import { CoffeeThumb } from './CoffeeThumb'
-import { guessBrewMethod, type BrewGuess } from '../brew'
+import { brewMethod, type BrewGuess } from '../brew'
 
 export function usePhotoUrl(photo?: Blob | ArrayBuffer) {
   const [url, setUrl] = useState<string>()
@@ -15,27 +15,32 @@ export function usePhotoUrl(photo?: Blob | ArrayBuffer) {
   return url
 }
 
-/** What a guessed brew method is based on, e.g. "light roast, floral or tea-like notes". */
+/** "Roasted for filter" when stated, "Probably roasted for filter" when guessed. */
+export function brewTitle(brew: BrewGuess, t: Dict) {
+  return (brew.stated ? t.coffee.brewStated : t.coffee.brewGuess)[brew.method]
+}
+
+/** Where the brew method comes from, e.g. "light roast, floral or tea-like notes". */
 export function brewWhy(brew: BrewGuess, t: Dict) {
-  return brew.clues.map((c) => t.coffee.brewClue(c, (r) => t.roast[r])).join(', ')
+  return brew.stated ? t.coffee.brewStatedWhy : brew.clues.map((c) => t.coffee.brewClue(c, (r) => t.roast[r])).join(', ')
 }
 
 export function originLine(c: CoffeeDraft, t: Dict, lang: Lang) {
   return [countryName(c, lang), c.area].filter(Boolean).join(' · ') || t.common.unknownOrigin
 }
 
-/** `showBrewWhy` adds the reasons behind a guessed brew method (the scan screen shows them in its own card). */
+/** `showBrewWhy` adds the brew method line (the scan screen shows it in its own card). */
 export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }: { coffee: CoffeeDraft; showFlavors?: boolean; showBrewWhy?: boolean }) {
   const t = useT()
   const lang = useLang()
   const { notes, processDetail } = localized(coffee, lang)
   const translated = notes.join() !== coffee.notes.join()
   // Not printed on the bag: shown as a likely method, with what it's based on.
-  const brew = guessBrewMethod(coffee)
+  const brew = brewMethod(coffee)
   const facts = [
     coffee.process !== 'unknown' && (processDetail || t.process[coffee.process]),
     coffee.roast !== 'unknown' && t.coffee.roastChip(t.roast[coffee.roast]),
-    coffee.roastFor !== 'unknown' ? t.roastFor[coffee.roastFor] : brew && t.coffee.brewChip(t.roastFor[brew.method]),
+    brew && (brew.stated ? t.roastFor[brew.method] : t.coffee.brewChip(t.roastFor[brew.method])),
     coffee.varieties.length > 0 && coffee.varieties.join(', '),
     coffee.altitude && `${coffee.altitude.toLocaleString(lang)} m`,
     coffee.producer,
@@ -61,7 +66,7 @@ export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }
       )}
       {brew && showBrewWhy && (
         <div className="muted small" style={{ marginTop: 8 }}>
-          {t.coffee.brewGuess[brew.method]}: {brewWhy(brew, t)}.
+          {brewTitle(brew, t)}: {brewWhy(brew, t)}.
         </div>
       )}
       {translated && (

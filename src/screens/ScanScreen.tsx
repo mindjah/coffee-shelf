@@ -10,7 +10,7 @@ import { emptyDraft, isBlankDraft } from '../parse'
 import type { OcrProgress } from '../ocr'
 import { useT, type Dict } from '../i18n'
 import type { Coffee, CoffeeDraft } from '../types'
-import { brewWhy, CoffeeSummary, usePhotoUrl } from '../components/CoffeeSummary'
+import { brewTitle, brewWhy, CoffeeSummary, usePhotoUrl } from '../components/CoffeeSummary'
 import { CoffeeEditor } from '../components/CoffeeEditor'
 import { PredictionCard } from '../components/PredictionCard'
 import { Stars } from '../components/Stars'
@@ -21,7 +21,7 @@ import { focusDriveSection } from '../gdrive'
 import { Linkify } from '../components/Linkify'
 import { openPhoto } from '../components/PhotoViewer'
 import { shelfHistory } from '../history'
-import { guessBrewMethod } from '../brew'
+import { brewMethod } from '../brew'
 
 interface Props {
   model: Model
@@ -132,7 +132,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
 
   const prediction = useMemo(() => (draft ? predict(model, draft) : null), [model, draft])
   const history = useMemo(() => (draft ? shelfHistory(draft, coffees) : undefined), [coffees, draft])
-  const brew = useMemo(() => (draft ? guessBrewMethod(draft) : null), [draft])
+  const brew = useMemo(() => (draft ? brewMethod(draft) : null), [draft])
 
   // A coffee you've rated before starts with that rating filled in, once per scanned bag.
   const prefilled = useRef(false)
@@ -284,7 +284,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
               )}
               {brew && (
                 <div>
-                  <div style={{ fontWeight: 600 }}>{t.coffee.brewGuess[brew.method]}</div>
+                  <div style={{ fontWeight: 600 }}>{brewTitle(brew, t)}</div>
                   <div className="muted">{brewWhy(brew, t)}</div>
                 </div>
               )}

@@ -14,6 +14,8 @@ interface Weighted { clue: BrewClue; side: Side; weight: number }
 
 export interface BrewGuess {
   method: BrewMethod
+  /** Taken from the coffee's own "Roasted for" (the bag or an edit), not estimated. */
+  stated?: boolean
   /** Strongest signs behind the guess, strongest first. */
   clues: BrewClue[]
 }
@@ -63,4 +65,9 @@ export function guessBrewMethod(c: CoffeeDraft): BrewGuess | null {
     .sort((a, b) => b.weight - a.weight)
     .slice(0, 3)
   return { method, clues: shown.map((w) => w.clue) }
+}
+
+/** The brew method to show: the stated one, else a guess. */
+export function brewMethod(c: CoffeeDraft): BrewGuess | null {
+  return c.roastFor !== 'unknown' ? { method: c.roastFor, clues: [], stated: true } : guessBrewMethod(c)
 }

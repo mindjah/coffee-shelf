@@ -181,6 +181,8 @@ const en = {
     roastChip: (r: string) => `${r} roast`,
     estimated: 'No notes on the bag — profile estimated from origin, process and roast.',
     brewChip: (method: string) => `${method} (likely)`,
+    brewStated: { filter: 'Roasted for filter', espresso: 'Roasted for espresso', omni: 'Roasted for both filter and espresso' } satisfies Record<BrewMethod, string>,
+    brewStatedWhy: 'from the bag or your edit, not estimated',
     brewGuess: { filter: 'Probably roasted for filter', espresso: 'Probably roasted for espresso', omni: 'Should suit both filter and espresso' } satisfies Record<BrewMethod, string>,
     brewClue: (clue: BrewClue, roast: (r: Roast) => string) => ({
       roast: clue.id === 'roast' ? `${roast(clue.roast).toLowerCase()} roast` : '',
@@ -568,6 +570,8 @@ const ru: Dict = {
     roastChip: (r) => `${r} обжарка`,
     estimated: 'На пачке нет дескрипторов — профиль оценён по происхождению, обработке и обжарке.',
     brewChip: (method) => `${method} (вероятно)`,
+    brewStated: { filter: 'Обжарен под фильтр', espresso: 'Обжарен под эспрессо', omni: 'Обжарен и под фильтр, и под эспрессо' },
+    brewStatedWhy: 'с пачки или из ваших правок, не оценка',
     brewGuess: { filter: 'Скорее всего, обжарен под фильтр', espresso: 'Скорее всего, обжарен под эспрессо', omni: 'Подойдёт и для фильтра, и для эспрессо' },
     brewClue: (clue, roast) => ({
       roast: clue.id === 'roast' ? `${roast(clue.roast).toLowerCase()} обжарка` : '',
