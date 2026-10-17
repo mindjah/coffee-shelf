@@ -286,7 +286,7 @@ const en = {
     expand: 'Show all methods and key settings',
     collapse: 'Hide other methods and key settings',
     providers: {
-      gemini: ['Gemini', 'Free AI · high accuracy, might be slow · reads the whole label · needs a Google key'],
+      gemini: ['Gemini', 'Free AI · high accuracy, might be slow · needs a Google key'],
       claude: ['Claude', 'Paid AI · most accurate · needs an Anthropic key'],
       openai: ['ChatGPT', 'Paid AI · high accuracy · needs an OpenAI key'],
       ocr: ['Without AI (not recommended)', 'Free, low accuracy, not recommended'],
@@ -675,7 +675,7 @@ const ru: Dict = {
     expand: 'Показать все способы и настройки ключа',
     collapse: 'Скрыть другие способы и настройки ключа',
     providers: {
-      gemini: ['Gemini', 'Бесплатный ИИ · высокая точность, может быть медленным · читает всю этикетку · нужен ключ Google'],
+      gemini: ['Gemini', 'Бесплатный ИИ · высокая точность, может быть медленным · нужен ключ Google'],
       claude: ['Claude', 'Платный ИИ · самый точный · нужен ключ Anthropic'],
       openai: ['ChatGPT', 'Платный ИИ · высокая точность · нужен ключ OpenAI'],
       ocr: ['Без ИИ (не рекомендуется)', 'Бесплатно, точность низкая, не рекомендуется'],
@@ -1058,7 +1058,7 @@ const es: Dict = {
     expand: 'Mostrar todos los métodos y ajustes de claves',
     collapse: 'Ocultar los demás métodos y ajustes de claves',
     providers: {
-      gemini: ['Gemini', 'IA gratuita · alta precisión, puede ser lenta · lee toda la etiqueta · necesita una clave de Google'],
+      gemini: ['Gemini', 'IA gratuita · alta precisión, puede ser lenta · necesita una clave de Google'],
       claude: ['Claude', 'IA de pago · la más precisa · necesita una clave de Anthropic'],
       openai: ['ChatGPT', 'IA de pago · alta precisión · necesita una clave de OpenAI'],
       ocr: ['Sin IA (no recomendado)', 'Gratis, precisión baja, no recomendado'],
