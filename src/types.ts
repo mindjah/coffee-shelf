@@ -14,6 +14,10 @@ export type Roast = (typeof ROASTS)[number]
 export const ROAST_FOR = ['filter', 'espresso', 'omni', 'unknown'] as const
 export type RoastFor = (typeof ROAST_FOR)[number]
 
+/** How a coffee was brewed when it was rated. */
+export const BREWS = ['v60', 'aeropress'] as const
+export type Brew = (typeof BREWS)[number]
+
 export const REGIONS = ['east-africa', 'other-africa', 'central-america', 'south-america', 'asia-pacific', 'blend', 'unknown'] as const
 export type Region = (typeof REGIONS)[number]
 
@@ -55,6 +59,8 @@ export interface Coffee {
   rating: number | null
   ratedAt: number | null
   comment: string
+  /** How it was brewed for the rating; missing on ratings from before this was asked. */
+  brewedWith?: Brew | null
   /** Set when moved to the archive: kept, but off the shelf and out of the taste profile. */
   archivedAt?: number | null
 }

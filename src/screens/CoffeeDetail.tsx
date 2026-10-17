@@ -8,6 +8,8 @@ import { PredictionCard } from '../components/PredictionCard'
 import { Sheet } from '../components/Sheet'
 import { Stars } from '../components/Stars'
 import { useLang, useT } from '../i18n'
+import { saveSettings, useSettings } from '../settings'
+import { BrewPicker } from '../components/BrewPicker'
 
 export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model: Model; onClose: () => void }) {
   const t = useT()
@@ -20,7 +22,8 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
     setCompareNote(result === 'added' ? t.compare.addedFromShelf : result === 'duplicate' ? t.compare.alreadyAdded : t.compare.full(MAX_COMPARE))
   }
   const [comment, setComment] = useState(coffee.comment)
-  const prediction = useMemo(() => (coffee.rating == null ? predict(model, coffee) : null), [model, coffee])
+  const { brew } = useSettings()
+  const prediction = useMemo(() => (coffee.rating == null ? predict(model, coffee, brew) : null), [model, coffee, brew])
 
   const update = (patch: Partial<Coffee>) => db.coffees.update(coffee.id!, patch)
 
@@ -52,8 +55,13 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
             {coffee.rating != null && <span className="muted">{coffee.rating.toFixed(1)}</span>}
           </div>
           <div style={{ margin: '12px 0' }}>
-            <Stars value={coffee.rating} onChange={(rating) => update({ rating, ratedAt: Date.now() })} />
+            <Stars value={coffee.rating} onChange={(rating) => update({ rating, ratedAt: Date.now(), brewedWith: coffee.brewedWith ?? brew })} />
           </div>
+          {/* Rated before brew methods were asked: no method until you pick one. */}
+          <BrewPicker
+            value={coffee.rating == null ? brew : coffee.brewedWith}
+            onChange={(b) => (saveSettings({ brew: b }), coffee.rating != null && update({ brewedWith: b }))}
+          />
           <textarea className="input" placeholder={t.common.commentPlaceholder} value={comment} onChange={(e) => setComment(e.target.value)} onBlur={() => comment !== coffee.comment && update({ comment })} />
           {coffee.rating != null && (
             <button className="btn plain" style={{ marginTop: 6, paddingLeft: 0 }} onClick={() => update({ rating: null, ratedAt: null })}>{t.coffee.clearRating}</button>

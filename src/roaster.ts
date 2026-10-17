@@ -49,3 +49,10 @@ export function groupRoasters(names: string[]): (name: string) => RoasterGroup |
   }
   return (name) => byName.get(name.trim())
 }
+
+/** Same business by name, allowing a misread letter: one name's core words start the other's. */
+export function sameRoaster(a: string, b: string): boolean {
+  if (!a.trim() || !b.trim()) return false
+  const [x, y] = [core(a), core(b)].sort((p, q) => p.length - q.length)
+  return x.every((w, i) => y[i] != null && sameWord(w, y[i]))
+}

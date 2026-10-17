@@ -9,6 +9,7 @@ import { Sheet } from '../components/Sheet'
 import { Stars } from '../components/Stars'
 import { useShelfFilters } from '../components/ShelfFilters'
 import { Bookcase } from '../components/Bookcase'
+import { useSettings } from '../settings'
 
 interface Props {
   items: CompareItem[]
@@ -78,6 +79,7 @@ function ShelfPicker({ coffees, items, onClose }: { coffees: Coffee[]; items: Co
 export function CompareSheet({ items, model, coffees, onClose }: Props) {
   const t = useT()
   const lang = useLang()
+  const { brew } = useSettings()
   const [message, setMessage] = useState<string>()
   const [picking, setPicking] = useState(false)
 
@@ -87,7 +89,7 @@ export function CompareSheet({ items, model, coffees, onClose }: Props) {
       const d: CoffeeDraft = shelf ?? item.draft
       // A coffee you've rated is shown with your real rating, not a guess.
       const rated = shelf?.rating ?? null
-      const prediction: Prediction | null = rated != null ? null : predict(model, d)
+      const prediction: Prediction | null = rated != null ? null : predict(model, d, brew)
       return {
         item, d, rated,
         onShelf: item.coffeeId != null,
@@ -98,7 +100,7 @@ export function CompareSheet({ items, model, coffees, onClose }: Props) {
     })
     // New bags first, best predicted first; shelf coffees follow as a reference.
     return all.sort((a, b) => Number(a.onShelf) - Number(b.onShelf) || b.value - a.value || a.item.addedAt - b.item.addedAt)
-  }, [items, model, coffees])
+  }, [items, model, coffees, brew])
   const scanned = cols.filter((c) => !c.onShelf)
   // "Best match" ranks the new bags against each other, so it needs at least two of them.
   const best = scanned.length > 1 && scanned[0].prediction ? scanned[0].item.id : undefined

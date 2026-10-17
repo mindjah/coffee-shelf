@@ -524,3 +524,9 @@ textarea.input { min-height: 84px; resize: vertical; }
   font-weight: 700;
   color: var(--text);
 }
+
+/* "Brewed with: V60 | AeroPress" under the rating stars. */
+.brew-picker { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.brew-picker .segmented { flex: 1; }
+.brew-scores { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); gap: 12px; }
+.brew-scores .on { font-weight: 700; }

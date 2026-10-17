@@ -2,6 +2,7 @@ import type { Prediction } from '../recommend'
 import { MIN_RATINGS, toneFor } from '../recommend'
 import { reasonText, useLang, useT } from '../i18n'
 import { Stars } from './Stars'
+import { BREWS } from '../types'
 
 /** `rated`: your own rating of this coffee from before, shown instead of a guess. */
 export function PredictionCard({ prediction, ratedCount, rated }: { prediction: Prediction | null; ratedCount: number; rated?: number | null }) {
@@ -43,6 +44,16 @@ export function PredictionCard({ prediction, ratedCount, rated }: { prediction: 
           <div className="muted small">{t.prediction.subtitle(t.prediction.confidence[p.confidence])}</div>
         </div>
       </div>
+      {p.byBrew && (
+        // Same coffee, both of your brew methods; the dial shows your usual one.
+        <div className="row small brew-scores">
+          <span className="muted">{t.prediction.byBrew}</span>
+          <span className="spacer" />
+          {BREWS.map((b) => (
+            <span key={b} className={b === p.brew ? 'on' : 'muted'}>{t.brew[b]} {p.byBrew![b].toFixed(1)}</span>
+          ))}
+        </div>
+      )}
       {p.reasons.length > 0 && (
         <ul className="reasons">
           {p.reasons.map((r) => (

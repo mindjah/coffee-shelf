@@ -5,11 +5,11 @@ import { CompareSheet } from './CompareSheet'
 import { ScanError } from '../errors'
 import { PHOTO_SIDE, resizeImage } from '../image'
 import { MIN_RATINGS, predict, type Model } from '../recommend'
-import { needsKey, useSettings } from '../settings'
+import { needsKey, saveSettings, useSettings } from '../settings'
 import { emptyDraft, isBlankDraft } from '../parse'
 import type { OcrProgress } from '../ocr'
 import { useT, type Dict } from '../i18n'
-import type { Coffee, CoffeeDraft } from '../types'
+import type { Brew, Coffee, CoffeeDraft } from '../types'
 import { brewTitle, brewWhy, CoffeeSummary, usePhotoUrl } from '../components/CoffeeSummary'
 import { CoffeeEditor } from '../components/CoffeeEditor'
 import { PredictionCard } from '../components/PredictionCard'
@@ -22,6 +22,7 @@ import { Linkify } from '../components/Linkify'
 import { openPhoto } from '../components/PhotoViewer'
 import { shelfHistory } from '../history'
 import { brewMethod } from '../brew'
+import { BrewPicker } from '../components/BrewPicker'
 
 interface Props {
   model: Model
@@ -130,7 +131,9 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     }
   }, [persist])
 
-  const prediction = useMemo(() => (draft ? predict(model, draft) : null), [model, draft])
+  const prediction = useMemo(() => (draft ? predict(model, draft, settings.brew) : null), [model, draft, settings.brew])
+  // Your usual method; picking another one here also makes it the default.
+  const pickBrew = (b: Brew) => saveSettings({ brew: b })
   const history = useMemo(() => (draft ? shelfHistory(draft, coffees) : undefined), [coffees, draft])
   const brew = useMemo(() => (draft ? brewMethod(draft) : null), [draft])
 
@@ -223,6 +226,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
       createdAt: Date.now(),
       rating: withRating ? rating : null,
       ratedAt: withRating && rating != null ? Date.now() : null,
+      brewedWith: withRating && rating != null ? settings.brew : null,
       comment,
     })
     reset()
@@ -236,6 +240,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     const note = comment.trim()
     await db.coffees.update(existing.id, {
       ...(rating !== existing.rating && { rating, ratedAt: rating != null ? Date.now() : null }),
+      ...(rating != null && { brewedWith: settings.brew }),
       ...(note && note !== existing.comment.trim() && { comment: existing.comment.trim() ? `${existing.comment.trim()}\n\n${note}` : note }),
       ...(draft.photo && { photo: draft.photo }),
       // Bought again, so it's back on the shelf.
@@ -306,6 +311,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             </div>
             {history?.rating != null && <div className="muted small" style={{ marginTop: 6 }}>{t.scan.alreadyRated}</div>}
             <div style={{ margin: '12px 0' }}><Stars value={rating} onChange={setRating} /></div>
+            <BrewPicker value={settings.brew} onChange={pickBrew} />
             <textarea className="input" placeholder={t.common.commentPlaceholder} value={comment} onChange={(e) => setComment(e.target.value)} />
           </div>
           {history?.tried.length ? (

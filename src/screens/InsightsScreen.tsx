@@ -1,4 +1,4 @@
-import { MIN_RATINGS, tasteSummary, type Model } from '../recommend'
+import { MIN_RATINGS, TUNE_FROM, tasteSummary, type Model } from '../recommend'
 import type { Coffee } from '../types'
 import { groupRoasters } from '../roaster'
 import { countryName, reasonText, useLang, useT } from '../i18n'
@@ -60,6 +60,18 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
             <div className="stat"><b>{coffees.length - rated.length}</b><span>{t.taste.toTry}</span></div>
           </div>
 
+          {model.accuracy && (
+            <>
+              <h2 className="section">{t.taste.accuracy}</h2>
+              <div className="card">
+                <div style={{ fontWeight: 600 }}>{t.taste.accuracyLine(model.accuracy.mae.toFixed(2), Math.round(model.accuracy.within * 100))}</div>
+                <p className="muted small" style={{ margin: '6px 0 0' }}>
+                  {t.taste.accuracyHow(model.accuracy.n, model.accuracy.baseline.toFixed(2))} {model.accuracy.tuned ? t.taste.tuned : t.taste.notTuned(TUNE_FROM)}
+                </p>
+              </div>
+            </>
+          )}
+
           {taste ? (
             <>
               {taste.likes.length > 0 && (
@@ -85,6 +97,7 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
 
           <Breakdown title={t.taste.byProcess} rows={groupAverages(rated, (c) => (c.process === 'unknown' ? null : t.process[c.process]))} />
           <Breakdown title={t.taste.byOrigin} rows={groupAverages(rated, (c) => countryName(c, lang) || null)} />
+          <Breakdown title={t.taste.byBrew} rows={groupAverages(rated, (c) => (c.brewedWith ? t.brew[c.brewedWith] : null))} />
           <Breakdown title={t.taste.byRoast} rows={groupAverages(rated, (c) => (c.roast === 'unknown' ? null : t.roast[c.roast]))} />
           {roasters.length > 0 && <Breakdown title={t.taste.roasters} rows={roasters} />}
         </>

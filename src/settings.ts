@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import type { Lang } from './types'
+import type { Brew, Lang } from './types'
 
 export const MODELS = [
   { id: 'claude-opus-5', label: 'Claude Opus 5' },
@@ -38,6 +38,8 @@ export interface Settings {
   openaiModel: string
   /** 'auto' (until the user picks) follows the iPhone: Russian or Spanish if it's in one, else English. */
   lang: 'auto' | Lang
+  /** Brew method picked for the last rating; new ratings and predictions start from it. */
+  brew: Brew
 }
 
 const KEY = 'coffee-shelf.settings'
@@ -50,6 +52,7 @@ const DEFAULTS: Settings = {
   openaiKey: '',
   openaiModel: OPENAI_MODELS[0].id,
   lang: 'auto',
+  brew: 'v60',
 }
 
 export const usesAI = (p: Provider): p is AIProvider => p !== 'ocr'

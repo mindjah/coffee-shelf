@@ -1,5 +1,5 @@
 import { useSettings } from './settings'
-import { LANGS, type Coffee, type CoffeeDraft, type Flavor, type Lang, type Process, type Region, type Roast, type RoastFor } from './types'
+import { LANGS, type Brew, type Coffee, type CoffeeDraft, type Flavor, type Lang, type Process, type Region, type Roast, type RoastFor } from './types'
 import type { Reason } from './recommend'
 import { translateNote } from './parse'
 import type { BrewClue, BrewMethod } from './brew'
@@ -168,6 +168,7 @@ const en = {
     unknown: 'Something went wrong',
   } satisfies Record<ScanErrorCode | 'unknown', string>,
   prediction: {
+    byBrew: 'By brew method',
     yourRating: 'Your rating',
     yourRatingHint: "You've tasted this coffee — this is your own rating, not a prediction.",
     notEnough: 'Not enough ratings yet',
@@ -179,6 +180,7 @@ const en = {
     similar: (p: number) => `${p}% similar`,
   },
   coffee: {
+    brewedWith: 'Brewed with',
     roastChip: (r: string) => `${r} roast`,
     estimated: 'No notes on the bag — profile estimated from origin, process and roast.',
     brewChip: (method: string) => `${method} (likely)`,
@@ -265,6 +267,12 @@ const en = {
     empty: 'Scanned coffees will appear here.',
   },
   taste: {
+    byBrew: 'By brew method',
+    accuracy: 'Prediction accuracy',
+    accuracyLine: (mae: string, within: number) => `Off by ${mae}★ on average · ${within}% within half a star`,
+    accuracyHow: (n: number, baseline: string) => `Tested on your ${n} ratings: each coffee is predicted from all the others. Always guessing your average would be off by ${baseline}★.`,
+    tuned: 'Weights are tuned to your ratings.',
+    notTuned: (n: number) => `From ${n} ratings the weights get tuned to your own taste.`,
     title: 'Your taste',
     subtitle: 'What your ratings say about you.',
     needMore: (n: number) => `Rate at least ${n} coffees to see your taste profile.`,
@@ -356,6 +364,11 @@ const en = {
     blend: 'Blend',
     unknown: 'Unknown origin',
   } satisfies Record<Region, string>,
+  fromRoaster: (name: string) => `Roaster ${name}`,
+  notFromRoaster: (name: string) => `Not from ${name}`,
+  ofVariety: (name: string) => `${name} variety`,
+  notVariety: (name: string) => `Not ${name}`,
+  brew: { v60: 'V60', aeropress: 'AeroPress' } satisfies Record<Brew, string>,
   notFromCountry: (name: string) => `Not from ${name}`,
   /** [pushes the score up because it is present / higher, … because it is absent / lower] */
   reasons: {
@@ -388,6 +401,8 @@ const en = {
     body: ['Heavier body', 'Lighter body'],
     sweetness: ['Sweeter cup', 'Less sweetness'],
     altitude: ['Grown higher', 'Grown lower'],
+    sca: ['Higher SCA score', 'Lower SCA score'],
+    aeropress: ['Brewed in AeroPress', 'Brewed in V60'],
   } as Record<string, Pair>,
 }
 
@@ -557,6 +572,7 @@ const ru: Dict = {
     unknown: 'Что-то пошло не так',
   },
   prediction: {
+    byBrew: 'По способу заваривания',
     yourRating: 'Ваша оценка',
     yourRatingHint: 'Вы уже пробовали этот кофе — это ваша оценка, а не прогноз.',
     notEnough: 'Пока мало оценок',
@@ -568,6 +584,7 @@ const ru: Dict = {
     similar: (p) => `сходство ${p}%`,
   },
   coffee: {
+    brewedWith: 'Чем заваривали',
     roastChip: (r) => `${r} обжарка`,
     estimated: 'На пачке нет дескрипторов — профиль оценён по происхождению, обработке и обжарке.',
     brewChip: (method) => `${method} (вероятно)`,
@@ -654,6 +671,12 @@ const ru: Dict = {
     empty: 'Здесь появятся отсканированные пачки.',
   },
   taste: {
+    byBrew: 'По способу заваривания',
+    accuracy: 'Точность прогнозов',
+    accuracyLine: (mae, within) => `В среднем ошибка ±${mae}★ · ${within}% прогнозов в пределах полузвезды`,
+    accuracyHow: (n, baseline) => `Проверено на ваших ${n} оценках: каждый кофе предсказан по всем остальным. Если всегда ставить вашу среднюю оценку, ошибка была бы ±${baseline}★.`,
+    tuned: 'Веса подстроены под ваши оценки.',
+    notTuned: (n) => `С ${n} оценок веса начнут подстраиваться под ваш вкус.`,
     title: 'Ваш вкус',
     subtitle: 'Что говорят ваши оценки.',
     needMore: (n) => `Оцените хотя бы ${n} кофе, чтобы увидеть свой вкусовой профиль.`,
@@ -745,6 +768,11 @@ const ru: Dict = {
     blend: 'Смесь',
     unknown: 'Происхождение неизвестно',
   },
+  fromRoaster: (name) => `Обжарщик ${name}`,
+  notFromRoaster: (name) => `Не ${name}`,
+  ofVariety: (name) => `Сорт ${name}`,
+  notVariety: (name) => `Не ${name}`,
+  brew: { v60: 'V60', aeropress: 'Аэропресс' },
   notFromCountry: (name) => `Не ${name}`,
   reasons: {
     berry: ['Ягодные ноты', 'Нет ягодных нот'],
@@ -776,6 +804,8 @@ const ru: Dict = {
     body: ['Более плотное тело', 'Более лёгкое тело'],
     sweetness: ['Более сладкая чашка', 'Меньше сладости'],
     altitude: ['Выращен выше', 'Выращен ниже'],
+    sca: ['Выше оценка SCA', 'Ниже оценка SCA'],
+    aeropress: ['Аэропресс', 'V60'],
   },
 }
 
@@ -940,6 +970,7 @@ const es: Dict = {
     unknown: 'Algo salió mal',
   },
   prediction: {
+    byBrew: 'Según el método',
     yourRating: 'Tu valoración',
     yourRatingHint: 'Ya has probado este café: es tu propia valoración, no una predicción.',
     notEnough: 'Aún no hay suficientes valoraciones',
@@ -951,6 +982,7 @@ const es: Dict = {
     similar: (p) => `${p}% de parecido`,
   },
   coffee: {
+    brewedWith: 'Preparado con',
     roastChip: (r) => `Tueste ${r.toLowerCase()}`,
     estimated: 'La bolsa no trae notas: perfil estimado por origen, proceso y tueste.',
     brewChip: (method) => `${method} (probable)`,
@@ -1037,6 +1069,12 @@ const es: Dict = {
     empty: 'Los cafés escaneados aparecerán aquí.',
   },
   taste: {
+    byBrew: 'Por método',
+    accuracy: 'Precisión de las predicciones',
+    accuracyLine: (mae, within) => `Error medio de ±${mae}★ · ${within}% dentro de media estrella`,
+    accuracyHow: (n, baseline) => `Probado con tus ${n} valoraciones: cada café se predice a partir de todos los demás. Si siempre se dijera tu media, el error sería de ±${baseline}★.`,
+    tuned: 'Los pesos están ajustados a tus valoraciones.',
+    notTuned: (n) => `A partir de ${n} valoraciones los pesos se ajustan a tu gusto.`,
     title: 'Tu gusto',
     subtitle: 'Lo que tus valoraciones dicen de ti.',
     needMore: (n) => `Valora al menos ${n} cafés para ver tu perfil de gusto.`,
@@ -1128,6 +1166,11 @@ const es: Dict = {
     blend: 'Blend',
     unknown: 'Origen desconocido',
   },
+  fromRoaster: (name) => `Tostador ${name}`,
+  notFromRoaster: (name) => `No es de ${name}`,
+  ofVariety: (name) => `Variedad ${name}`,
+  notVariety: (name) => `No es ${name}`,
+  brew: { v60: 'V60', aeropress: 'AeroPress' },
   notFromCountry: (name) => `No es de ${name}`,
   reasons: {
     berry: ['Notas de frutos rojos', 'Sin notas de frutos rojos'],
@@ -1159,6 +1202,8 @@ const es: Dict = {
     body: ['Más cuerpo', 'Menos cuerpo'],
     sweetness: ['Taza más dulce', 'Menos dulzor'],
     altitude: ['Cultivado más alto', 'Cultivado más bajo'],
+    sca: ['Puntuación SCA más alta', 'Puntuación SCA más baja'],
+    aeropress: ['Preparado en AeroPress', 'Preparado en V60'],
   },
 }
 
@@ -1182,6 +1227,14 @@ export function useT(): Dict {
 
 /** Explanation text for a recommender reason; `short` drops "than you usually drink". */
 export function reasonText(t: Dict, r: Pick<Reason, 'id' | 'up'>, lang: Lang, short = false): string {
+  if (r.id.startsWith('roaster:')) {
+    const name = r.id.slice('roaster:'.length)
+    return r.up ? t.fromRoaster(name) : t.notFromRoaster(name)
+  }
+  if (r.id.startsWith('variety:')) {
+    const name = r.id.slice('variety:'.length)
+    return r.up ? t.ofVariety(name) : t.notVariety(name)
+  }
   if (r.id.startsWith('country:')) {
     const code = r.id.slice('country:'.length)
     const name = countryName({ country: code, countryCodes: [code] }, lang)

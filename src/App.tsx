@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, requestPersistence } from './db'
 import { buildModel } from './recommend'
+import { useTuning } from './tuning'
 import { ScanScreen } from './screens/ScanScreen'
 import { LibraryScreen } from './screens/LibraryScreen'
 import { InsightsScreen } from './screens/InsightsScreen'
@@ -31,7 +32,9 @@ export default function App() {
   // Archived coffees stay in the database but leave the shelf, the taste profile and predictions.
   const coffees = useMemo(() => all?.filter((c) => !c.archivedAt), [all])
   const archived = useMemo(() => (all ?? []).filter((c) => c.archivedAt).sort((a, b) => b.archivedAt! - a.archivedAt!), [all])
-  const model = useMemo(() => buildModel(coffees ?? []), [coffees])
+  // Weights tuned to your ratings in the background; built-in weights until then.
+  const tuned = useTuning(coffees)
+  const model = useMemo(() => buildModel(coffees ?? [], tuned?.params, tuned?.accuracy ?? undefined), [coffees, tuned])
   const open = all?.find((c) => c.id === openId)
 
   useEffect(() => {
