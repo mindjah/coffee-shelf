@@ -8,7 +8,7 @@ import { DriveSection } from '../components/DriveSection'
 import { Linkify } from '../components/Linkify'
 import { ArchiveSection } from '../components/ArchiveSection'
 import { SectionHeader } from '../components/SectionHeader'
-import type { Coffee } from '../types'
+import { LANGS, type Coffee } from '../types'
 
 /**
  * "Add coffees from a file" was needed for a one-off import (e.g. from Notion), so it stays out of
@@ -100,7 +100,7 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
     }
   }
 
-  const langs: ['en' | 'ru', string][] = [['en', LANG_NAMES.en], ['ru', LANG_NAMES.ru]]
+  const langs = LANGS.map((l) => [l, LANG_NAMES[l]] as const)
 
   return (
     <div className="screen settings-screen">

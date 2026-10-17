@@ -143,7 +143,9 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
       next.flavorsEstimated = !found.length
     }
     // Notes and process wording are edited in the language they're shown in.
-    const tr = base.translations?.[lang]
+    // A dictionary translation shown in place of the printed notes is saved as a translation too,
+    // so the bag's own wording isn't overwritten.
+    const tr = base.translations?.[lang] || localized(base, lang).notes.join() !== base.notes.join()
     if (tr) {
       next.translations = { ...base.translations, [lang]: { notes: list(notes), processDetail: processDetail.trim() } }
     } else {

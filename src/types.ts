@@ -59,7 +59,7 @@ export interface Coffee {
   archivedAt?: number | null
 }
 
-export const LANGS = ['en', 'ru'] as const
+export const LANGS = ['en', 'ru', 'es'] as const
 export type Lang = (typeof LANGS)[number]
 
 /** Text that Claude translates at scan time; the as-printed original stays in the main fields. */

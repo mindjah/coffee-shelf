@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react'
-import type { Coffee } from '../types'
+import { LANGS, type Coffee } from '../types'
 import { countryName, useLang, useT } from '../i18n'
 import { ClearIcon, FilterIcon, ListViewIcon, ShelfViewIcon, SortIcon } from './icons'
 import { groupRoasters } from '../roaster'
@@ -39,7 +39,7 @@ function haystack(c: Coffee) {
   return [
     c.roaster, c.name, c.country, c.area, c.producer, c.process, ...c.varieties, ...c.notes,
     ...Object.values(c.translations ?? {}).flatMap((tr) => tr?.notes ?? []),
-    countryName(c, 'en'), countryName(c, 'ru'),
+    ...LANGS.map((l) => countryName(c, l)),
   ].join(' ').toLowerCase()
 }
 

@@ -28,7 +28,7 @@ export const BagSchema = z.object({
   roast_for: z.enum(ROAST_FOR),
   region: z.enum(REGIONS),
   notes: z.array(z.string()).describe('Tasting notes exactly as printed, in the original language'),
-  translations: z.object({ en: Translation, ru: Translation }),
+  translations: z.object({ en: Translation, ru: Translation, es: Translation }),
   flavors: z.object(Object.fromEntries(FLAVORS.map((f) => [f, level])) as Record<Flavor, typeof level>),
   flavors_estimated: z.boolean().describe('True if no tasting notes were printed and flavors were estimated'),
   acidity: scale,
@@ -41,7 +41,7 @@ export const SYSTEM = `You read photos of specialty coffee packaging (front and/
 
 Transcribe what is printed; do not guess names, producers or altitudes that are not visible. Use empty strings, empty arrays, null or "unknown" for anything missing.
 
-Labels can be in any language — often English, Spanish or Russian, sometimes several on one bag. Keep roaster, coffee name, region, producer and varieties as printed. Fill the translations block with the tasting notes and process wording in English and in Russian (copy them unchanged when already in that language).
+Labels can be in any language — often English, Spanish or Russian, sometimes several on one bag. Keep roaster, coffee name, region, producer and varieties as printed. Fill the translations block with the tasting notes and process wording in English, Russian and Spanish (copy them unchanged when already in that language).
 
 Common Spanish label terms:
 - Origen / País = country; Región, Departamento, Municipio, Vereda = area; Finca = farm; Productor, Caficultor, Cooperativa = producer
@@ -100,6 +100,7 @@ export function toDraft(bag: Bag): CoffeeDraft {
     translations: {
       en: { notes: bag.translations.en.notes, processDetail: bag.translations.en.process_detail.trim() },
       ru: { notes: bag.translations.ru.notes, processDetail: bag.translations.ru.process_detail.trim() },
+      es: { notes: bag.translations.es.notes, processDetail: bag.translations.es.process_detail.trim() },
     },
     flavors: Object.fromEntries(FLAVORS.map((f) => [f, (clamp(bag.flavors[f], 0, 3) ?? 0) / 3])) as Record<Flavor, number>,
     flavorsEstimated: bag.flavors_estimated,

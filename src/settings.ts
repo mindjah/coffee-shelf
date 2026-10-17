@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import type { Lang } from './types'
 
 export const MODELS = [
   { id: 'claude-opus-5', label: 'Claude Opus 5' },
@@ -35,8 +36,8 @@ export interface Settings {
   /** OpenAI API key (ChatGPT). */
   openaiKey: string
   openaiModel: string
-  /** 'auto' (until the user picks) follows the iPhone: Russian if it's in Russian, else English. */
-  lang: 'auto' | 'en' | 'ru'
+  /** 'auto' (until the user picks) follows the iPhone: Russian or Spanish if it's in one, else English. */
+  lang: 'auto' | Lang
 }
 
 const KEY = 'coffee-shelf.settings'

@@ -4,7 +4,7 @@ import {
   ALTITUDE_WORDS, AREA_WORDS, COUNTRIES, DESCRIPTOR_LIST, NOTES_HEADERS, PROCESS_TERMS, PRODUCER_WORDS,
   ROASTER_WORDS, ROAST_WORDS, VARIETIES, VARIETY_WORDS, normalize, type Country, type Descriptor,
 } from './lexicon'
-import { FLAVORS, type CoffeeDraft, type Flavor, type Process, type Region, type Roast, type RoastFor, type Structure } from './types'
+import { FLAVORS, type CoffeeDraft, type Flavor, type Lang, type Process, type Region, type Roast, type RoastFor, type Structure } from './types'
 
 const L = '\\p{L}\\p{N}'
 
@@ -52,6 +52,16 @@ export function findNotes(raw: string): FoundNote[] {
     text = text.slice(0, m.index) + ' '.repeat(m[0].length) + text.slice(m.index + m[0].length)
   }
   return found.sort((a, b) => a.index - b.index)
+}
+
+/**
+ * A tasting note in another language when the whole note is one dictionary note ("Земляника" →
+ * "Fresa"); undefined for anything more ("Абрикосовый джем" would lose the jam).
+ */
+export function translateNote(note: string, lang: Lang): string | undefined {
+  const text = note.trim()
+  const found = findNotes(text)
+  return found.length === 1 && found[0].original.length === text.length ? found[0].descriptor[lang] : undefined
 }
 
 const emptyFlavors = () => Object.fromEntries(FLAVORS.map((f) => [f, 0])) as Record<Flavor, number>
@@ -286,6 +296,7 @@ export function parseLabel(raw: string): CoffeeDraft {
     translations: {
       en: { notes: notes.map((n) => n.descriptor.en), processDetail: '' },
       ru: { notes: notes.map((n) => n.descriptor.ru), processDetail: '' },
+      es: { notes: notes.map((n) => n.descriptor.es), processDetail: '' },
     },
     flavors: flavorsEstimated ? estimateFlavors(region, process, roast) : flavorsFromNotes(notes),
     flavorsEstimated,
