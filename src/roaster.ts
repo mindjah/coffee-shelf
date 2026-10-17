@@ -1,3 +1,4 @@
+import { sameWord } from './fuzzy'
 import { normalize } from './lexicon'
 
 /** Words that describe the business rather than name it ("… Specialty Coffee Roasters"). */
@@ -36,7 +37,8 @@ export function groupRoasters(names: string[]): (name: string) => RoasterGroup |
   const spellings = [...counts.keys()].map((name) => ({ name, core: core(name) })).sort((a, b) => a.core.length - b.core.length)
   const groups: { core: string[]; names: string[] }[] = []
   for (const s of spellings) {
-    const g = groups.find((g) => g.core.every((w, i) => s.core[i] === w))
+    // A misread letter still counts as the same roaster ("Martines" / "Martinez").
+    const g = groups.find((g) => g.core.every((w, i) => s.core[i] != null && sameWord(s.core[i], w)))
     if (g) g.names.push(s.name)
     else groups.push({ core: s.core, names: [s.name] })
   }

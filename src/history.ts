@@ -1,6 +1,7 @@
 // What the shelf already knows about a freshly scanned bag: the same coffee logged before, and
 // other bags from the same roaster. Archived coffees count too — you did buy them.
 import { normalize } from './lexicon'
+import { samePhrase, wordsWithin } from './fuzzy'
 import { findCountries } from './parse'
 import { GENERIC_WORDS, groupRoasters } from './roaster'
 import type { Coffee, CoffeeDraft } from './types'
@@ -10,6 +11,11 @@ const VARYING_WORDS = new Set([
   'natural', 'washed', 'honey', 'anaerobic', 'lavado', 'anaerobico', 'miel',
   'натуральная', 'мытая', 'хани', 'анаэробная', 'lot', 'лот', 'filter', 'espresso', 'фильтр', 'эспрессо',
   'decaf', 'microlot', 'micro',
+])
+
+const PRODUCER_WORDS = new Set([
+  'farm', 'finca', 'estate', 'hacienda', 'fazenda', 'sitio', 'washing', 'station', 'estacion', 'lavado',
+  'cooperative', 'cooperativa', 'coop', 'mill', 'beneficio', 'ферма', 'станция', 'кооператив', 'the', 'los', 'las', 'del',
 ])
 
 /**
@@ -22,17 +28,23 @@ function nameWords(name: string): string[] {
   return distinctive.length ? distinctive : words
 }
 
+/** Farm or producer words without the generic ones ("El Placer Farm" ~ "Finca El Placer"). */
+function producerWords(producer: string): string[] {
+  return normalize(producer).split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 2 && !PRODUCER_WORDS.has(w))
+}
+
 /**
- * Same coffee from the same roaster, read twice: the names agree once origin and process words are
+ * Same coffee from the same roaster, read twice — and reading makes mistakes, so words may differ by
+ * a letter or two (see fuzzy.ts). It matches when the names agree once origin and process words are
  * dropped, one name is the other with words added (at least two words in common), or the bag
- * details agree — same producer, country and process.
+ * details agree: same producer, country and process.
  */
 function sameCoffee(a: CoffeeDraft, b: CoffeeDraft): boolean {
   const [x, y] = [nameWords(a.name), nameWords(b.name)].sort((p, q) => p.length - q.length)
-  if (x.length && x.join(' ') === y.join(' ')) return true
-  if (x.length >= 2 && x.every((w) => y.includes(w))) return true
-  const producer = normalize(a.producer).trim()
-  return !!producer && producer === normalize(b.producer).trim()
+  if (x.length && samePhrase(x, y)) return true
+  if (x.length >= 2 && wordsWithin(x, y)) return true
+  const [px, py] = [producerWords(a.producer), producerWords(b.producer)].sort((p, q) => p.length - q.length)
+  return px.length > 0 && wordsWithin(px, py)
     && !!a.countryCodes?.some((c) => b.countryCodes?.includes(c))
     && (a.process === b.process || a.process === 'unknown' || b.process === 'unknown')
 }
