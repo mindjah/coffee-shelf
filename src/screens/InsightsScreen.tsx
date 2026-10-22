@@ -1,6 +1,7 @@
 import { MIN_RATINGS, TUNE_FROM, tasteSummary, type Model } from '../recommend'
 import type { Coffee } from '../types'
 import { groupRoasters } from '../roaster'
+import { methodRatings } from '../ratings'
 import { countryName, reasonText, useLang, useT } from '../i18n'
 import { TasteIcon } from '../components/icons'
 
@@ -97,7 +98,11 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
 
           <Breakdown title={t.taste.byProcess} rows={groupAverages(rated, (c) => (c.process === 'unknown' ? null : t.process[c.process]))} />
           <Breakdown title={t.taste.byOrigin} rows={groupAverages(rated, (c) => countryName(c, lang) || null)} />
-          <Breakdown title={t.taste.byBrew} rows={groupAverages(rated, (c) => (c.brewedWith ? t.brew[c.brewedWith] : null))} />
+          {/* Every rating counts here, so a coffee rated with both methods shows up under each. */}
+          <Breakdown
+            title={t.taste.byBrew}
+            rows={groupAverages(rated.flatMap((c) => methodRatings(c).map((m) => ({ ...c, rating: m.rating, brewedWith: m.brew }))), (c) => (c.brewedWith ? t.brew[c.brewedWith] : null))}
+          />
           <Breakdown title={t.taste.byRoast} rows={groupAverages(rated, (c) => (c.roast === 'unknown' ? null : t.roast[c.roast]))} />
           {roasters.length > 0 && <Breakdown title={t.taste.roasters} rows={roasters} />}
         </>

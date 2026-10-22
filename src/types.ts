@@ -59,7 +59,9 @@ export interface Coffee {
   rating: number | null
   ratedAt: number | null
   comment: string
-  /** How it was brewed for the rating; missing on ratings from before this was asked. */
+  /** Rating per brew method; `rating` is the best of them. Missing on coffees rated before this. */
+  ratings?: Partial<Record<Brew, number>>
+  /** Method of the latest rating; on old single ratings, the method they were given with (if set). */
   brewedWith?: Brew | null
   /** Set when moved to the archive: kept, but off the shelf and out of the taste profile. */
   archivedAt?: number | null

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { addShelfToCompare, db, MAX_COMPARE } from '../db'
 import { predict, type Model } from '../recommend'
-import type { Coffee } from '../types'
+import type { Brew, Coffee } from '../types'
+import { methodRatings, ratingFor, unassignedRating, withMethodRating } from '../ratings'
 import { CoffeeSummary } from '../components/CoffeeSummary'
 import { CoffeeEditor } from '../components/CoffeeEditor'
 import { PredictionCard } from '../components/PredictionCard'
@@ -26,6 +27,31 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
   const prediction = useMemo(() => (coffee.rating == null ? predict(model, coffee, brew) : null), [model, coffee, brew])
 
   const update = (patch: Partial<Coffee>) => db.coffees.update(coffee.id!, patch)
+
+  // Ratings per brew method. The picker starts on the method of the latest rating, or on nothing
+  // for an unrated coffee or an old rating that was never given a method.
+  const byMethod = methodRatings(coffee).filter((m) => m.brew)
+  const unassigned = unassignedRating(coffee)
+  const [selected, setSelected] = useState<Brew | null>(() => (byMethod.length ? (coffee.brewedWith ?? byMethod[0].brew) : null))
+  const shown = selected ? (ratingFor(coffee, selected) ?? unassigned) : coffee.rating
+
+  function pickMethod(b: Brew) {
+    setSelected(b)
+    saveSettings({ brew: b })
+    // An old rating without a method was given with the method picked now.
+    if (unassigned != null) update(withMethodRating(coffee, b, unassigned))
+  }
+
+  function rate(value: number) {
+    if (selected) return update(withMethodRating(coffee, selected, value))
+    // No method picked yet: kept as a rating without one until a method is chosen.
+    update({ rating: value, ratedAt: Date.now(), ratings: undefined, brewedWith: null })
+  }
+
+  function clearRating() {
+    if (selected && ratingFor(coffee, selected) != null) return update(withMethodRating(coffee, selected, null))
+    update({ rating: null, ratedAt: null, ratings: undefined, brewedWith: null })
+  }
 
   const archived = !!coffee.archivedAt
   async function toggleArchive() {
@@ -52,19 +78,21 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
           <div className="row">
             <div style={{ fontWeight: 600 }}>{coffee.rating == null ? t.coffee.rateAfter : t.coffee.yourRating}</div>
             <span className="spacer" />
-            {coffee.rating != null && <span className="muted">{coffee.rating.toFixed(1)}</span>}
+            {byMethod.length > 1
+              ? <span className="muted small">{byMethod.map((m) => `${t.brew[m.brew!]} ${m.rating.toFixed(1)}`).join(' · ')}</span>
+              : coffee.rating != null && <span className="muted">{coffee.rating.toFixed(1)}</span>}
           </div>
-          <div style={{ margin: '12px 0' }}>
-            <Stars value={coffee.rating} onChange={(rating) => update({ rating, ratedAt: Date.now(), brewedWith: coffee.brewedWith ?? brew })} />
+          {/* Pick the method first: the stars are that method's rating. Nothing is picked on an unrated coffee. */}
+          <div style={{ marginTop: 12 }}>
+            <BrewPicker value={selected} onChange={pickMethod} />
           </div>
-          {/* Rated before brew methods were asked: no method until you pick one. */}
-          <BrewPicker
-            value={coffee.rating == null ? brew : coffee.brewedWith}
-            onChange={(b) => (saveSettings({ brew: b }), coffee.rating != null && update({ brewedWith: b }))}
-          />
+          {unassigned != null && <p className="muted small" style={{ margin: '-4px 0 8px' }}>{t.coffee.pickBrewHint}</p>}
+          <div style={{ margin: '0 0 12px' }}>
+            <Stars value={shown} onChange={rate} />
+          </div>
           <textarea className="input" placeholder={t.common.commentPlaceholder} value={comment} onChange={(e) => setComment(e.target.value)} onBlur={() => comment !== coffee.comment && update({ comment })} />
-          {coffee.rating != null && (
-            <button className="btn plain" style={{ marginTop: 6, paddingLeft: 0 }} onClick={() => update({ rating: null, ratedAt: null })}>{t.coffee.clearRating}</button>
+          {shown != null && (
+            <button className="btn plain" style={{ marginTop: 6, paddingLeft: 0 }} onClick={clearRating}>{t.coffee.clearRating}</button>
           )}
         </div>
         {coffee.rating == null && !archived && <PredictionCard prediction={prediction} ratedCount={model.count} />}

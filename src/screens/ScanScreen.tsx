@@ -23,6 +23,7 @@ import { openPhoto } from '../components/PhotoViewer'
 import { shelfHistory } from '../history'
 import { brewMethod } from '../brew'
 import { BrewPicker } from '../components/BrewPicker'
+import { methodRatings, ratingFor, unassignedRating, withMethodRating } from '../ratings'
 
 interface Props {
   model: Model
@@ -132,9 +133,17 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   }, [persist])
 
   const prediction = useMemo(() => (draft ? predict(model, draft, settings.brew) : null), [model, draft, settings.brew])
-  // Your usual method; picking another one here also makes it the default.
-  const pickBrew = (b: Brew) => saveSettings({ brew: b })
   const history = useMemo(() => (draft ? shelfHistory(draft, coffees) : undefined), [coffees, draft])
+  // How this bag was brewed for the rating: nothing until you pick (saving to try later needs none).
+  // Picking also makes it your usual method for predictions.
+  const [brewedWith, setBrewedWith] = useState<Brew | null>(null)
+  function pickBrew(b: Brew) {
+    setBrewedWith(b)
+    saveSettings({ brew: b })
+    // Already rated: show the rating you gave with this method (none yet → empty stars to rate it).
+    const existing = history?.tried[0]
+    if (existing) setRating(ratingFor(existing, b) ?? unassignedRating(existing))
+  }
   const brew = useMemo(() => (draft ? brewMethod(draft) : null), [draft])
 
   // A coffee you've rated before starts with that rating filled in, once per scanned bag.
@@ -201,6 +210,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   }
 
   function reset() {
+    setBrewedWith(null)
     setShots([])
     setDraft(undefined)
     setRating(null)
@@ -224,13 +234,23 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     const id = await db.coffees.add({
       ...draft,
       createdAt: Date.now(),
-      rating: withRating ? rating : null,
-      ratedAt: withRating && rating != null ? Date.now() : null,
-      brewedWith: withRating && rating != null ? settings.brew : null,
+      ...(withRating && rating != null
+        ? brewedWith ? withMethodRating({ rating: null }, brewedWith, rating) : { rating, ratedAt: Date.now(), brewedWith: null }
+        : { rating: null, ratedAt: null, brewedWith: null }),
       comment,
     })
     reset()
     onSaved(id as number)
+  }
+
+  /** The rating fields for an existing coffee: this method's rating, or the old single rating when no method was picked. */
+  function rescanRating(existing: Coffee): Partial<Coffee> {
+    if (rating == null) return {}
+    if (brewedWith) return ratingFor(existing, brewedWith) === rating ? {} : withMethodRating(existing, brewedWith, rating)
+    if (rating === existing.rating) return {}
+    // No method picked: a coffee rated per method gets it for its latest method; an old single rating is replaced.
+    const latest = existing.brewedWith ?? methodRatings(existing).find((m) => m.brew)?.brew
+    return latest && existing.ratings ? withMethodRating(existing, latest, rating) : { rating, ratedAt: Date.now() }
   }
 
   /** Same coffee already on the shelf: the new rating, comment and bag photo go onto that entry. */
@@ -239,8 +259,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     if (!draft || !existing?.id) return
     const note = comment.trim()
     await db.coffees.update(existing.id, {
-      ...(rating !== existing.rating && { rating, ratedAt: rating != null ? Date.now() : null }),
-      ...(rating != null && { brewedWith: settings.brew }),
+      ...rescanRating(existing),
       ...(note && note !== existing.comment.trim() && { comment: existing.comment.trim() ? `${existing.comment.trim()}\n\n${note}` : note }),
       ...(draft.photo && { photo: draft.photo }),
       // Bought again, so it's back on the shelf.
@@ -311,7 +330,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             </div>
             {history?.rating != null && <div className="muted small" style={{ marginTop: 6 }}>{t.scan.alreadyRated}</div>}
             <div style={{ margin: '12px 0' }}><Stars value={rating} onChange={setRating} /></div>
-            <BrewPicker value={settings.brew} onChange={pickBrew} />
+            <BrewPicker value={brewedWith} onChange={pickBrew} />
             <textarea className="input" placeholder={t.common.commentPlaceholder} value={comment} onChange={(e) => setComment(e.target.value)} />
           </div>
           {history?.tried.length ? (

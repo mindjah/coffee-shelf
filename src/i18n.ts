@@ -181,6 +181,7 @@ const en = {
   },
   coffee: {
     brewedWith: 'Brewed with',
+    pickBrewHint: 'This rating has no brew method yet — tap V60 or AeroPress to mark how you brewed it.',
     roastChip: (r: string) => `${r} roast`,
     estimated: 'No notes on the bag — profile estimated from origin, process and roast.',
     brewChip: (method: string) => `${method} (likely)`,
@@ -585,6 +586,7 @@ const ru: Dict = {
   },
   coffee: {
     brewedWith: 'Чем заваривали',
+    pickBrewHint: 'У этой оценки ещё нет способа — нажмите V60 или Аэропресс, чтобы отметить, чем заваривали.',
     roastChip: (r) => `${r} обжарка`,
     estimated: 'На пачке нет дескрипторов — профиль оценён по происхождению, обработке и обжарке.',
     brewChip: (method) => `${method} (вероятно)`,
@@ -983,6 +985,7 @@ const es: Dict = {
   },
   coffee: {
     brewedWith: 'Preparado con',
+    pickBrewHint: 'Esta valoración aún no tiene método: toca V60 o AeroPress para indicar cómo lo preparaste.',
     roastChip: (r) => `Tueste ${r.toLowerCase()}`,
     estimated: 'La bolsa no trae notas: perfil estimado por origen, proceso y tueste.',
     brewChip: (method) => `${method} (probable)`,
