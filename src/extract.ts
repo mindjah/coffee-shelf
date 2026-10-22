@@ -15,7 +15,7 @@ const Translation = z.object({
 export const BagSchema = z.object({
   is_coffee_bag: z.boolean().describe('False if the photos do not show a coffee package or its label'),
   roaster: z.string(),
-  name: z.string().describe('Coffee name as printed, e.g. farm, lot or blend name'),
+  name: z.string().describe('The specific coffee as printed: lot, farm, washing station or blend name — not a product line or series title shared by several coffees'),
   country: z.string().describe('Origin country in English; for blends list countries joined by " / "'),
   country_codes: z.array(z.string()).describe('ISO 3166-1 alpha-2 code for each origin country, e.g. ["CO"]'),
   area: z.string().describe('Region, washing station or municipality; empty if not printed'),
@@ -39,7 +39,9 @@ export const BagSchema = z.object({
 
 export const SYSTEM = `You read photos of specialty coffee packaging (front and/or back) and extract structured data for a personal tasting journal.
 
-Transcribe what is printed; do not guess names, producers or altitudes that are not visible. Use empty strings, empty arrays, null or "unknown" for anything missing.
+Transcribe what is printed; do not guess names, producers or altitudes that are not visible.
+
+The coffee name is what tells this coffee apart from the roaster's others. Many bags carry a big series or product-line title (a range name, "Drip Coffee", "Filter Selection", a seasonal collection) and a smaller line naming the actual coffee, often with its origin and station (e.g. "Ethiopia Worka Smoky BBQ"). Use that smaller, specific line as the name, keeping it as printed. Use the series title only when nothing else on the bag names the coffee. Use empty strings, empty arrays, null or "unknown" for anything missing.
 
 Labels can be in any language — often English, Spanish or Russian, sometimes several on one bag. Keep roaster, coffee name, region, producer and varieties as printed. Fill the translations block with the tasting notes and process wording in English, Russian and Spanish (copy them unchanged when already in that language).
 

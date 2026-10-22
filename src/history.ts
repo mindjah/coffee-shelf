@@ -10,7 +10,7 @@ import type { Coffee, CoffeeDraft } from './types'
 const VARYING_WORDS = new Set([
   'natural', 'washed', 'honey', 'anaerobic', 'lavado', 'anaerobico', 'miel',
   'натуральная', 'мытая', 'хани', 'анаэробная', 'lot', 'лот', 'filter', 'espresso', 'фильтр', 'эспрессо',
-  'decaf', 'microlot', 'micro',
+  'decaf', 'microlot', 'micro', 'drip', 'дрип', 'дрип-пакет',
 ])
 
 const PRODUCER_WORDS = new Set([
@@ -33,16 +33,37 @@ function producerWords(producer: string): string[] {
   return normalize(producer).split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 2 && !PRODUCER_WORDS.has(w))
 }
 
+const KNOWN_PROCESSES = new Set(['washed', 'natural', 'honey', 'anaerobic'])
+
+/** Variety words, so "Red Bourbon" and "Bourbon" share one but "Typica" and "Caturra" share none. */
+const varietyWords = (c: CoffeeDraft) => c.varieties.flatMap((v) => normalize(v).split(/[^\p{L}\p{N}]+/u)).filter((w) => w.length >= 4)
+
+/**
+ * Bag details that can't both be true of one coffee: different countries, processes or varieties.
+ * One series often shares a name across coffees ("… Drip Coffee"), so a matching name alone isn't
+ * proof. Only details read on both bags count; a missing one proves nothing.
+ */
+function contradicts(a: CoffeeDraft, b: CoffeeDraft): boolean {
+  const [ca, cb] = [a.countryCodes ?? [], b.countryCodes ?? []]
+  if (ca.length && cb.length && !ca.some((c) => cb.includes(c))) return true
+  if (KNOWN_PROCESSES.has(a.process) && KNOWN_PROCESSES.has(b.process) && a.process !== b.process) return true
+  const [va, vb] = [varietyWords(a), varietyWords(b)]
+  return va.length > 0 && vb.length > 0 && !va.some((w) => wordsWithin([w], vb))
+}
+
 /**
  * Same coffee from the same roaster, read twice — and reading makes mistakes, so words may differ by
  * a letter or two (see fuzzy.ts). It matches when the names agree once origin and process words are
- * dropped, one name is the other with words added (at least two words in common), or the bag
- * details agree: same producer, country and process.
+ * dropped, one name is the other plus one word (at least two words in common), or the bag details
+ * agree: same producer, country and process. Never when the details contradict (see contradicts()).
  */
 function sameCoffee(a: CoffeeDraft, b: CoffeeDraft): boolean {
+  if (contradicts(a, b)) return false
   const [x, y] = [nameWords(a.name), nameWords(b.name)].sort((p, q) => p.length - q.length)
   if (x.length && samePhrase(x, y)) return true
-  if (x.length >= 2 && wordsWithin(x, y)) return true
+  // "Sebastian Ramirez" ~ "Sebastian Ramirez Competition", but a series name plus a coffee name
+  // ("Unholy Water" vs "Unholy Water Spicy Mix") is a different coffee.
+  if (x.length >= 2 && y.length - x.length <= 1 && wordsWithin(x, y)) return true
   const [px, py] = [producerWords(a.producer), producerWords(b.producer)].sort((p, q) => p.length - q.length)
   return px.length > 0 && wordsWithin(px, py)
     && !!a.countryCodes?.some((c) => b.countryCodes?.includes(c))
