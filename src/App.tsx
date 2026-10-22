@@ -31,6 +31,8 @@ export default function App() {
     return back && TABS.some((x) => x.id === back) ? (back as Tab) : 'scan'
   })
   const [openId, setOpenId] = useState<number>()
+  const [shelfOpened, setShelfOpened] = useState(false)
+  if (tab === 'shelf' && !shelfOpened) setShelfOpened(true)
   const all = useLiveQuery(() => db.coffees.toArray(), [])
   // Archived coffees stay in the database but leave the shelf, the taste profile and predictions.
   const coffees = useMemo(() => all?.filter((c) => !c.archivedAt), [all])
@@ -60,7 +62,13 @@ export default function App() {
       <div hidden={tab !== 'scan'}>
         <ScanScreen model={model} coffees={all} onSaved={(id) => (setTab('shelf'), setOpenId(id))} onOpenSettings={() => setTab('settings')} />
       </div>
-      {tab === 'shelf' && <LibraryScreen coffees={coffees} model={model} onOpen={setOpenId} />}
+      {/* Built on first visit, then kept: coming back shows it at once instead of rebuilding it and
+          reloading every bag photo. It still follows the shelf as coffees are added or changed. */}
+      {shelfOpened && (
+        <div hidden={tab !== 'shelf'}>
+          <LibraryScreen coffees={coffees} model={model} onOpen={setOpenId} />
+        </div>
+      )}
       {tab === 'taste' && <InsightsScreen coffees={coffees} model={model} />}
       {tab === 'settings' && <SettingsScreen archived={archived} onOpen={setOpenId} />}
 
