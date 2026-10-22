@@ -15,7 +15,9 @@ const Translation = z.object({
 export const BagSchema = z.object({
   is_coffee_bag: z.boolean().describe('False if the photos do not show a coffee package or its label'),
   roaster: z.string(),
-  name: z.string().describe('The specific coffee as printed: lot, farm, washing station or blend name — not a product line or series title shared by several coffees'),
+  // Asked for before `name`, so the model sets the series aside before naming the coffee.
+  series: z.string().describe('Product line or series title shared by several of the roaster\'s coffees (a range name, "Drip Coffee"), as printed; empty if the bag has none'),
+  name: z.string().describe('The specific coffee as printed: lot, farm, washing station or blend name. Never the series; if the bag names nothing else, repeat the series here'),
   country: z.string().describe('Origin country in English; for blends list countries joined by " / "'),
   country_codes: z.array(z.string()).describe('ISO 3166-1 alpha-2 code for each origin country, e.g. ["CO"]'),
   area: z.string().describe('Region, washing station or municipality; empty if not printed'),
@@ -41,7 +43,9 @@ export const SYSTEM = `You read photos of specialty coffee packaging (front and/
 
 Transcribe what is printed; do not guess names, producers or altitudes that are not visible.
 
-The coffee name is what tells this coffee apart from the roaster's others. Many bags carry a big series or product-line title (a range name, "Drip Coffee", "Filter Selection", a seasonal collection) and a smaller line naming the actual coffee, often with its origin and station (e.g. "Ethiopia Worka Smoky BBQ"). Use that smaller, specific line as the name, keeping it as printed. Use the series title only when nothing else on the bag names the coffee. Use empty strings, empty arrays, null or "unknown" for anything missing.
+Use empty strings, empty arrays, null or "unknown" for anything missing.
+
+The coffee name is what tells this coffee apart from the roaster's others. Many bags carry a big series or product-line title (a range name, "Drip Coffee", "Filter Selection", a seasonal collection) and a smaller line naming the actual coffee. Put the big title in series and the smaller line in name, keeping both as printed. The coffee's line is often right above the details (variety, process, rest days). It may name an origin and station ("Ethiopia Worka Smoky BBQ"), or only a blend ("Spicy Mix"), and it may repeat a word from the roaster's logo or sub-brand ("… Underdog") — it is still the coffee's name. Use the series title as the name only when nothing else on the bag names the coffee.
 
 Labels can be in any language — often English, Spanish or Russian, sometimes several on one bag. Keep roaster, coffee name, region, producer and varieties as printed. Fill the translations block with the tasting notes and process wording in English, Russian and Spanish (copy them unchanged when already in that language).
 
