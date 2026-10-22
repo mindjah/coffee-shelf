@@ -172,26 +172,40 @@ interface Sums {
   sxy: number[]
 }
 
-function sums(xs: number[][], ys: number[]): Sums {
-  const d = xs[0]?.length ?? 0
+/** A training row; `w` is how much it counts (see rowWeight). */
+interface Row {
+  x: number[]
+  y: number
+  w: number
+}
+
+/** Weighted running sums: `n` is the total weight. */
+function sums(rs: Row[]): Sums {
+  const d = rs[0]?.x.length ?? 0
   const s: Sums = { n: 0, sy: 0, sx: new Array(d).fill(0), sxx: Array.from({ length: d }, () => new Array(d).fill(0)), sxy: new Array(d).fill(0) }
-  xs.forEach((x, k) => {
-    s.n++
-    s.sy += ys[k]
+  for (const { x, y, w } of rs) {
+    s.n += w
+    s.sy += w * y
     for (let i = 0; i < d; i++) {
-      s.sx[i] += x[i]
-      s.sxy[i] += x[i] * ys[k]
-      for (let j = 0; j < d; j++) s.sxx[i][j] += x[i] * x[j]
+      s.sx[i] += w * x[i]
+      s.sxy[i] += w * x[i] * y
+      for (let j = 0; j < d; j++) s.sxx[i][j] += w * x[i] * x[j]
     }
-  })
+  }
   return s
 }
 
+/** Weighted mean rating. */
+const meanOf = (rs: Row[]) => {
+  const w = rs.reduce((s, r) => s + r.w, 0)
+  return w ? rs.reduce((s, r) => s + r.w * r.y, 0) / w : 3
+}
+
 /** Ridge fit on centred data; `without` leaves some rows out (one coffee's ratings, when testing). */
-function ridge(s: Sums, lambda: number, without: { x: number[]; y: number }[] = []) {
+function ridge(s: Sums, lambda: number, without: Row[] = []) {
   const d = s.sx.length
-  const n = s.n - without.length
-  const minus = (f: (r: { x: number[]; y: number }) => number) => without.reduce((sum, r) => sum + f(r), 0)
+  const n = s.n - without.reduce((sum, r) => sum + r.w, 0)
+  const minus = (f: (r: Row) => number) => without.reduce((sum, r) => sum + r.w * f(r), 0)
   const featureMean = s.sx.map((v, i) => (v - minus((r) => r.x[i])) / n)
   const mean = (s.sy - minus((r) => r.y)) / n
   const A = Array.from({ length: d }, (_, i) =>
@@ -200,10 +214,16 @@ function ridge(s: Sums, lambda: number, without: { x: number[]; y: number }[] = 
   return { beta: solve(A, b), featureMean, mean }
 }
 
+/**
+ * How much a rated coffee teaches the model: half when its profile was estimated (no tasting notes,
+ * or only drinks named as associations), since the flavors are a guess rather than the bag's word.
+ */
+const rowWeight = (c: CoffeeDraft) => (c.flavorsEstimated ? 0.5 : 1)
+
 /** One training row per rating: a coffee rated in both V60 and AeroPress counts twice, once per method. */
 function rows(features: Feature[], params: Params, rated: Coffee[]) {
   return rated.flatMap((coffee) =>
-    methodRatings(coffee).map((m) => ({ coffee, brew: m.brew, y: m.rating, x: vec(features, params, { ...coffee, brewedWith: m.brew }) })))
+    methodRatings(coffee).map((m) => ({ coffee, brew: m.brew, y: m.rating, w: rowWeight(coffee), x: vec(features, params, { ...coffee, brewedWith: m.brew }) })))
 }
 
 /** Kernel width from the typical distance between your coffees, so it adapts as the library grows. */
@@ -214,8 +234,8 @@ function kernelWidth(xs: number[][]) {
   return Math.max(0.15, (ds[Math.floor(ds.length / 2)] ?? 1) * 0.5)
 }
 
-function knn(x: number[], pool: { x: number[]; y: number }[], mean: number, sigma2: number) {
-  const sims = pool.map((r) => ({ r, s: Math.exp(-dist2(x, r.x) / (2 * sigma2)) })).sort((a, b) => b.s - a.s).slice(0, 7)
+function knn(x: number[], pool: Row[], mean: number, sigma2: number) {
+  const sims = pool.map((r) => ({ r, s: r.w * Math.exp(-dist2(x, r.x) / (2 * sigma2)) })).sort((a, b) => b.s - a.s).slice(0, 7)
   const wSum = sims.reduce((s, t) => s + t.s, 0)
   return { score: mean + sims.reduce((s, t) => s + t.s * (t.r.y - mean), 0) / (wSum + 0.5), wSum }
 }
@@ -240,7 +260,7 @@ export interface Model {
   count: number
   mean: number
   /** One row per rating (see rows()). */
-  rated: { coffee: Coffee; brew: Brew | null; x: number[]; y: number }[]
+  rated: (Row & { coffee: Coffee; brew: Brew | null })[]
   sigma2: number
   featureMean: number[]
   beta: number[] | null
@@ -257,8 +277,8 @@ export function buildModel(all: Coffee[], params: Params = DEFAULT_PARAMS, accur
   const features = [...BASE_FEATURES, ...extraFeatures(ratedCoffees)]
   const rated = rows(features, params, ratedCoffees)
   const n = rated.length
-  const mean = n ? rated.reduce((s, r) => s + r.y, 0) / n : 3
-  const fit = n >= RIDGE_FROM ? ridge(sums(rated.map((r) => r.x), rated.map((r) => r.y)), params.lambda) : null
+  const mean = meanOf(rated)
+  const fit = n >= RIDGE_FROM ? ridge(sums(rated), params.lambda) : null
   return {
     features,
     params,
@@ -286,7 +306,7 @@ export function evaluate(ratedCoffees: Coffee[], params: Params): Omit<Accuracy,
   if (ratedCoffees.length < MIN_RATINGS + 1) return null
   const features = [...BASE_FEATURES, ...extraFeatures(ratedCoffees)]
   const pool = rows(features, params, ratedCoffees)
-  const all = sums(pool.map((r) => r.x), pool.map((r) => r.y))
+  const all = sums(pool)
   const sigma2 = kernelWidth(pool.map((r) => r.x))
   let miss = 0
   let close = 0
@@ -294,7 +314,9 @@ export function evaluate(ratedCoffees: Coffee[], params: Params): Omit<Accuracy,
   for (const coffee of ratedCoffees) {
     const mine = pool.filter((r) => r.coffee === coffee)
     const others = pool.filter((r) => r.coffee !== coffee)
-    const mean = others.reduce((s, r) => s + r.y, 0) / others.length
+    const mean = meanOf(others)
+    // The yardstick: your plain average rating, the same for every row.
+    const average = others.reduce((s, r) => s + r.y, 0) / others.length
     for (const row of mine) {
       let score = knn(row.x, others, mean, sigma2).score
       if (others.length >= RIDGE_FROM && params.blend > 0) {
@@ -305,7 +327,7 @@ export function evaluate(ratedCoffees: Coffee[], params: Params): Omit<Accuracy,
       score = Math.min(5, Math.max(1, score))
       miss += Math.abs(score - row.y)
       if (Math.abs(score - row.y) <= 0.5) close++
-      baseline += Math.abs(mean - row.y)
+      baseline += Math.abs(average - row.y)
     }
   }
   const n = pool.length
@@ -396,7 +418,8 @@ export function predict(model: Model, c: CoffeeDraft, brew: Brew = 'v60'): Predi
     .map((r) => ({ coffee: r.coffee, similarity: Math.exp(-dist2(x, r.x) / (2 * model.sigma2)) }))
     .sort((a, b) => b.similarity - a.similarity)
     .filter((s, i, all) => all.findIndex((o) => o.coffee === s.coffee) === i)
-  const strength = Math.min(1, model.rated.length / 15) * Math.min(1, wSum / 1.2)
+  // A guessed profile (no tasting notes, or only drink associations) makes for a less certain prediction.
+  const strength = Math.min(1, model.rated.length / 15) * Math.min(1, wSum / 1.2) * (c.flavorsEstimated ? 0.6 : 1)
   const confidence = strength > 0.55 ? 'high' : strength > 0.25 ? 'medium' : 'low'
   const final = clampScore(score)
 

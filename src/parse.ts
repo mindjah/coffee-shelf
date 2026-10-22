@@ -1,7 +1,7 @@
 // Turns label text (from on-device OCR or typed notes) into a CoffeeDraft with plain rules and
 // the lexicon — no AI. Results are a starting point the user reviews in the editor.
 import {
-  ALTITUDE_WORDS, AREA_WORDS, COUNTRIES, DESCRIPTOR_LIST, NOTES_HEADERS, PROCESS_TERMS, PRODUCER_WORDS,
+  ALTITUDE_WORDS, AREA_WORDS, ASSOCIATIONS, COUNTRIES, DESCRIPTOR_LIST, NOTES_HEADERS, PROCESS_TERMS, PRODUCER_WORDS,
   ROASTER_WORDS, ROAST_WORDS, VARIETIES, VARIETY_WORDS, normalize, type Country, type Descriptor,
 } from './lexicon'
 import { sameWord } from './fuzzy'
@@ -80,6 +80,11 @@ export function flavorsFromNotes(notes: FoundNote[]): Record<Flavor, number> {
 }
 
 /** Typical profile when a bag lists no notes: rough origin, process and roast tendencies. */
+/** Even mix of two profiles. */
+function blendFlavors(a: Record<Flavor, number>, b: Record<Flavor, number>): Record<Flavor, number> {
+  return Object.fromEntries(FLAVORS.map((f) => [f, (a[f] + b[f]) / 2])) as Record<Flavor, number>
+}
+
 export function estimateFlavors(region: Region, process: Process, roast: Roast): Record<Flavor, number> {
   const f = emptyFlavors()
   const add = (k: Flavor, n: number) => (f[k] += n)
@@ -361,7 +366,10 @@ export function parseLabel(raw: string, hints: ParseHints = {}): CoffeeDraft {
   let notes = findNotes(notesText(all))
   // "Miel" on a honey-process bag is the process, not a tasting note.
   if (process === 'honey') notes = notes.filter((n) => n.descriptor.en !== 'Honey' || hasAny(normalize(notesText(all)), ['notas', 'notes', 'дескриптор*']))
-  const flavorsEstimated = notes.length === 0
+  // Only drinks named as associations ("пиво Lobotomy", "whisky"): a weak hint, so the profile is
+  // half theirs, half the usual one for the origin, process and roast, and counts as estimated.
+  const onlyAssociations = notes.length > 0 && notes.every((n) => ASSOCIATIONS.has(n.descriptor.en))
+  const flavorsEstimated = notes.length === 0 || onlyAssociations
 
   const fieldLine = (l: string) => {
     const n = normalize(l)
@@ -391,7 +399,9 @@ export function parseLabel(raw: string, hints: ParseHints = {}): CoffeeDraft {
       ru: { notes: notes.map((n) => n.descriptor.ru), processDetail: '' },
       es: { notes: notes.map((n) => n.descriptor.es), processDetail: '' },
     },
-    flavors: flavorsEstimated ? estimateFlavors(region, process, roast) : flavorsFromNotes(notes),
+    flavors: notes.length === 0 ? estimateFlavors(region, process, roast)
+      : onlyAssociations ? blendFlavors(flavorsFromNotes(notes), estimateFlavors(region, process, roast))
+      : flavorsFromNotes(notes),
     flavorsEstimated,
     structure: findStructure(text),
     scaScore: findScore(text),

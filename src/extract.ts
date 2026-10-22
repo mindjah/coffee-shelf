@@ -30,7 +30,7 @@ export const BagSchema = z.object({
   notes: z.array(z.string()).describe('Tasting notes exactly as printed, in the original language'),
   translations: z.object({ en: Translation, ru: Translation, es: Translation }),
   flavors: z.object(Object.fromEntries(FLAVORS.map((f) => [f, level])) as Record<Flavor, typeof level>),
-  flavors_estimated: z.boolean().describe('True if no tasting notes were printed and flavors were estimated'),
+  flavors_estimated: z.boolean().describe('True if flavors were estimated: no tasting notes printed, or notes only by association (drinks, brands, dishes)'),
   acidity: scale,
   body: scale,
   sweetness: scale,
@@ -72,6 +72,12 @@ Map tasting notes onto the flavor categories, following the SCA Coffee Taster's 
 A descriptor can feed several categories (e.g. "cherry cola" -> berry and sweet). Weight the first-listed notes higher.
 
 If no tasting notes are printed, estimate a typical profile from origin, process and roast, set flavors_estimated to true, and leave notes empty.
+
+Some bags describe the taste by association instead of flavor words: drinks, brands, dishes or moods ("beer Lobotomy 2025", "whisky Sea Witch", "grandma's pie"). Keep them as printed in notes, and map each to the flavors it usually stands for, at low intensity (1, at most 2):
+- stout, porter, dark beer → chocolate, roasty; IPA, pale ale → citrus, green; lager → sweet (malt), roasty; sour beer → citrus, fermented; beer in general → fermented, roasty
+- whisky → fermented, roasty, sweet (vanilla, caramel); rum → sweet, fermented; cognac, brandy → driedFruit, fermented; red wine → berry, fermented; white wine, champagne → citrus, stoneFruit, fermented
+- gin → green, spice; vermouth, negroni → citrus, spice; mojito → green, citrus; mulled wine → fermented, spice; kvass → fermented, roasty
+If you recognise a named product (a specific beer, whisky or wine), use what you know about its taste. If most of the profile comes from such associations or from origin, process and roast rather than plain flavor words, set flavors_estimated to true.
 
 Set acidity, body and sweetness only when the bag shows a scale, words like "bright" or "heavy body", or when notes make it obvious; otherwise null.
 roast_for: filter, espresso or omni only when the bag says so — in words, or with a printed brew recipe (V60, Chemex, pour-over, AeroPress → filter; "18 g in, 36 g out", moka → espresso; both → omni). Otherwise "unknown": the app estimates it from roast, origin and notes.

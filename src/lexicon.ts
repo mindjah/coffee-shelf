@@ -172,6 +172,19 @@ const DESCRIPTORS: Entry[] = [
   ['Champagne', 'Шампанское', 'Champán', ['fermented'], 'champagne', 'champan', 'шампанск*'],
   ['Yogurt', 'Йогурт', 'Yogur', ['fermented'], 'yogurt*', 'yoghurt*', 'yogur*', 'йогурт*'],
   ['Kombucha', 'Комбуча', 'Kombucha', ['fermented', 'tea'], 'kombucha', 'комбуч*'],
+  // drinks named as associations rather than flavors (see ASSOCIATIONS)
+  ['Stout', 'Стаут', 'Stout', ['chocolate', 'roasty'], 'stout*', 'porter*', 'стаут*', 'портер*'],
+  ['IPA', 'IPA', 'IPA', ['citrus', 'green'], 'ipa', 'ипа', 'pale ale', 'пейл эль'],
+  ['Lager', 'Лагер', 'Lager', ['sweet', 'roasty'], 'lager*', 'лагер*'],
+  ['Beer', 'Пиво', 'Cerveza', ['fermented', 'roasty'], 'beer*', 'cerveza*', 'пив*', 'ale', 'эль'],
+  ['Kvass', 'Квас', 'Kvas', ['fermented', 'roasty'], 'kvass', 'квас', 'кваса', 'квасн*'],
+  ['Gin', 'Джин', 'Ginebra', ['green', 'spice'], 'gin', 'джин', 'ginebra'],
+  ['Vermouth', 'Вермут', 'Vermú', ['fermented', 'spice'], 'vermouth', 'vermut', 'vermu', 'вермут*'],
+  ['Negroni', 'Негрони', 'Negroni', ['citrus', 'spice'], 'negroni', 'негрони'],
+  ['Mojito', 'Мохито', 'Mojito', ['green', 'citrus'], 'mojito', 'мохито'],
+  ['Mulled wine', 'Глинтвейн', 'Vino caliente', ['fermented', 'spice'], 'mulled wine', 'глинтвейн*', 'vino caliente'],
+  ['Sangria', 'Сангрия', 'Sangría', ['fermented', 'berry'], 'sangria', 'сангри*'],
+  ['Piña colada', 'Пина колада', 'Piña colada', ['stoneFruit', 'sweet'], 'pina colada', 'пина колад*'],
   ['Fermented', 'Ферментированные', 'Fermentado', ['fermented'], 'ferment*', 'funky', 'boozy', 'ферментир*', 'алкогольн*'],
   // roasty & smoky
   ['Smoky', 'Дымный', 'Ahumado', ['roasty'], 'smok*', 'ahumado*', 'дым*', 'копчен*'],
@@ -202,6 +215,9 @@ export interface Descriptor {
   cats: Flavor[]
   aliases: string[]
 }
+
+/** Drinks that describe a coffee by association: a weak hint, so a profile built only from them counts as estimated. */
+export const ASSOCIATIONS = new Set(['Stout', 'IPA', 'Lager', 'Beer', 'Kvass', 'Gin', 'Vermouth', 'Negroni', 'Mojito', 'Mulled wine', 'Sangria', 'Piña colada', 'Whiskey', 'Brandy', 'Champagne'])
 
 export const DESCRIPTOR_LIST: Descriptor[] = DESCRIPTORS.map(([en, ru, es, cats, ...aliases]) => ({ en, ru, es, cats, aliases }))
 
