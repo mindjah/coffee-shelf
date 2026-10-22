@@ -4,6 +4,7 @@ import type { Reason } from './recommend'
 import { translateNote } from './parse'
 import type { BrewClue, BrewMethod } from './brew'
 import type { ScanErrorCode } from './errors'
+import type { ReadStatus } from './scan'
 
 type Pair = [up: string, down: string]
 
@@ -37,6 +38,9 @@ const en = {
     startOver: 'Start over',
     reading: 'Reading the label…',
     readingHint: 'Usually takes 5–15 seconds.',
+    retrying: (model: string) => `${model} is busy — trying again…`,
+    fallingBack: (from: string, to: string) => `${from} didn’t answer — trying ${to}…`,
+    readVia: (model: string) => `Your usual model was busy, so this was read with ${model}.`,
     photoError: 'Could not open that photo.',
     howItWorks: 'How it works',
     steps: (min: number): [string, string][] => [
@@ -164,7 +168,7 @@ const en = {
     noModel: "This key can't use the selected model. Pick another model in Settings.",
     ocrDownload: 'Could not download text recognition. Connect to the internet once to set it up.',
     noCredit: 'Your OpenAI account has no API credit. Add some at platform.openai.com/settings/organization/billing — a ChatGPT subscription doesn’t include API use.',
-    timeout: 'No answer after 90 seconds, so reading was stopped. Try again, or pick a lighter model in Settings.',
+    timeout: 'No AI model answered in time, so reading was stopped. The servers are probably busy — try again in a minute.',
     unknown: 'Something went wrong',
   } satisfies Record<ScanErrorCode | 'unknown', string>,
   prediction: {
@@ -439,6 +443,9 @@ const ru: Dict = {
     startOver: 'Начать заново',
     reading: 'Читаю этикетку…',
     readingHint: 'Обычно 5–15 секунд.',
+    retrying: (model) => `${model} перегружен — пробую ещё раз…`,
+    fallingBack: (from, to) => `${from} не ответил — пробую ${to}…`,
+    readVia: (model) => `Основная модель была занята — прочитано через ${model}.`,
     photoError: 'Не удалось открыть фото.',
     howItWorks: 'Как это работает',
     steps: (min) => [
@@ -569,7 +576,7 @@ const ru: Dict = {
     noModel: 'С этим ключом выбранная модель недоступна. Выберите другую в настройках.',
     ocrDownload: 'Не удалось загрузить распознавание текста. Один раз подключитесь к интернету.',
     noCredit: 'На вашем аккаунте OpenAI нет средств для API. Пополните баланс на platform.openai.com/settings/organization/billing — подписка ChatGPT не включает API.',
-    timeout: 'Ответа нет 90 секунд, чтение остановлено. Попробуйте ещё раз или выберите в настройках более лёгкую модель.',
+    timeout: 'Ни одна модель ИИ не ответила вовремя, чтение остановлено. Скорее всего, серверы перегружены — попробуйте через минуту.',
     unknown: 'Что-то пошло не так',
   },
   prediction: {
@@ -841,6 +848,9 @@ const es: Dict = {
     startOver: 'Empezar de nuevo',
     reading: 'Leyendo la etiqueta…',
     readingHint: 'Suele tardar de 5 a 15 segundos.',
+    retrying: (model) => `${model} está ocupado: lo intento de nuevo…`,
+    fallingBack: (from, to) => `${from} no respondió: probando ${to}…`,
+    readVia: (model) => `Tu modelo habitual estaba ocupado; se leyó con ${model}.`,
     photoError: 'No se pudo abrir esa foto.',
     howItWorks: 'Cómo funciona',
     steps: (min) => [
@@ -968,7 +978,7 @@ const es: Dict = {
     noModel: 'Esta clave no puede usar el modelo elegido. Elige otro modelo en Ajustes.',
     ocrDownload: 'No se pudo descargar el reconocimiento de texto. Conéctate a internet una vez para configurarlo.',
     noCredit: 'Tu cuenta de OpenAI no tiene saldo para la API. Añádelo en platform.openai.com/settings/organization/billing; la suscripción a ChatGPT no incluye el uso de la API.',
-    timeout: 'Sin respuesta tras 90 segundos, así que se detuvo la lectura. Inténtalo de nuevo o elige un modelo más ligero en Ajustes.',
+    timeout: 'Ningún modelo de IA respondió a tiempo, así que se detuvo la lectura. Seguramente los servidores están ocupados: inténtalo en un minuto.',
     unknown: 'Algo salió mal',
   },
   prediction: {
@@ -1269,4 +1279,9 @@ export function localized(c: CoffeeDraft, lang: Lang) {
   const en = c.translations?.en?.notes
   const notes = c.notes.map((n, i) => translateNote(n, lang) ?? (en?.length === c.notes.length ? translateNote(en[i], lang) : undefined) ?? n)
   return { notes, processDetail: tr?.processDetail || c.processDetail }
+}
+
+/** "Gemini is busy — trying again…" while the reader rides out a busy server. */
+export function statusText(t: Dict, s: ReadStatus): string {
+  return s.kind === 'retry' ? t.scan.retrying(s.model) : t.scan.fallingBack(s.from, s.to)
 }

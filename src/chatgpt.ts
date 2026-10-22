@@ -28,8 +28,10 @@ export async function testKey(apiKey: string, model: string): Promise<void> {
   }
 }
 
-export async function readBag(images: Blob[], signal?: AbortSignal): Promise<CoffeeDraft> {
-  const { openaiKey, openaiModel } = getSettings()
+/** `model` overrides the one picked in Settings (a lighter fallback when it's busy). */
+export async function readBag(images: Blob[], signal?: AbortSignal, model?: string): Promise<CoffeeDraft> {
+  const { openaiKey, openaiModel: picked } = getSettings()
+  const openaiModel = model ?? picked
   if (!openaiKey) throw new ScanError('noKey')
 
   const content = [

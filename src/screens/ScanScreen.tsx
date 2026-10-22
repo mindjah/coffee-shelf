@@ -8,7 +8,8 @@ import { MIN_RATINGS, predict, type Model } from '../recommend'
 import { needsKey, saveSettings, useSettings } from '../settings'
 import { emptyDraft, isBlankDraft } from '../parse'
 import type { OcrProgress } from '../ocr'
-import { useT, type Dict } from '../i18n'
+import type { ReadStatus } from '../scan'
+import { statusText, useT, type Dict } from '../i18n'
 import type { Brew, Coffee, CoffeeDraft } from '../types'
 import { brewTitle, brewWhy, CoffeeSummary, usePhotoUrl } from '../components/CoffeeSummary'
 import { CoffeeEditor } from '../components/CoffeeEditor'
@@ -81,6 +82,9 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const [comment, setComment] = useState('')
   const [ocr, setOcr] = useState<OcrProgress>()
   const [ocrText, setOcrText] = useState('')
+  // When the usual model is busy: what's happening while reading, then which model stood in.
+  const [readStatus, setReadStatus] = useState<ReadStatus>()
+  const [readVia, setReadVia] = useState<string>()
   const reader = useRef<AbortController>(undefined)
   const compareItems = useLiveQuery(() => db.compare.orderBy('addedAt').toArray(), []) ?? []
   const [comparing, setComparing] = useState(false)
@@ -185,7 +189,9 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     setError(undefined)
     try {
       const { readLabel } = await import('../scan')
-      const { draft: d, ocrText: text } = await readLabel(shots, ac.signal, setOcr)
+      setReadStatus(undefined)
+      const { draft: d, ocrText: text, via } = await readLabel(shots, ac.signal, setOcr, setReadStatus)
+      setReadVia(via)
       setDraft({ ...d, photo: await thumbnail() })
       if (text) {
         // Read without AI: open the editor so the fields get checked.
@@ -201,6 +207,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
         reader.current = undefined
         setReading(false)
         setOcr(undefined)
+        setReadStatus(undefined)
       }
     }
   }
@@ -217,6 +224,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     setComment('')
     setError(undefined)
     setOcrText('')
+    setReadVia(undefined)
     setNotice(undefined)
   }
 
@@ -285,6 +293,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
           <button className="btn plain" onClick={() => setEditing(true)}>{t.common.edit}</button>
         </div>
         <p className="screen-sub">{ocrText ? t.scan.reviewHint : t.scan.newBagHint}</p>
+        {readVia && <p className="muted small" style={{ margin: '-8px 4px 12px' }}>{t.scan.readVia(readVia)}</p>}
         <div className="stack">
           {((history && (history.tried.length > 0 || history.roaster)) || brew) && (
             // First thing after a scan: this coffee and its roaster on your shelf, and what it's
@@ -388,7 +397,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
           ) : (
             <>
               <div className="verdict" style={{ marginTop: 14 }}>{t.scan.reading}</div>
-              <div className="muted small">{t.scan.readingHint}</div>
+              <div className="muted small">{readStatus ? statusText(t, readStatus) : t.scan.readingHint}</div>
             </>
           )}
           <button className="btn ghost" style={{ marginTop: 20, minWidth: 160 }} onClick={cancelReading}>{t.scan.cancelReading}</button>

@@ -2,13 +2,14 @@ import { useRef, useState } from 'react'
 import type { CoffeeDraft } from '../types'
 import { ScanError } from '../errors'
 import { resizeImage } from '../image'
-import { useT, type Dict } from '../i18n'
+import { statusText, useT, type Dict } from '../i18n'
 import { usePhotoUrl } from './CoffeeSummary'
 import { CameraIcon, PlusIcon } from './icons'
 import { Linkify } from './Linkify'
 import { PourOver } from './PourOver'
 import { Sheet } from './Sheet'
 import type { OcrProgress } from '../ocr'
+import type { ReadStatus } from '../scan'
 
 function Shot({ blob, onRemove }: { blob: Blob; onRemove: () => void }) {
   const t = useT()
@@ -39,6 +40,7 @@ export function RescanSheet({ photo, onResult, onClose }: {
   const [shots, setShots] = useState<Blob[]>([])
   const [reading, setReading] = useState(false)
   const [ocr, setOcr] = useState<OcrProgress>()
+  const [readStatus, setReadStatus] = useState<ReadStatus>()
   const [error, setError] = useState<ErrorState>()
   const reader = useRef<AbortController>(undefined)
 
@@ -60,7 +62,8 @@ export function RescanSheet({ photo, onResult, onClose }: {
     setError(undefined)
     try {
       const { readLabel } = await import('../scan')
-      const { draft } = await readLabel(shots, ac.signal, setOcr)
+      setReadStatus(undefined)
+      const { draft } = await readLabel(shots, ac.signal, setOcr, setReadStatus)
       onResult(draft, shots[0])
     } catch (err) {
       if (ac.signal.aborted && !(err instanceof ScanError)) return
@@ -70,6 +73,7 @@ export function RescanSheet({ photo, onResult, onClose }: {
         reader.current = undefined
         setReading(false)
         setOcr(undefined)
+        setReadStatus(undefined)
       }
     }
   }
@@ -86,6 +90,7 @@ export function RescanSheet({ photo, onResult, onClose }: {
           <PourOver />
           <div className="verdict" style={{ marginTop: 14 }}>
             {ocr ? `${ocr.stage === 'reading' ? t.scan.ocrReading : t.scan.ocrLoading} ${Math.round(ocr.progress * 100)}%` : t.scan.reading}
+            {readStatus && <div className="muted small" style={{ fontWeight: 400, marginTop: 6 }}>{statusText(t, readStatus)}</div>}
           </div>
           <button className="btn ghost" style={{ marginTop: 20, minWidth: 160 }} onClick={() => reader.current?.abort()}>{t.scan.cancelReading}</button>
         </div>

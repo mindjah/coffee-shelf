@@ -29,8 +29,10 @@ export async function testKey(apiKey: string, model: string): Promise<void> {
   }
 }
 
-export async function readBag(images: Blob[], signal?: AbortSignal): Promise<CoffeeDraft> {
-  const { geminiKey, geminiModel } = getSettings()
+/** `model` overrides the one picked in Settings (a lighter fallback when it's busy). */
+export async function readBag(images: Blob[], signal?: AbortSignal, model?: string): Promise<CoffeeDraft> {
+  const { geminiKey, geminiModel: picked } = getSettings()
+  const geminiModel = model ?? picked
   if (!geminiKey) throw new ScanError('noKey')
 
   const ai = new GoogleGenAI({ apiKey: geminiKey })

@@ -25,8 +25,10 @@ export async function testKey(apiKey: string, model: string): Promise<void> {
   }
 }
 
-export async function readBag(images: Blob[], signal?: AbortSignal): Promise<CoffeeDraft> {
-  const { apiKey, model } = getSettings()
+/** `override` replaces the model picked in Settings (a lighter fallback when it's busy). */
+export async function readBag(images: Blob[], signal?: AbortSignal, override?: string): Promise<CoffeeDraft> {
+  const { apiKey, model: picked } = getSettings()
+  const model = override ?? picked
   if (!apiKey) throw new ScanError('noKey')
 
   const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true })
