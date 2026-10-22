@@ -149,7 +149,11 @@ export async function readLabel(
     if (ocr) {
       const { recognize } = await import('./ocr')
       const text = await untilAborted(recognize(shots, onOcrProgress ?? (() => {}), local.signal), local.signal)
-      return { draft: parseLabel(text), ocrText: text }
+      // Roasters and coffees already on the shelf help pick the right lines out of noisy text.
+      const { db } = await import('./db')
+      const shelf = await db.coffees.toArray()
+      const hints = { roasters: [...new Set(shelf.map((c) => c.roaster.trim()).filter(Boolean))], coffees: shelf.map(({ roaster, name }) => ({ roaster, name })) }
+      return { draft: parseLabel(text, hints), ocrText: text }
     }
     return await untilAborted(readBag(shots, local.signal, onStatus), local.signal)
   } finally {

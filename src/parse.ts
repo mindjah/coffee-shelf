@@ -4,6 +4,8 @@ import {
   ALTITUDE_WORDS, AREA_WORDS, COUNTRIES, DESCRIPTOR_LIST, NOTES_HEADERS, PROCESS_TERMS, PRODUCER_WORDS,
   ROASTER_WORDS, ROAST_WORDS, VARIETIES, VARIETY_WORDS, normalize, type Country, type Descriptor,
 } from './lexicon'
+import { sameWord } from './fuzzy'
+import { GENERIC_WORDS as GENERIC_ROASTER_WORDS } from './roaster'
 import { FLAVORS, type CoffeeDraft, type Flavor, type Lang, type Process, type Region, type Roast, type RoastFor, type Structure } from './types'
 
 const L = '\\p{L}\\p{N}'
@@ -247,17 +249,108 @@ function findVarieties(all: string[], text: string): string[] {
   return line ? line.split(/[,/&+]/).map((s) => s.trim()).filter(Boolean) : []
 }
 
-/** Best guess at roaster and coffee name: labelled lines, else the first plain text lines. */
-function findNames(all: string[], skip: (l: string) => boolean): { roaster: string; name: string } {
-  const roaster = labelled(all, ROASTER_WORDS)
-  const plain = all.filter((l) => /\p{L}{3}/u.test(l) && l.length <= 40 && !/[:\d]{2,}/.test(l) && !skip(l))
-  const rest = plain.filter((l) => l !== roaster)
-  // Many bags are simply named after the origin ("Brazil Cerrado"), which the filter above skips.
-  const originLine = all.find((l) => l.length <= 40 && findCountries(l).length > 0 && !/:/.test(l)) ?? ''
-  return { roaster: roaster || rest[0] || '', name: (roaster ? rest[0] : rest[1]) || originLine }
+/** What's already on your shelf, to recognise a roaster or a coffee in noisy text. */
+export interface ParseHints {
+  roasters?: string[]
+  coffees?: { roaster: string; name: string }[]
 }
 
-export function parseLabel(raw: string): CoffeeDraft {
+/** Product formats and series words, not a coffee's name ("Drip Coffee", "Specialty Coffee"). */
+const FORMAT_WORDS = ['drip', 'coffee', 'cafe', 'кофе', 'дрип*', 'specialty', 'speciality', 'arabica', 'арабика', 'whole bean*', 'ground', 'молот*', 'зерн*', 'filter', 'espresso', 'фильтр', 'эспрессо', 'grano', 'molido']
+/** Labels that open the details block ("Variety: …", "Process: …"); the coffee's name sits above it. */
+const DETAIL_LABELS = [...VARIETY_WORDS, ...ALTITUDE_WORDS, ...NOTES_HEADERS, ...ROAST_WORDS, ...PRODUCER_WORDS, ...AREA_WORDS, 'process', 'proceso', 'обработк*', 'beneficio', 'выдержк*', 'origin', 'origen', 'происхожден*']
+
+/**
+ * The readable words of an OCR line, without the scraps around them: pieces of the artwork and QR
+ * codes come out as short odd tokens ("| (E yo", "= 5"). Empty when the line is mostly scraps.
+ */
+function cleanLine(line: string): string {
+  const tokens = line.split(/\s+/).filter(Boolean)
+  const isWord = (t: string) => /^\p{L}([\p{L}'’&-]*\p{L})?$/u.test(t)
+  const strong = (t: string) => isWord(t) && t.replace(/[^\p{L}]/gu, '').length >= 3
+  // Scraps go; short words stay between real ones ("Кофейня на паях"), not at the edges.
+  const first = tokens.findIndex(strong)
+  const last = tokens.findLastIndex(strong)
+  const words = first < 0 ? [] : tokens.slice(first, last + 1).filter(isWord)
+  const letters = words.join('').length
+  const all = tokens.join('').length
+  return words.length && letters >= 4 && letters / all >= 0.6 ? words.join(' ') : ''
+}
+
+/** Look-alike letters folded together, so an OCR "BOPKA" (Latin) still matches "ВОРКА" (Cyrillic). */
+const skeleton = (w: string) => [...normalize(w)].map((ch) => CYR_TO_LAT[ch] ?? ch).join('')
+
+const textWords = (text: string) => normalize(text).split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 3).map(skeleton)
+
+/** Words that identify a name: no generic, format or origin words. */
+function keyWords(name: string): string[] {
+  return normalize(name).split(/[^\p{L}\p{N}]+/u)
+    .filter((w) => w.length >= 3 && !GENERIC_ROASTER_WORDS.has(w) && !hasAny(w, FORMAT_WORDS) && !findCountries(w).length)
+    .map(skeleton)
+}
+
+/**
+ * The known name most of whose words are in the text: all of them, or all but one of 3+. With
+ * `oneLongWord`, a single distinctive word of 5+ letters is enough (roaster names, where a logo
+ * often hides the rest: "CATHERINE" of "The Welder Catherine").
+ */
+function recognise(names: string[], words: string[], oneLongWord = false): string | undefined {
+  let best: { name: string; hits: number } | undefined
+  for (const name of names) {
+    const key = keyWords(name)
+    if (!key.length || key.join('').length < 4) continue
+    const found = key.filter((k) => words.some((w) => sameWord(k, w)))
+    const hits = found.length
+    const enough = hits === key.length || (key.length >= 3 && hits >= key.length - 1) || (oneLongWord && found.some((k) => k.length >= 5))
+    if (enough && hits > (best?.hits ?? 0)) best = { name, hits }
+  }
+  return best?.name
+}
+
+/**
+ * Best guess at roaster and coffee name. A roaster or coffee already on your shelf is recognised
+ * first. Otherwise: a labelled roaster line, and for the name the line that looks most like one —
+ * just above the details block, naming an origin plus more, or right under a series title such as
+ * "Drip Coffee" — falling back to the first plain lines as printed.
+ */
+function findNames(all: string[], skip: (l: string) => boolean, hints: ParseHints): { roaster: string; name: string } {
+  const words = textWords(all.join(' '))
+  let knownRoaster = recognise(hints.roasters ?? [], words, true)
+  const coffees = hints.coffees ?? []
+  const ownCoffees = coffees.filter((c) => !knownRoaster || c.roaster.trim() === knownRoaster)
+  const knownName = recognise(ownCoffees.map((c) => c.name), words)
+  // A coffee recognised from the shelf brings its roaster along when the logo didn't read.
+  knownRoaster ??= knownName ? coffees.find((c) => c.name === knownName)?.roaster.trim() || undefined : undefined
+
+  const roaster = knownRoaster ?? labelled(all, ROASTER_WORDS)
+  const plain = all.filter((l) => /\p{L}{3}/u.test(l) && l.length <= 40 && !/[:\d]{2,}/.test(l) && !skip(l))
+  const rest = plain.map(cleanLine).filter((l) => l && l !== roaster
+    && !l.split(' ').every((w) => hasAny(normalize(w), FORMAT_WORDS)) // "Drip Coffee" names neither
+    && !(knownRoaster && recognise([knownRoaster], textWords(l), true)))
+  // Many bags are simply named after the origin ("Brazil Cerrado"), which the filter above skips.
+  const originLine = all.find((l) => l.length <= 40 && findCountries(l).length > 0 && !/:/.test(l)) ?? ''
+  if (knownName) return { roaster: roaster || rest[0] || '', name: knownName }
+
+  const firstDetail = all.findIndex((l) => DETAIL_LABELS.some((w) => (find(normalize(l), w)?.index ?? 99) < 6))
+  let best: { name: string; score: number } | undefined
+  all.forEach((line, i) => {
+    const clean = cleanLine(line)
+    if (!clean || /:/.test(line) || clean === roaster || hasAny(normalize(clean), DETAIL_LABELS)) return
+    const n = normalize(clean)
+    const named = clean.split(' ').filter((w) => !findCountries(w).length && !hasAny(normalize(w), FORMAT_WORDS))
+    if (!named.length) return // only format or origin words
+    let score = 0
+    if (firstDetail > 0 && i < firstDetail && firstDetail - i <= 2) score += 3
+    if (findCountries(n).length && named.length) score += 2
+    const prev = all.slice(Math.max(0, i - 2), i).map(cleanLine).filter(Boolean).pop()
+    if (prev && hasAny(normalize(prev), FORMAT_WORDS)) score += 1
+    if (score > (best?.score ?? 0)) best = { name: clean, score }
+  })
+  const fallback = (roaster ? rest[0] : rest[1]) || originLine
+  return { roaster: roaster || rest[0] || '', name: best?.name ?? fallback }
+}
+
+export function parseLabel(raw: string, hints: ParseHints = {}): CoffeeDraft {
   const all = lines(fixMixedScript(raw))
   const text = all.join('\n')
   const countries = findCountries(text)
@@ -275,7 +368,7 @@ export function parseLabel(raw: string): CoffeeDraft {
     return [...PROCESS_TERMS.flatMap(([, t]) => t), ...ROAST_WORDS, ...ALTITUDE_WORDS, ...AREA_WORDS, ...PRODUCER_WORDS, ...VARIETY_WORDS, ...NOTES_HEADERS].some((w) => find(n, w))
       || findCountries(l).length > 0 || findNotes(l).length > 0
   }
-  const { roaster, name } = findNames(all, fieldLine)
+  const { roaster, name } = findNames(all, fieldLine, hints)
   const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
   return {
