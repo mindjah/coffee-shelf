@@ -34,8 +34,8 @@ interface Stored {
    * so a fresh phone can't overwrite an existing Drive backup with an empty shelf.
    */
   linked?: boolean
-  /** Sign-in round trip in progress. */
-  pending?: { state: string; intent: Intent }
+  /** Sign-in round trip in progress; `returnTo` is the tab to come back to (Settings unless set). */
+  pending?: { state: string; intent: Intent; returnTo?: string }
 }
 
 export type DriveError = 'signin' | 'expired' | 'network' | 'quota' | 'apiDisabled' | 'scope' | 'failed'
@@ -112,7 +112,8 @@ const redirectUri = () => new URL(import.meta.env.BASE_URL, location.origin).hre
 /** `forceConsent` shows Google's permission screen again, e.g. after the Drive box was left unticked. */
 export function signIn(intent: Intent = 'connect', forceConsent = false) {
   const state = crypto.randomUUID()
-  update({ pending: { state, intent } })
+  update({ pending: { state, intent, returnTo } })
+  returnTo = undefined
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: redirectUri(),
@@ -137,10 +138,20 @@ export function signOut() {
   if (token) fetch(`https://oauth2.googleapis.com/revoke?token=${token}`, { method: 'POST' }).catch(() => {})
 }
 
-let cameBack = false
+let cameBack: string | undefined
+let returnTo: string | undefined
 
-/** True when this launch is the return from Google's sign-in page (the app opens on Settings). */
+/** The tab to reopen when this launch is the return from Google's sign-in page (Settings unless asked otherwise). */
 export const cameBackFromSignIn = () => cameBack
+
+/**
+ * Backs up from wherever you are (e.g. the Shelf reminder): if Google needs signing in again, the
+ * app comes back to `tab` rather than Settings, and the backup finishes there.
+ */
+export function backupFrom(tab: string) {
+  returnTo = tab
+  return backupNow().finally(() => (returnTo = undefined))
+}
 
 let focusRequested = false
 
@@ -159,11 +170,12 @@ export function takeDriveFocus(): boolean {
 /** Call once at startup: picks up the token Google puts in the URL fragment after sign-in. */
 export async function handleRedirect() {
   if (!location.hash.includes('access_token=') && !location.hash.includes('error=')) return
-  cameBack = true
-  focusRequested = true
   const params = new URLSearchParams(location.hash.slice(1))
   history.replaceState(null, '', location.pathname + location.search)
   const pending = stored.pending
+  cameBack = pending?.returnTo ?? 'settings'
+  // Settings opens at the Google Drive section; another tab shows its own progress.
+  focusRequested = cameBack === 'settings'
   if (!pending || params.get('state') !== pending.state) return update({ pending: undefined })
   if (params.get('error') || !params.get('access_token')) {
     error = 'signin'

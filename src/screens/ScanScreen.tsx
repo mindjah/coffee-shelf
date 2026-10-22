@@ -5,12 +5,12 @@ import { CompareSheet } from './CompareSheet'
 import { ScanError } from '../errors'
 import { PHOTO_SIDE, resizeImage } from '../image'
 import { MIN_RATINGS, predict, type Model } from '../recommend'
-import { needsKey, saveSettings, useSettings } from '../settings'
+import { needsKey, useSettings } from '../settings'
 import { emptyDraft, isBlankDraft } from '../parse'
 import type { OcrProgress } from '../ocr'
 import type { ReadStatus } from '../scan'
 import { statusText, useT, type Dict } from '../i18n'
-import type { Brew, Coffee, CoffeeDraft } from '../types'
+import type { Coffee, CoffeeDraft } from '../types'
 import { brewTitle, brewWhy, CoffeeSummary, usePhotoUrl } from '../components/CoffeeSummary'
 import { CoffeeEditor } from '../components/CoffeeEditor'
 import { PredictionCard } from '../components/PredictionCard'
@@ -24,7 +24,7 @@ import { openPhoto } from '../components/PhotoViewer'
 import { shelfHistory } from '../history'
 import { brewMethod } from '../brew'
 import { BrewPicker } from '../components/BrewPicker'
-import { methodRatings, ratingFor, unassignedRating, withMethodRating } from '../ratings'
+import { useMethodRating, type Rated } from '../useMethodRating'
 
 interface Props {
   model: Model
@@ -78,7 +78,9 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const [error, setError] = useState<ErrorState>()
   const [draft, setDraft] = useState<CoffeeDraft>()
   const [editing, setEditing] = useState(false)
-  const [rating, setRating] = useState<number | null>(null)
+  // This bag's rating, per brew method like a saved coffee's (see useMethodRating).
+  const [rated, setRated] = useState<Rated>({ rating: null })
+  const rating = useMethodRating(rated, (patch) => setRated((r) => ({ ...r, ...patch })))
   const [comment, setComment] = useState('')
   const [ocr, setOcr] = useState<OcrProgress>()
   const [ocrText, setOcrText] = useState('')
@@ -93,8 +95,8 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   // Restore an unsaved scan from the last session, then keep it saved as it changes so it
   // survives iOS closing the app in the background. An interrupted read just needs a retry.
   const restored = useRef(false)
-  const latest = useRef({ shots, draft, rating, comment })
-  latest.current = { shots, draft, rating, comment }
+  const latest = useRef({ shots, draft, rated, comment })
+  latest.current = { shots, draft, rated, comment }
 
   useEffect(() => {
     loadPendingScan()
@@ -102,7 +104,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
         if (!p) return
         setShots(p.shots.map((b) => new Blob([b], { type: 'image/jpeg' })))
         setDraft(p.draft)
-        setRating(p.rating)
+        setRated({ rating: p.rating, ratings: p.ratings, brewedWith: p.brewedWith })
         setComment(p.comment)
       })
       .catch(() => {})
@@ -111,10 +113,10 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
 
   const persist = useCallback(async () => {
     if (!restored.current) return
-    const { shots, draft, rating, comment } = latest.current
+    const { shots, draft, rated, comment } = latest.current
     try {
       if (!shots.length && !draft) await clearPendingScan()
-      else await savePendingScan({ shots: await Promise.all(shots.map((s) => s.arrayBuffer())), draft, rating, comment })
+      else await savePendingScan({ shots: await Promise.all(shots.map((s) => s.arrayBuffer())), draft, rating: rated.rating, ratings: rated.ratings, brewedWith: rated.brewedWith, comment })
     } catch {
       // Storage unavailable (e.g. private mode): the scan still works, it just won't survive a restart.
     }
@@ -123,7 +125,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   useEffect(() => {
     const id = setTimeout(persist, 300)
     return () => clearTimeout(id)
-  }, [shots, draft, rating, comment, persist])
+  }, [shots, draft, rated, comment, persist])
 
   useEffect(() => {
     // iOS may close a backgrounded app without warning; flush pending typing right away.
@@ -138,18 +140,6 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
 
   const prediction = useMemo(() => (draft ? predict(model, draft, settings.brew) : null), [model, draft, settings.brew])
   const history = useMemo(() => (draft ? shelfHistory(draft, coffees) : undefined), [coffees, draft])
-  // How this bag was brewed for the rating: nothing until you pick (saving to try later needs none).
-  // Picking also makes it your usual method for predictions.
-  const [brewedWith, setBrewedWith] = useState<Brew | null>(null)
-  function pickBrew(b: Brew | null) {
-    setBrewedWith(b)
-    // Tapped again to clear: back to no method, and the overall rating for a coffee you've rated.
-    if (!b) return void (history?.tried[0] && setRating(history.rating))
-    saveSettings({ brew: b })
-    // Already rated: show the rating you gave with this method (none yet → empty stars to rate it).
-    const existing = history?.tried[0]
-    if (existing) setRating(ratingFor(existing, b) ?? unassignedRating(existing))
-  }
   const brew = useMemo(() => (draft ? brewMethod(draft) : null), [draft])
 
   // A coffee you've rated before starts with that rating filled in, once per scanned bag.
@@ -158,7 +148,9 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     if (!draft) return void (prefilled.current = false)
     if (prefilled.current) return
     prefilled.current = true
-    if (history?.rating != null) setRating((r) => r ?? history.rating)
+    // Its ratings for each method come along, so switching method shows what you gave with it.
+    const existing = history?.tried[0]
+    if (existing && existing.rating != null) setRated((r) => (r.rating != null ? r : { rating: existing.rating, ratings: existing.ratings, brewedWith: existing.brewedWith }))
   }, [draft, history])
 
   async function addFiles(files: FileList | null) {
@@ -219,10 +211,10 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   }
 
   function reset() {
-    setBrewedWith(null)
+    rating.reset()
     setShots([])
     setDraft(undefined)
-    setRating(null)
+    setRated({ rating: null })
     setComment('')
     setError(undefined)
     setOcrText('')
@@ -244,8 +236,8 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     const id = await db.coffees.add({
       ...draft,
       createdAt: Date.now(),
-      ...(withRating && rating != null
-        ? brewedWith ? withMethodRating({ rating: null }, brewedWith, rating) : { rating, ratedAt: Date.now(), brewedWith: null }
+      ...(withRating && rated.rating != null
+        ? { rating: rated.rating, ratings: rated.ratings, brewedWith: rated.brewedWith ?? null, ratedAt: Date.now() }
         : { rating: null, ratedAt: null, brewedWith: null }),
       comment,
     })
@@ -253,14 +245,11 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
     onSaved(id as number)
   }
 
-  /** The rating fields for an existing coffee: this method's rating, or the old single rating when no method was picked. */
+  /** The rating fields for an existing coffee: started from its own ratings, so they replace them when changed. */
   function rescanRating(existing: Coffee): Partial<Coffee> {
-    if (rating == null) return {}
-    if (brewedWith) return ratingFor(existing, brewedWith) === rating ? {} : withMethodRating(existing, brewedWith, rating)
-    if (rating === existing.rating) return {}
-    // No method picked: a coffee rated per method gets it for its latest method; an old single rating is replaced.
-    const latest = existing.brewedWith ?? methodRatings(existing).find((m) => m.brew)?.brew
-    return latest && existing.ratings ? withMethodRating(existing, latest, rating) : { rating, ratedAt: Date.now() }
+    const same = rated.rating === existing.rating && JSON.stringify(rated.ratings ?? {}) === JSON.stringify(existing.ratings ?? {})
+    if (same || rated.rating == null) return {}
+    return { rating: rated.rating, ratings: rated.ratings, brewedWith: rated.brewedWith ?? null, ratedAt: Date.now() }
   }
 
   /** Same coffee already on the shelf: the new rating, comment and bag photo go onto that entry. */
@@ -337,11 +326,16 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             <div className="row">
               <div style={{ fontWeight: 600 }}>{t.scan.tasted}</div>
               <span className="spacer" />
-              {rating != null && <span className="muted">{rating.toFixed(1)}</span>}
+              {rating.byMethod.length > 1
+                ? <span className="muted small">{rating.byMethod.map((m) => `${t.brew[m.brew!]} ${m.rating.toFixed(1)}`).join(' · ')}</span>
+                : rated.rating != null && <span className="muted">{rated.rating.toFixed(1)}</span>}
             </div>
             {history?.rating != null && <div className="muted small" style={{ marginTop: 6 }}>{t.scan.alreadyRated}</div>}
-            <div style={{ margin: '12px 0' }}><Stars value={rating} onChange={setRating} /></div>
-            <BrewPicker value={brewedWith} onChange={pickBrew} />
+            {/* Pick the method, then the stars are its rating; pick the other to rate it too. */}
+            <div style={{ marginTop: 12 }}>
+              <BrewPicker value={rating.selected} ratings={rated} onChange={rating.pick} />
+            </div>
+            <div style={{ margin: '0 0 12px' }}><Stars value={rating.shown} onChange={rating.rate} /></div>
             <textarea className="input" placeholder={t.common.commentPlaceholder} value={comment} onChange={(e) => setComment(e.target.value)} />
           </div>
           {history?.tried.length ? (
@@ -352,7 +346,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             </>
           ) : (
             <>
-              <button className="btn block" disabled={rating == null} onClick={() => save(true)}>{t.scan.saveRated}</button>
+              <button className="btn block" disabled={rated.rating == null} onClick={() => save(true)}>{t.scan.saveRated}</button>
               <button className="btn ghost block" onClick={() => save(false)}>{t.scan.saveLater}</button>
             </>
           )}

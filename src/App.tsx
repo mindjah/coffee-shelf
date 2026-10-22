@@ -25,8 +25,11 @@ const TABS: { id: Tab; icon: () => React.JSX.Element }[] = [
 export default function App() {
   const t = useT()
   const lang = useLang()
-  // Back from Google sign-in → show the Google Drive status in Settings.
-  const [tab, setTab] = useState<Tab>(() => (cameBackFromSignIn() ? 'settings' : 'scan'))
+  // Back from Google sign-in → the tab it was started from (Settings unless e.g. the Shelf's reminder).
+  const [tab, setTab] = useState<Tab>(() => {
+    const back = cameBackFromSignIn()
+    return back && TABS.some((x) => x.id === back) ? (back as Tab) : 'scan'
+  })
   const [openId, setOpenId] = useState<number>()
   const all = useLiveQuery(() => db.coffees.toArray(), [])
   // Archived coffees stay in the database but leave the shelf, the taste profile and predictions.

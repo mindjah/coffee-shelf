@@ -61,6 +61,8 @@ function sameCoffee(a: CoffeeDraft, b: CoffeeDraft): boolean {
   if (contradicts(a, b)) return false
   const [x, y] = [nameWords(a.name), nameWords(b.name)].sort((p, q) => p.length - q.length)
   if (x.length && samePhrase(x, y)) return true
+  // A name of only generic words ("Fresh Lot", "House Espresso"): the whole name has to agree.
+  if (!x.length && !y.length && normalize(a.name).trim() && normalize(a.name).trim() === normalize(b.name).trim()) return true
   // "Sebastian Ramirez" ~ "Sebastian Ramirez Competition", but a series name plus a coffee name
   // ("Unholy Water" vs "Unholy Water Spicy Mix") is a different coffee.
   if (x.length >= 2 && y.length - x.length <= 1 && wordsWithin(x, y)) return true

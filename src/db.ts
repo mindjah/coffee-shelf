@@ -8,6 +8,9 @@ export interface PendingScan {
   shots: ArrayBuffer[]
   draft?: CoffeeDraft
   rating: number | null
+  /** Per-method ratings given on the scan screen (see ratings.ts). */
+  ratings?: Coffee['ratings']
+  brewedWith?: Coffee['brewedWith']
   comment: string
 }
 

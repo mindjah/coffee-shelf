@@ -1,15 +1,15 @@
 import { useMemo, useState } from 'react'
 import { addShelfToCompare, db, MAX_COMPARE } from '../db'
 import { predict, type Model } from '../recommend'
-import type { Brew, Coffee } from '../types'
-import { methodRatings, ratingFor, unassignedRating, withMethodRating } from '../ratings'
+import type { Coffee } from '../types'
+import { useMethodRating } from '../useMethodRating'
 import { CoffeeSummary } from '../components/CoffeeSummary'
 import { CoffeeEditor } from '../components/CoffeeEditor'
 import { PredictionCard } from '../components/PredictionCard'
 import { Sheet } from '../components/Sheet'
 import { Stars } from '../components/Stars'
 import { useLang, useT } from '../i18n'
-import { saveSettings, useSettings } from '../settings'
+import { useSettings } from '../settings'
 import { BrewPicker } from '../components/BrewPicker'
 
 export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model: Model; onClose: () => void }) {
@@ -28,41 +28,8 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
 
   const update = (patch: Partial<Coffee>) => db.coffees.update(coffee.id!, patch)
 
-  // Ratings per brew method. The picker starts on the method of the latest rating, or on nothing
-  // for an unrated coffee or an old rating that was never given a method.
-  const byMethod = methodRatings(coffee).filter((m) => m.brew)
-  const unassigned = unassignedRating(coffee)
-  const [selected, setSelected] = useState<Brew | null>(() => (byMethod.length ? (coffee.brewedWith ?? byMethod[0].brew) : null))
-  const shown = selected ? (ratingFor(coffee, selected) ?? unassigned) : coffee.rating
-
-  function pickMethod(b: Brew | null) {
-    if (!b) {
-      // Tapped the chosen method again: none chosen. A rating given only with that method stays,
-      // just without a method (as if it had never been picked).
-      const only = byMethod.length === 1 ? byMethod[0].brew : null
-      setSelected(null)
-      if (only && only === selected) update({ ratings: undefined, brewedWith: null })
-      return
-    }
-    setSelected(b)
-    saveSettings({ brew: b })
-    // An old rating without a method was given with the method picked now.
-    if (unassigned != null) update(withMethodRating(coffee, b, unassigned))
-  }
-
-  function rate(value: number) {
-    if (selected) return update(withMethodRating(coffee, selected, value))
-    // No method picked on a coffee rated with both: the stars show the best rating, so change that one.
-    const best = [...byMethod].sort((a, b) => b.rating - a.rating)[0]?.brew
-    if (best) return update(withMethodRating(coffee, best, value))
-    // No method picked yet: kept as a rating without one until a method is chosen.
-    update({ rating: value, ratedAt: Date.now(), ratings: undefined, brewedWith: null })
-  }
-
-  function clearRating() {
-    if (selected && ratingFor(coffee, selected) != null) return update(withMethodRating(coffee, selected, null))
-    update({ rating: null, ratedAt: null, ratings: undefined, brewedWith: null })
-  }
+  // Ratings per brew method: pick V60 or AeroPress, the stars are that method's rating.
+  const { selected, shown, byMethod, unassigned, pick: pickMethod, rate, clear: clearRating } = useMethodRating(coffee, update)
 
   const archived = !!coffee.archivedAt
   async function toggleArchive() {
@@ -95,7 +62,7 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
           </div>
           {/* Pick the method first: the stars are that method's rating. Nothing is picked on an unrated coffee. */}
           <div style={{ marginTop: 12 }}>
-            <BrewPicker value={selected} onChange={pickMethod} />
+            <BrewPicker value={selected} ratings={coffee} onChange={pickMethod} />
           </div>
           {unassigned != null && <p className="muted small" style={{ margin: '-4px 0 8px' }}>{t.coffee.pickBrewHint}</p>}
           <div style={{ margin: '0 0 12px' }}>

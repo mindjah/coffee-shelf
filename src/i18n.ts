@@ -108,6 +108,7 @@ const en = {
     signInAgain: 'Sign in again',
     banner: 'Changes not backed up to Google Drive',
     bannerAction: 'Back up',
+    synced: 'Synced with Google Drive',
   },
   archive: {
     title: 'Archive',
@@ -186,6 +187,7 @@ const en = {
   },
   coffee: {
     brewedWith: 'Brewed with',
+    noBrew: '— not chosen —',
     grams: (g: number) => `${g} g`,
     per100g: (price: string) => `${price} per 100 g`,
     pickBrewHint: 'This rating has no brew method yet — tap V60 or AeroPress to mark how you brewed it.',
@@ -522,6 +524,7 @@ const ru: Dict = {
     signInAgain: 'Войти снова',
     banner: 'Изменения не сохранены в Google Drive',
     bannerAction: 'Сохранить',
+    synced: 'Синхронизировано с Google Drive',
   },
   archive: {
     title: 'Архив',
@@ -600,6 +603,7 @@ const ru: Dict = {
   },
   coffee: {
     brewedWith: 'Чем заваривали',
+    noBrew: '— не выбрано —',
     grams: (g) => `${g} г`,
     per100g: (price) => `${price} за 100 г`,
     pickBrewHint: 'У этой оценки ещё нет способа — нажмите V60 или Аэропресс, чтобы отметить, чем заваривали.',
@@ -930,6 +934,7 @@ const es: Dict = {
     signInAgain: 'Iniciar sesión de nuevo',
     banner: 'Cambios sin copia en Google Drive',
     bannerAction: 'Hacer copia',
+    synced: 'Sincronizado con Google Drive',
   },
   archive: {
     title: 'Archivo',
@@ -1008,6 +1013,7 @@ const es: Dict = {
   },
   coffee: {
     brewedWith: 'Preparado con',
+    noBrew: '— sin elegir —',
     grams: (g) => `${g} g`,
     per100g: (price) => `${price} por 100 g`,
     pickBrewHint: 'Esta valoración aún no tiene método: toca V60 o AeroPress para indicar cómo lo preparaste.',

@@ -527,7 +527,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 
 /* "Brewed with: V60 | AeroPress" under the rating stars. */
 .brew-picker { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.brew-picker .segmented { flex: 1; }
+.brew-picker select { flex: 1; min-width: 0; }
 .brew-scores { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); gap: 12px; }
 .brew-scores .on { font-weight: 700; }
 
