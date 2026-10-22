@@ -35,7 +35,15 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
   const [selected, setSelected] = useState<Brew | null>(() => (byMethod.length ? (coffee.brewedWith ?? byMethod[0].brew) : null))
   const shown = selected ? (ratingFor(coffee, selected) ?? unassigned) : coffee.rating
 
-  function pickMethod(b: Brew) {
+  function pickMethod(b: Brew | null) {
+    if (!b) {
+      // Tapped the chosen method again: none chosen. A rating given only with that method stays,
+      // just without a method (as if it had never been picked).
+      const only = byMethod.length === 1 ? byMethod[0].brew : null
+      setSelected(null)
+      if (only && only === selected) update({ ratings: undefined, brewedWith: null })
+      return
+    }
     setSelected(b)
     saveSettings({ brew: b })
     // An old rating without a method was given with the method picked now.
@@ -44,6 +52,9 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
 
   function rate(value: number) {
     if (selected) return update(withMethodRating(coffee, selected, value))
+    // No method picked on a coffee rated with both: the stars show the best rating, so change that one.
+    const best = [...byMethod].sort((a, b) => b.rating - a.rating)[0]?.brew
+    if (best) return update(withMethodRating(coffee, best, value))
     // No method picked yet: kept as a rating without one until a method is chosen.
     update({ rating: value, ratedAt: Date.now(), ratings: undefined, brewedWith: null })
   }

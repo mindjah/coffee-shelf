@@ -141,8 +141,10 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   // How this bag was brewed for the rating: nothing until you pick (saving to try later needs none).
   // Picking also makes it your usual method for predictions.
   const [brewedWith, setBrewedWith] = useState<Brew | null>(null)
-  function pickBrew(b: Brew) {
+  function pickBrew(b: Brew | null) {
     setBrewedWith(b)
+    // Tapped again to clear: back to no method, and the overall rating for a coffee you've rated.
+    if (!b) return void (history?.tried[0] && setRating(history.rating))
     saveSettings({ brew: b })
     // Already rated: show the rating you gave with this method (none yet → empty stars to rate it).
     const existing = history?.tried[0]
