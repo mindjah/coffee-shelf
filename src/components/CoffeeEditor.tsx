@@ -5,6 +5,7 @@ import { CameraIcon } from './icons'
 import { FLAVORS, PROCESSES, REGIONS, ROASTS, ROAST_FOR, type CoffeeDraft, type Flavor, type Structure } from '../types'
 import { estimateFlavors, findNotes, flavorsFromNotes, lookupCountry } from '../parse'
 import { countryName, localized, useLang, useT } from '../i18n'
+import { CURRENCIES, getSettings, saveSettings } from '../settings'
 import { Sheet } from './Sheet'
 import { RescanSheet } from './RescanSheet'
 
@@ -46,6 +47,7 @@ function mergeScan<T extends CoffeeDraft>(old: T, scan: CoffeeDraft): T {
       sweetness: scan.structure.sweetness ?? old.structure.sweetness,
     },
     scaScore: scan.scaScore ?? old.scaScore,
+    weight: scan.weight ?? old.weight,
   }
 }
 const blankProfile = (f: Record<Flavor, number>) => FLAVORS.every((k) => !f[k])
@@ -76,6 +78,9 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   const [processDetail, setProcessDetail] = useState(shown.processDetail)
   const [varieties, setVarieties] = useState(coffee.varieties.join(', '))
   const [sca, setSca] = useState(coffee.scaScore?.toString() ?? '')
+  const [price, setPrice] = useState(coffee.price?.toString() ?? '')
+  // New prices start in the currency you used last.
+  const [currency, setCurrency] = useState(coffee.currency ?? getSettings().currency)
   const [fillNote, setFillNote] = useState<string>()
   const photoRef = useRef<HTMLInputElement>(null)
   const [rescanning, setRescanning] = useState(false)
@@ -130,6 +135,9 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
     // SCA scores live between 0 and 100 (specialty is 80+); anything else is treated as not entered.
     const score = Number(sca.replace(',', '.'))
     const next: CoffeeDraft = { ...c, varieties: list(varieties), scaScore: sca.trim() && score > 0 && score <= 100 ? score : null }
+    const paid = Number(price.replace(',', '.'))
+    Object.assign(next, price.trim() && paid > 0 ? { price: paid, currency } : { price: null })
+    if (price.trim() && paid > 0) saveSettings({ currency })
     // A typed country is matched to ISO codes (for translated names) and an origin group.
     if (country !== countryName(base, lang)) {
       const match = lookupCountry(country)
@@ -229,6 +237,21 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
           </label>
         </div>
         <p className="muted small" style={{ margin: '6px 4px 14px' }}>{t.editor.scaHint}</p>
+        <div className="grid-2" style={{ marginBottom: 14 }}>
+          <label className="field">
+            <span>{t.editor.price}</span>
+            <div className="price-input">
+              <input className="input" inputMode="decimal" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.,]/g, ''))} />
+              <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)} aria-label={t.editor.currency}>
+                {[...new Set([...CURRENCIES, currency])].map((code) => <option key={code} value={code}>{code}</option>)}
+              </select>
+            </div>
+          </label>
+          <label className="field">
+            <span>{t.editor.weight}</span>
+            <input className="input" inputMode="numeric" placeholder="250" value={c.weight ?? ''} onChange={(e) => set('weight', e.target.value ? Number(e.target.value.replace(/\D/g, '')) || null : null)} />
+          </label>
+        </div>
         <label className="field">
           <span>{t.editor.notes}</span>
           <input className="input" value={notes} onChange={(e) => setNotes(e.target.value)} />

@@ -213,6 +213,14 @@ function findAltitude(text: string): number | null {
 const SCA_WORD = /(?<![\p{L}])[sѕ5$]\.?\s?[cс]\.?\s?[aа]{1,2}\.?(?![\p{L}])/iu
 
 /** Cupping score (80–99) written as "SCA 87", "Q-grade 86", "Каппинг 88" or "87 points / puntos / баллов". */
+/** Net weight in grams ("250 g", "250г", "1 kg"); the bag sizes roasters use, 50 g to 2 kg. */
+function findWeight(text: string): number | null {
+  const m = text.match(/(?<![\p{L}\d.,])(\d+(?:[.,]\d+)?)\s?(kg|кг|g|gr|grs|г|гр)(?![\p{L}])/iu)
+  if (!m) return null
+  const n = Number(m[1].replace(',', '.')) * (/^(kg|кг)$/i.test(m[2]) ? 1000 : 1)
+  return n >= 50 && n <= 2000 ? Math.round(n) : null
+}
+
 function findScore(text: string): number | null {
   const score = String.raw`((?:8\d|9\d)(?:[.,]\d{1,2})?)`
   const before = new RegExp(String.raw`(?:${SCA_WORD.source}|(?<![\p{L}])(?:score|q[\s-]?grade|cupping|puntaje|puntuaci[oó]n|каппинг[а-я]*|оценк[а-я]*|балл[а-я]*))\D{0,12}` + score, 'iu')
@@ -405,6 +413,7 @@ export function parseLabel(raw: string, hints: ParseHints = {}): CoffeeDraft {
     flavorsEstimated,
     structure: findStructure(text),
     scaScore: findScore(text),
+    weight: findWeight(text),
   }
 }
 

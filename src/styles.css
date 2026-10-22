@@ -530,3 +530,12 @@ textarea.input { min-height: 84px; resize: vertical; }
 .brew-picker .segmented { flex: 1; }
 .brew-scores { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); gap: 12px; }
 .brew-scores .on { font-weight: 700; }
+
+/* Rating stars you can slide a finger along; vertical swipes still scroll the page. */
+.stars.input { touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; width: fit-content; }
+.stars.input .star { pointer-events: auto; }
+
+/* Price with its currency side by side. */
+.price-input { display: flex; gap: 6px; }
+.price-input input { flex: 1; min-width: 0; }
+.price-input select { width: 86px; flex: none; }

@@ -134,6 +134,7 @@ const en = {
     best: 'Best match',
     prediction: 'Prediction',
     sca: 'SCA score',
+    price: 'Price',
     origin: 'Origin',
     process: 'Process',
     roast: 'Roast',
@@ -185,6 +186,8 @@ const en = {
   },
   coffee: {
     brewedWith: 'Brewed with',
+    grams: (g: number) => `${g} g`,
+    per100g: (price: string) => `${price} per 100 g`,
     pickBrewHint: 'This rating has no brew method yet — tap V60 or AeroPress to mark how you brewed it.',
     roastChip: (r: string) => `${r} roast`,
     estimated: 'No notes on the bag — profile estimated from origin, process and roast.',
@@ -239,6 +242,9 @@ const en = {
     sca: 'SCA score',
     scaPlaceholder: 'e.g. 87',
     scaHint: 'The cupping score on the bag, usually 80–95.',
+    price: 'Price',
+    currency: 'Currency',
+    weight: 'Weight, g',
     notes: 'Tasting notes (comma separated)',
     notesHint: 'Notes are what you see; the taste profile below is what predictions use.',
     tasteProfile: 'Taste profile',
@@ -542,6 +548,7 @@ const ru: Dict = {
     best: 'Лучший выбор',
     prediction: 'Прогноз',
     sca: 'Оценка SCA',
+    price: 'Цена',
     origin: 'Происхождение',
     process: 'Обработка',
     roast: 'Обжарка',
@@ -593,6 +600,8 @@ const ru: Dict = {
   },
   coffee: {
     brewedWith: 'Чем заваривали',
+    grams: (g) => `${g} г`,
+    per100g: (price) => `${price} за 100 г`,
     pickBrewHint: 'У этой оценки ещё нет способа — нажмите V60 или Аэропресс, чтобы отметить, чем заваривали.',
     roastChip: (r) => `${r} обжарка`,
     estimated: 'На пачке нет дескрипторов — профиль оценён по происхождению, обработке и обжарке.',
@@ -647,6 +656,9 @@ const ru: Dict = {
     sca: 'Оценка SCA',
     scaPlaceholder: 'например 87',
     scaHint: 'Каппинговая оценка с пачки, обычно 80–95.',
+    price: 'Цена',
+    currency: 'Валюта',
+    weight: 'Вес, г',
     notes: 'Дескрипторы (через запятую)',
     notesHint: 'Дескрипторы — для вас; для прогнозов используется вкусовой профиль ниже.',
     tasteProfile: 'Вкусовой профиль',
@@ -944,6 +956,7 @@ const es: Dict = {
     best: 'Mejor opción',
     prediction: 'Predicción',
     sca: 'Puntuación SCA',
+    price: 'Precio',
     origin: 'Origen',
     process: 'Proceso',
     roast: 'Tueste',
@@ -995,6 +1008,8 @@ const es: Dict = {
   },
   coffee: {
     brewedWith: 'Preparado con',
+    grams: (g) => `${g} g`,
+    per100g: (price) => `${price} por 100 g`,
     pickBrewHint: 'Esta valoración aún no tiene método: toca V60 o AeroPress para indicar cómo lo preparaste.',
     roastChip: (r) => `Tueste ${r.toLowerCase()}`,
     estimated: 'La bolsa no trae notas: perfil estimado por origen, proceso y tueste.',
@@ -1049,6 +1064,9 @@ const es: Dict = {
     sca: 'Puntuación SCA',
     scaPlaceholder: 'p. ej., 87',
     scaHint: 'La puntuación de cata de la bolsa, normalmente entre 80 y 95.',
+    price: 'Precio',
+    currency: 'Moneda',
+    weight: 'Peso, g',
     notes: 'Notas de cata (separadas por comas)',
     notesHint: 'Las notas son lo que ves; el perfil de sabor de abajo es lo que usan las predicciones.',
     tasteProfile: 'Perfil de sabor',
@@ -1284,4 +1302,19 @@ export function localized(c: CoffeeDraft, lang: Lang) {
 /** "Gemini is busy — trying again…" while the reader rides out a busy server. */
 export function statusText(t: Dict, s: ReadStatus): string {
   return s.kind === 'retry' ? t.scan.retrying(s.model) : t.scan.fallingBack(s.from, s.to)
+}
+
+/** What you paid, in the app language's format ("14,50 €"); empty without a price. */
+export function formatPrice(c: Pick<CoffeeDraft, 'price' | 'currency'>, lang: Lang, amount = c.price): string {
+  if (amount == null || !c.currency) return ''
+  try {
+    return new Intl.NumberFormat(lang, { style: 'currency', currency: c.currency, maximumFractionDigits: 2 }).format(amount)
+  } catch {
+    return `${amount} ${c.currency}`
+  }
+}
+
+/** Price per 100 g when both price and weight are known. */
+export function pricePer100g(c: Pick<CoffeeDraft, 'price' | 'currency' | 'weight'>, lang: Lang): string {
+  return c.price != null && c.weight ? formatPrice(c, lang, (c.price / c.weight) * 100) : ''
 }

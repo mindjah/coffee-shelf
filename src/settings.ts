@@ -40,6 +40,8 @@ export interface Settings {
   lang: 'auto' | Lang
   /** Brew method picked for the last rating; new ratings and predictions start from it. */
   brew: Brew
+  /** Currency of the last price entered; new prices start in it. */
+  currency: string
 }
 
 const KEY = 'coffee-shelf.settings'
@@ -53,7 +55,11 @@ const DEFAULTS: Settings = {
   openaiModel: OPENAI_MODELS[0].id,
   lang: 'auto',
   brew: 'v60',
+  currency: 'EUR',
 }
+
+/** Offered when entering a price; any other ISO code saved earlier still shows. */
+export const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF', 'RUB', 'UAH', 'BYN', 'KZT', 'GEL', 'RSD', 'PLN', 'CZK', 'TRY', 'AED'] as const
 
 export const usesAI = (p: Provider): p is AIProvider => p !== 'ocr'
 

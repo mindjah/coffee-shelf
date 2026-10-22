@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { addShelfToCompare, db, MAX_COMPARE, type CompareItem } from '../db'
 import { MIN_RATINGS, predict, toneFor, type Model, type Prediction } from '../recommend'
-import { localized, reasonText, useLang, useT } from '../i18n'
+import { formatPrice, localized, pricePer100g, reasonText, useLang, useT } from '../i18n'
 import type { Coffee, CoffeeDraft } from '../types'
 import { originLine } from '../components/CoffeeSummary'
 import { CoffeeThumb } from '../components/CoffeeThumb'
@@ -163,6 +163,14 @@ export function CompareSheet({ items, model, coffees, onClose }: Props) {
                   : dash,
               )}
               {row(t.compare.sca, ({ d }) => (d.scaScore != null ? <b>{d.scaScore}</b> : dash))}
+              {cols.some(({ d }) => d.price != null) && row(t.compare.price, ({ d }) =>
+                d.price != null ? (
+                  <>
+                    <b>{formatPrice(d, lang)}</b>
+                    {pricePer100g(d, lang) && <div className="muted small">{t.coffee.per100g(pricePer100g(d, lang))}</div>}
+                  </>
+                ) : dash,
+              )}
               {row(t.compare.origin, ({ d }) => originLine(d, t, lang))}
               {row(t.compare.process, ({ d }) => (d.process === 'unknown' ? dash : localized(d, lang).processDetail || t.process[d.process]))}
               {row(t.compare.roast, ({ d }) => (d.roast === 'unknown' ? dash : t.roast[d.roast]))}

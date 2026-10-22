@@ -56,6 +56,11 @@ export interface Coffee {
   flavorsEstimated: boolean
   structure: Structure
   scaScore: number | null
+  /** Net weight of the bag in grams, when printed or entered. */
+  weight?: number | null
+  /** What you paid for the bag, in `currency` (ISO 4217, e.g. "EUR"). */
+  price?: number | null
+  currency?: string
   rating: number | null
   ratedAt: number | null
   comment: string

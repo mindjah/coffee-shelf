@@ -37,6 +37,7 @@ export const BagSchema = z.object({
   body: scale,
   sweetness: scale,
   sca_score: z.number().nullable(),
+  weight_g: z.number().nullable().describe('Net weight in grams if printed (250 g → 250, 1 kg → 1000); null if not shown'),
 })
 
 export const SYSTEM = `You read photos of specialty coffee packaging (front and/or back) and extract structured data for a personal tasting journal.
@@ -122,5 +123,6 @@ export function toDraft(bag: Bag): CoffeeDraft {
       sweetness: clamp(bag.sweetness, 1, 5),
     },
     scaScore: bag.sca_score,
+    weight: bag.weight_g && bag.weight_g > 0 ? Math.round(bag.weight_g) : null,
   }
 }

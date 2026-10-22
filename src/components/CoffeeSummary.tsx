@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { FLAVORS, type CoffeeDraft, type Lang } from '../types'
-import { countryName, localized, useLang, useT, type Dict } from '../i18n'
+import { countryName, formatPrice, localized, pricePer100g, useLang, useT, type Dict } from '../i18n'
 import { CoffeeThumb } from './CoffeeThumb'
 import { brewMethod, type BrewGuess } from '../brew'
 
@@ -46,6 +46,9 @@ export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }
     coffee.altitude && `${coffee.altitude.toLocaleString(lang)} m`,
     coffee.producer,
     coffee.scaScore && `SCA ${coffee.scaScore}`,
+    coffee.weight && t.coffee.grams(coffee.weight),
+    // What you paid, and per 100 g so bags of different sizes compare.
+    formatPrice(coffee, lang) && [formatPrice(coffee, lang), pricePer100g(coffee, lang) && coffee.weight !== 100 && t.coffee.per100g(pricePer100g(coffee, lang))].filter(Boolean).join(' · '),
   ].filter(Boolean) as string[]
   const flavors = FLAVORS.filter((f) => coffee.flavors[f] > 0).sort((a, b) => coffee.flavors[b] - coffee.flavors[a])
 
