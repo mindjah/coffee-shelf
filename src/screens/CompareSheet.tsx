@@ -103,9 +103,11 @@ export function CompareSheet({ items, model, coffees, onClose, onQuickRemove }: 
         seen: item.coffeeId == null ? coffees.find((c) => sameCoffee(c, d)) : undefined,
       }
     })
-    // New bags first, best predicted first; shelf coffees follow as a reference.
+    // A quick comparison keeps its order: the coffee you started from first. Otherwise new bags
+    // first, best predicted first; shelf coffees follow as a reference.
+    if (onQuickRemove) return all
     return all.sort((a, b) => Number(a.onShelf) - Number(b.onShelf) || b.value - a.value || a.item.addedAt - b.item.addedAt)
-  }, [items, model, coffees, brew])
+  }, [items, model, coffees, brew, onQuickRemove])
   const scanned = cols.filter((c) => !c.onShelf)
   // "Best match" ranks the new bags against each other, so it needs at least two of them.
   const best = scanned.length > 1 && scanned[0].prediction ? scanned[0].item.id : undefined

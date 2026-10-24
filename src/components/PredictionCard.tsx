@@ -74,36 +74,46 @@ export function PredictionCard({ prediction, ratedCount, rated, pick }: { predic
           ))}
         </ul>
       )}
-      {p.similar.length > 0 && (
-        <>
-          <h2 className="section" style={{ marginTop: 18 }}>{t.prediction.closest}</h2>
-          {pick && <p className="muted small" style={{ margin: '-4px 0 6px' }}>{t.prediction.pickHint}</p>}
-          {p.similar.map(({ coffee, similarity }) => {
-            const on = !!pick?.selected.includes(coffee.id!)
-            const body = (
-              <>
-                <div style={{ minWidth: 0, textAlign: 'left' }}>
-                  <div style={{ fontWeight: 600 }}>{coffee.name || coffee.roaster}</div>
-                  <div className="muted">{coffee.roaster} · {t.prediction.similar(Math.round(similarity * 100))}</div>
-                </div>
-                <span className="spacer" />
-                <Stars value={coffee.rating} small />
-                {on && <span className="pick-mark" aria-hidden="true">✓</span>}
-              </>
-            )
-            return pick ? (
-              <button key={coffee.id} type="button" className={`row small closest pick${on ? ' on' : ''}`} onClick={() => pick.onToggle(coffee.id!)} aria-pressed={on}>
-                {body}
-              </button>
-            ) : (
-              <div className="row small" key={coffee.id} style={{ padding: '5px 0' }}>{body}</div>
-            )
-          })}
-          {pick && pick.selected.length > 0 && (
-            <button className="btn ghost block" style={{ marginTop: 10 }} onClick={pick.onCompare}>{t.prediction.compareWith(pick.selected.length)}</button>
-          )}
-        </>
-      )}
+      <ClosestList similar={p.similar} pick={pick} />
     </div>
+  )
+}
+
+/**
+ * The rated coffees most like this one. With `pick`, they can be tapped (✓) and compared with this
+ * coffee right away.
+ */
+export function ClosestList({ similar, pick }: { similar: Prediction['similar']; pick?: ClosestPick }) {
+  const t = useT()
+  if (!similar.length) return null
+  return (
+    <>
+      <h2 className="section" style={{ marginTop: 18 }}>{t.prediction.closest}</h2>
+      {pick && <p className="muted small" style={{ margin: '-4px 0 6px' }}>{t.prediction.pickHint}</p>}
+      {similar.map(({ coffee, similarity }) => {
+        const on = !!pick?.selected.includes(coffee.id!)
+        const body = (
+          <>
+            <div style={{ minWidth: 0, textAlign: 'left' }}>
+              <div style={{ fontWeight: 600 }}>{coffee.name || coffee.roaster}</div>
+              <div className="muted">{coffee.roaster} · {t.prediction.similar(Math.round(similarity * 100))}</div>
+            </div>
+            <span className="spacer" />
+            <Stars value={coffee.rating} small />
+            {on && <span className="pick-mark" aria-hidden="true">✓</span>}
+          </>
+        )
+        return pick ? (
+          <button key={coffee.id} type="button" className={`row small closest pick${on ? ' on' : ''}`} onClick={() => pick.onToggle(coffee.id!)} aria-pressed={on}>
+            {body}
+          </button>
+        ) : (
+          <div className="row small" key={coffee.id} style={{ padding: '5px 0' }}>{body}</div>
+        )
+      })}
+      {pick && pick.selected.length > 0 && (
+        <button className="btn ghost block" style={{ marginTop: 10 }} onClick={pick.onCompare}>{t.prediction.compareWith(pick.selected.length)}</button>
+      )}
+    </>
   )
 }

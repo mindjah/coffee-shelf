@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
-import { addShelfToCompare, db, MAX_COMPARE } from '../db'
+import { addShelfToCompare, db, MAX_COMPARE, type CompareItem } from '../db'
 import { predict, type Model } from '../recommend'
 import type { Coffee } from '../types'
 import { useMethodRating } from '../useMethodRating'
 import { CoffeeSummary } from '../components/CoffeeSummary'
 import { CoffeeEditor } from '../components/CoffeeEditor'
-import { PredictionCard } from '../components/PredictionCard'
+import { ClosestList, PredictionCard, type ClosestPick } from '../components/PredictionCard'
+import { CompareSheet } from './CompareSheet'
 import { Sheet } from '../components/Sheet'
 import { Stars } from '../components/Stars'
 import { useLang, useT } from '../i18n'
@@ -25,7 +26,23 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
   }
   const [comment, setComment] = useState(coffee.comment)
   const { brew } = useSettings()
-  const prediction = useMemo(() => (coffee.rating == null ? predict(model, coffee, brew) : null), [model, coffee, brew])
+  // Also for a rated coffee: its "Closest to" list (itself left out), to compare with on the spot.
+  const prediction = useMemo(() => predict(model, coffee, brew, coffee.id), [model, coffee, brew])
+  const [picked, setPicked] = useState<number[]>([])
+  const [comparing, setComparing] = useState(false)
+  const pick: ClosestPick = {
+    selected: picked,
+    onToggle: (id) => setPicked((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])),
+    onCompare: () => setComparing(true),
+  }
+  // This coffee first, then the ones picked; negative ids because they aren't the saved comparison.
+  const quickItems: CompareItem[] = [
+    { id: -1, addedAt: 0, draft: coffee, coffeeId: coffee.id },
+    ...picked.flatMap((id, i) => {
+      const c = model.rated.find((r) => r.coffee.id === id)?.coffee
+      return c ? [{ id: -(i + 2), addedAt: i + 1, draft: c, coffeeId: id }] : []
+    }),
+  ]
 
   const update = (patch: Partial<Coffee>) => db.coffees.update(coffee.id!, patch)
 
@@ -74,7 +91,10 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
             <button className="btn plain" style={{ marginTop: 6, paddingLeft: 0 }} onClick={clearRating}>{t.coffee.clearRating}</button>
           )}
         </div>
-        {coffee.rating == null && !archived && <PredictionCard prediction={prediction} ratedCount={model.count} />}
+        {coffee.rating == null && !archived && <PredictionCard prediction={prediction} ratedCount={model.count} pick={pick} />}
+        {coffee.rating != null && !archived && prediction && prediction.similar.length > 0 && (
+          <div className="card"><ClosestList similar={prediction.similar} pick={pick} /></div>
+        )}
         <CoffeeSummary coffee={coffee} />
         <p className="muted small" style={{ textAlign: 'center' }}>{t.coffee.scanned} {new Date(coffee.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
         {!archived && <button className="btn ghost block" onClick={addToCompare}>{t.compare.add}</button>}
@@ -82,6 +102,20 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
         {!archived && <button className="btn ghost block" onClick={toggleArchive}>{t.archive.move}</button>}
         <button className="btn danger block" onClick={remove}>{t.coffee.delete}</button>
       </div>
+      {comparing && (
+        <CompareSheet
+          items={quickItems}
+          model={model}
+          coffees={model.rated.map((r) => r.coffee)}
+          onClose={() => setComparing(false)}
+          onQuickRemove={(item) => {
+            // Removing this coffee, or the last one picked, leaves nothing to compare.
+            const left = picked.filter((id) => id !== item.coffeeId)
+            if (item.coffeeId === coffee.id || !left.length) setComparing(false)
+            if (item.coffeeId !== coffee.id) setPicked(left)
+          }}
+        />
+      )}
       {editing && (
         <CoffeeEditor coffee={coffee} onClose={() => setEditing(false)} onSave={async (c) => (await update(c), setEditing(false))} />
       )}

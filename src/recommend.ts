@@ -398,8 +398,8 @@ function scoreFor(model: Model, x: number[]) {
 
 const clampScore = (s: number) => Math.min(5, Math.max(1, s))
 
-/** Predicted rating for a coffee brewed with `brew` (your usual method). */
-export function predict(model: Model, c: CoffeeDraft, brew: Brew = 'v60'): Prediction | null {
+/** Predicted rating for a coffee brewed with `brew` (your usual method); `excludeId` keeps a saved coffee out of its own "closest" list. */
+export function predict(model: Model, c: CoffeeDraft, brew: Brew = 'v60', excludeId?: number): Prediction | null {
   if (model.count < MIN_RATINGS) return null
   const x = vec(model.features, model.params, { ...c, brewedWith: brew })
   const { score, wSum, contrib } = scoreFor(model, x)
@@ -435,7 +435,7 @@ export function predict(model: Model, c: CoffeeDraft, brew: Brew = 'v60'): Predi
     confidence,
     tone: toneFor(final),
     reasons,
-    similar: sims.filter((s) => s.similarity > 0.15).slice(0, 3),
+    similar: sims.filter((s) => s.similarity > 0.15 && s.coffee.id !== excludeId).slice(0, 3),
     brew,
     byBrew,
   }
