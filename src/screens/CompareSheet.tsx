@@ -16,6 +16,11 @@ interface Props {
   model: Model
   coffees: Coffee[]
   onClose: () => void
+  /**
+   * A quick comparison opened from a scan (the bag vs. coffees picked from "Closest to"): not the
+   * saved comparison list, so Remove calls this instead and the list's own buttons are hidden.
+   */
+  onQuickRemove?: (item: CompareItem) => void
 }
 
 const sameCoffee = (a: CoffeeDraft, b: CoffeeDraft) =>
@@ -76,7 +81,7 @@ function ShelfPicker({ coffees, items, onClose }: { coffees: Coffee[]; items: Co
 }
 
 /** Bags side by side, one column each; rows line up so values can be read across. */
-export function CompareSheet({ items, model, coffees, onClose }: Props) {
+export function CompareSheet({ items, model, coffees, onClose, onQuickRemove }: Props) {
   const t = useT()
   const lang = useLang()
   const { brew } = useSettings()
@@ -138,7 +143,7 @@ export function CompareSheet({ items, model, coffees, onClose }: Props) {
       {cols.length === 0 ? (
         <>
           <div className="empty">{t.compare.empty}</div>
-          <button className="btn ghost block" onClick={() => setPicking(true)}>{t.compare.fromShelf}</button>
+          {!onQuickRemove && <button className="btn ghost block" onClick={() => setPicking(true)}>{t.compare.fromShelf}</button>}
         </>
       ) : (
         <>
@@ -190,16 +195,20 @@ export function CompareSheet({ items, model, coffees, onClose }: Props) {
               {cols.some((c) => c.seen?.rating != null) && row(t.compare.yourRating, ({ seen }) => (seen?.rating != null ? <Stars value={seen.rating} small /> : dash))}
               {row('', ({ item, onShelf }) => (
                 <div className="stack">
-                  {!onShelf && <button className="btn ghost block cmp-btn" onClick={() => saveToShelf(item)}>{t.compare.save}</button>}
-                  <button className="btn plain block cmp-btn" onClick={() => db.compare.delete(item.id!)}>{t.compare.remove}</button>
+                  {!onShelf && !onQuickRemove && <button className="btn ghost block cmp-btn" onClick={() => saveToShelf(item)}>{t.compare.save}</button>}
+                  <button className="btn plain block cmp-btn" onClick={() => (onQuickRemove ? onQuickRemove(item) : db.compare.delete(item.id!))}>{t.compare.remove}</button>
                 </div>
               ), true)}
             </div>
           </div>
-          <button className="btn ghost block" style={{ marginTop: 16 }} disabled={items.length >= MAX_COMPARE} onClick={() => setPicking(true)}>
-            {t.compare.fromShelf}
-          </button>
-          <button className="btn danger block" style={{ marginTop: 8 }} onClick={clearAll}>{t.compare.clear}</button>
+          {!onQuickRemove && (
+            <>
+              <button className="btn ghost block" style={{ marginTop: 16 }} disabled={items.length >= MAX_COMPARE} onClick={() => setPicking(true)}>
+                {t.compare.fromShelf}
+              </button>
+              <button className="btn danger block" style={{ marginTop: 8 }} onClick={clearAll}>{t.compare.clear}</button>
+            </>
+          )}
         </>
       )}
       {picking && <ShelfPicker coffees={coffees} items={items} onClose={() => setPicking(false)} />}

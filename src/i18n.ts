@@ -183,6 +183,8 @@ const en = {
     confidence: { low: 'low', medium: 'medium', high: 'high' },
     verdict: { love: "You'll likely love it", like: 'Probably a good pick', maybe: 'Could go either way', pass: 'Probably not your cup' },
     closest: 'Closest to',
+    pickHint: 'Tap coffees to compare this bag with them.',
+    compareWith: (n: number) => `Compare with ${n === 1 ? 'this coffee' : `these ${n} coffees`}`,
     similar: (p: number) => `${p}% similar`,
   },
   coffee: {
@@ -599,6 +601,8 @@ const ru: Dict = {
     confidence: { low: 'низкая', medium: 'средняя', high: 'высокая' },
     verdict: { love: 'Скорее всего, понравится', like: 'Вероятно, хороший выбор', maybe: 'Может как зайти, так и нет', pass: 'Скорее всего, не ваше' },
     closest: 'Похож на',
+    pickHint: 'Нажмите на кофе, чтобы сравнить с ними эту пачку.',
+    compareWith: (n) => `Сравнить с выбранными (${n})`,
     similar: (p) => `сходство ${p}%`,
   },
   coffee: {
@@ -1009,6 +1013,8 @@ const es: Dict = {
     confidence: { low: 'baja', medium: 'media', high: 'alta' },
     verdict: { love: 'Probablemente te encantará', like: 'Probablemente una buena elección', maybe: 'Puede salir bien o no', pass: 'Probablemente no es lo tuyo' },
     closest: 'Más parecido a',
+    pickHint: 'Toca cafés para comparar esta bolsa con ellos.',
+    compareWith: (n) => `Comparar con ${n === 1 ? 'este café' : `estos ${n} cafés`}`,
     similar: (p) => `${p}% de parecido`,
   },
   coffee: {

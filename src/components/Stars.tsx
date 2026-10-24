@@ -56,7 +56,7 @@ export function Stars({ value, onChange, small }: Props) {
   return (
     <div
       ref={row}
-      className={`stars${small ? ' small' : ''}${onChange ? ' input' : ''}`}
+      className={`stars${small ? ' small' : ''}${onChange ? ' rateable' : ''}`}
       role={onChange ? 'slider' : 'img'}
       aria-label={t.common.rating(v)}
       aria-valuenow={v}

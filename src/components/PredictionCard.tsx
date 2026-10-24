@@ -4,8 +4,18 @@ import { reasonText, useLang, useT } from '../i18n'
 import { Stars } from './Stars'
 import { BREWS } from '../types'
 
-/** `rated`: your own rating of this coffee from before, shown instead of a guess. */
-export function PredictionCard({ prediction, ratedCount, rated }: { prediction: Prediction | null; ratedCount: number; rated?: number | null }) {
+/** Picking "Closest to" coffees to compare this bag with right away. */
+export interface ClosestPick {
+  selected: number[]
+  onToggle: (id: number) => void
+  onCompare: () => void
+}
+
+/**
+ * `rated`: your own rating of this coffee from before, shown instead of a guess. `pick` makes the
+ * "Closest to" coffees selectable, with a button to compare the bag with the ones picked.
+ */
+export function PredictionCard({ prediction, ratedCount, rated, pick }: { prediction: Prediction | null; ratedCount: number; rated?: number | null; pick?: ClosestPick }) {
   const t = useT()
   const lang = useLang()
   if (rated != null) {
@@ -67,16 +77,31 @@ export function PredictionCard({ prediction, ratedCount, rated }: { prediction: 
       {p.similar.length > 0 && (
         <>
           <h2 className="section" style={{ marginTop: 18 }}>{t.prediction.closest}</h2>
-          {p.similar.map(({ coffee, similarity }) => (
-            <div className="row small" key={coffee.id} style={{ padding: '5px 0' }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 600 }}>{coffee.name || coffee.roaster}</div>
-                <div className="muted">{coffee.roaster} · {t.prediction.similar(Math.round(similarity * 100))}</div>
-              </div>
-              <span className="spacer" />
-              <Stars value={coffee.rating} small />
-            </div>
-          ))}
+          {pick && <p className="muted small" style={{ margin: '-4px 0 6px' }}>{t.prediction.pickHint}</p>}
+          {p.similar.map(({ coffee, similarity }) => {
+            const on = !!pick?.selected.includes(coffee.id!)
+            const body = (
+              <>
+                <div style={{ minWidth: 0, textAlign: 'left' }}>
+                  <div style={{ fontWeight: 600 }}>{coffee.name || coffee.roaster}</div>
+                  <div className="muted">{coffee.roaster} · {t.prediction.similar(Math.round(similarity * 100))}</div>
+                </div>
+                <span className="spacer" />
+                <Stars value={coffee.rating} small />
+                {pick && <span className="pick-mark" aria-hidden="true">{on ? '✓' : '+'}</span>}
+              </>
+            )
+            return pick ? (
+              <button key={coffee.id} type="button" className={`row small closest pick${on ? ' on' : ''}`} onClick={() => pick.onToggle(coffee.id!)} aria-pressed={on}>
+                {body}
+              </button>
+            ) : (
+              <div className="row small" key={coffee.id} style={{ padding: '5px 0' }}>{body}</div>
+            )
+          })}
+          {pick && pick.selected.length > 0 && (
+            <button className="btn ghost block" style={{ marginTop: 10 }} onClick={pick.onCompare}>{t.prediction.compareWith(pick.selected.length)}</button>
+          )}
         </>
       )}
     </div>

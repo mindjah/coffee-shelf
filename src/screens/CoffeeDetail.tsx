@@ -11,6 +11,7 @@ import { Stars } from '../components/Stars'
 import { useLang, useT } from '../i18n'
 import { useSettings } from '../settings'
 import { BrewPicker } from '../components/BrewPicker'
+import { NoteField } from '../components/NoteField'
 
 export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model: Model; onClose: () => void }) {
   const t = useT()
@@ -68,7 +69,7 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
           <div style={{ margin: '0 0 12px' }}>
             <Stars value={shown} onChange={rate} />
           </div>
-          <textarea className="input" placeholder={t.common.commentPlaceholder} value={comment} onChange={(e) => setComment(e.target.value)} onBlur={() => comment !== coffee.comment && update({ comment })} />
+          <NoteField value={comment} placeholder={t.common.commentPlaceholder} onChange={setComment} onDone={() => comment !== coffee.comment && update({ comment })} />
           {shown != null && (
             <button className="btn plain" style={{ marginTop: 6, paddingLeft: 0 }} onClick={clearRating}>{t.coffee.clearRating}</button>
           )}

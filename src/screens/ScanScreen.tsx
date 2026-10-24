@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { clearPendingScan, db, loadPendingScan, MAX_COMPARE, savePendingScan } from '../db'
+import { clearPendingScan, db, loadPendingScan, MAX_COMPARE, savePendingScan, type CompareItem } from '../db'
 import { CompareSheet } from './CompareSheet'
 import { ScanError } from '../errors'
 import { PHOTO_SIDE, resizeImage } from '../image'
@@ -24,6 +24,7 @@ import { openPhoto } from '../components/PhotoViewer'
 import { shelfHistory } from '../history'
 import { brewMethod } from '../brew'
 import { BrewPicker } from '../components/BrewPicker'
+import { NoteField } from '../components/NoteField'
 import { useMethodRating, type Rated } from '../useMethodRating'
 
 interface Props {
@@ -88,6 +89,9 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const [readStatus, setReadStatus] = useState<ReadStatus>()
   const [readVia, setReadVia] = useState<string>()
   const reader = useRef<AbortController>(undefined)
+  // "Closest to" coffees picked to compare this bag with on the spot (not the saved comparison list).
+  const [closestPicked, setClosestPicked] = useState<number[]>([])
+  const [quickCompare, setQuickCompare] = useState(false)
   const compareItems = useLiveQuery(() => db.compare.orderBy('addedAt').toArray(), []) ?? []
   const [comparing, setComparing] = useState(false)
   const [notice, setNotice] = useState<string>()
@@ -140,6 +144,14 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
 
   const prediction = useMemo(() => (draft ? predict(model, draft, settings.brew) : null), [model, draft, settings.brew])
   const history = useMemo(() => (draft ? shelfHistory(draft, coffees) : undefined), [coffees, draft])
+  // The quick comparison: this bag first, then the picked coffees (negative ids: they aren't saved).
+  const quickItems = useMemo<CompareItem[]>(() => (draft ? [
+    { id: -1, addedAt: 0, draft },
+    ...closestPicked.flatMap((id, i) => {
+      const c = coffees.find((x) => x.id === id)
+      return c ? [{ id: -(i + 2), addedAt: i + 1, draft: c, coffeeId: id }] : []
+    }),
+  ] : []), [draft, closestPicked, coffees])
   const brew = useMemo(() => (draft ? brewMethod(draft) : null), [draft])
 
   // A coffee you've rated before starts with that rating filled in, once per scanned bag.
@@ -212,6 +224,8 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
 
   function reset() {
     rating.reset()
+    setClosestPicked([])
+    setQuickCompare(false)
     setShots([])
     setDraft(undefined)
     setRated({ rating: null })
@@ -314,7 +328,16 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
               )}
             </div>
           )}
-          <PredictionCard prediction={prediction} ratedCount={model.count} rated={history?.rating} />
+          <PredictionCard
+            prediction={prediction}
+            ratedCount={model.count}
+            rated={history?.rating}
+            pick={{
+              selected: closestPicked,
+              onToggle: (id) => setClosestPicked((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])),
+              onCompare: () => setQuickCompare(true),
+            }}
+          />
           <CoffeeSummary coffee={draft} showBrewWhy={false} />
           {ocrText && (
             <details className="card small">
@@ -336,7 +359,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
               <BrewPicker value={rating.selected} ratings={rated} onChange={rating.pick} />
             </div>
             <div style={{ margin: '0 0 12px' }}><Stars value={rating.shown} onChange={rating.rate} /></div>
-            <textarea className="input" placeholder={t.common.commentPlaceholder} value={comment} onChange={(e) => setComment(e.target.value)} />
+            <NoteField value={comment} placeholder={t.common.commentPlaceholder} onChange={setComment} />
           </div>
           {history?.tried.length ? (
             // Already on the shelf: update that entry, or keep this bag as a separate one.
@@ -356,6 +379,20 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
         </div>
         {editing && (
           <CoffeeEditor coffee={draft} onClose={() => (setEditing(false), isBlankDraft(draft) && reset())} onSave={(c) => (setDraft(c), setEditing(false))} />
+        )}
+        {quickCompare && (
+          <CompareSheet
+            items={quickItems}
+            model={model}
+            coffees={coffees}
+            onClose={() => setQuickCompare(false)}
+            onQuickRemove={(item) => {
+              // Removing the bag itself, or the last coffee picked, leaves nothing to compare.
+              const left = closestPicked.filter((id) => id !== item.coffeeId)
+              if (item.coffeeId == null || !left.length) setQuickCompare(false)
+              if (item.coffeeId != null) setClosestPicked(left)
+            }}
+          />
         )}
       </div>
     )
