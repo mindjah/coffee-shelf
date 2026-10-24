@@ -189,6 +189,8 @@ const en = {
   },
   coffee: {
     brewedWith: 'Brewed with',
+    namePlace: 'Name',
+    namePlacePrompt: 'What is this place called?',
     noBrew: '— not chosen —',
     grams: (g: number) => `${g} g`,
     per100g: (price: string) => `${price} per 100 g`,
@@ -607,6 +609,8 @@ const ru: Dict = {
   },
   coffee: {
     brewedWith: 'Чем заваривали',
+    namePlace: 'Назвать',
+    namePlacePrompt: 'Как называется это место?',
     noBrew: '— не выбрано —',
     grams: (g) => `${g} г`,
     per100g: (price) => `${price} за 100 г`,
@@ -1019,6 +1023,8 @@ const es: Dict = {
   },
   coffee: {
     brewedWith: 'Preparado con',
+    namePlace: 'Nombrar',
+    namePlacePrompt: '¿Cómo se llama este lugar?',
     noBrew: '— sin elegir —',
     grams: (g) => `${g} g`,
     per100g: (price) => `${price} por 100 g`,

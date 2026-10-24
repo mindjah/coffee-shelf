@@ -69,7 +69,7 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
           <div style={{ margin: '0 0 12px' }}>
             <Stars value={shown} onChange={rate} />
           </div>
-          <NoteField value={comment} placeholder={t.common.commentPlaceholder} onChange={setComment} onDone={() => comment !== coffee.comment && update({ comment })} />
+          <NoteField value={comment} placeholder={t.common.commentPlaceholder} onChange={setComment} onDone={(text) => text !== coffee.comment && update({ comment: text })} />
           {shown != null && (
             <button className="btn plain" style={{ marginTop: 6, paddingLeft: 0 }} onClick={clearRating}>{t.coffee.clearRating}</button>
           )}
