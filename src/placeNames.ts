@@ -78,7 +78,7 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 const refused = (message: string) => /\b(400|403|404)\b|INVALID_ARGUMENT|unsupported|not found/i.test(message)
 
 /**
- * Asks Gemini like a bag scan does: the model picked in Settings first, then the other Gemini model.
+ * Asks Gemini like a bag scan does, model after model (the lighter one first).
  * Each model gets a retry after a pause when the server was busy, the network dropped or the page
  * didn't open (these often pass); a model refusing the request moves on at once, and a page that
  * opened without a place isn't asked about again.
@@ -86,8 +86,9 @@ const refused = (message: string) => /\b(400|403|404)\b|INVALID_ARGUMENT|unsuppo
 async function lookUp(href: string): Promise<string | null> {
   if (cache[href]?.name) return cache[href].name!
   setPending(new Set(pending).add(href))
-  const { geminiModel } = getSettings()
-  const models = [geminiModel, ...GEMINI_MODELS.map((m) => m.id).filter((id) => id !== geminiModel)]
+  // Lighter models first: reading a name off a page needs no more, and they answer faster with
+  // more free quota. The bigger one stands in when they can't. (Bag scans keep the Settings model.)
+  const models = GEMINI_MODELS.map((m) => m.id).sort((a, b) => Number(b.includes('lite')) - Number(a.includes('lite')))
   const reasons: string[] = []
   try {
     const { placeFromLink } = await import('./gemini')
