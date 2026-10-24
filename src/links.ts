@@ -58,8 +58,11 @@ function readLink(raw: string): LinkInfo {
   const googleMaps = host === 'maps.app.goo.gl' || /^maps\.google\./.test(host) || (host === 'goo.gl' && path.startsWith('/maps'))
     || (/^google\.[a-z.]+$/.test(host) && path.startsWith('/maps'))
   if (googleMaps) {
-    const place = path.match(/\/maps\/place\/([^/]+)/)?.[1] ?? path.match(/\/maps\/search\/([^/]+)/)?.[1] ?? param('q', 'query')
-    const name = place && !coordinates(words(place)) ? words(place) : ''
+    const place = path.match(/\/maps\/place\/([^/]+)/)?.[1] ?? path.match(/\/maps\/search\/([^/]+)/)?.[1]
+    // ?q= is often "Name, street, city": the name is the part before the first comma.
+    const query = param('q', 'query')?.split(',')[0]
+    const raw = place ?? query
+    const name = raw && !coordinates(words(raw)) ? words(raw) : ''
     return { href, label: name ? `${name} · Google Maps` : 'Google Maps', map: true, named: !!name }
   }
   if (host === 'maps.apple.com' || host === 'maps.apple') {

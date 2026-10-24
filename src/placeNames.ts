@@ -1,6 +1,7 @@
-// Names for short map links in your notes ("maps.app.goo.gl/…" doesn't say which place). Gemini
-// finds them (see placeFromLink) in the background, straight into the saved notes, so you can paste
-// a link, save and leave. Results are remembered on this device.
+// Names for short map links in your notes ("maps.app.goo.gl/…" doesn't say which place), found in
+// the background straight into the saved notes, so you can paste a link, save and leave: first by
+// following the link (unshorten.me) to an address that names the place, else by asking Gemini.
+// Results are remembered on this device.
 import { useSyncExternalStore } from 'react'
 import { db } from './db'
 import { linkInfo, URL_IN_TEXT } from './links'
@@ -50,13 +51,13 @@ function setPending(next: Set<string>) {
   listeners.forEach((l) => l())
 }
 
-/** Needs a Gemini key: Gemini is what opens the link (also when another provider reads bags). */
-export const canFindPlaces = () => !!getSettings().geminiKey
+/** Gemini is the second way to name a link, when following it didn't give a name. */
+const canAskGemini = () => !!getSettings().geminiKey
 
 const recentFailure = (href: string) => !!cache[href]?.reason && cache[href].at >= launchedAt
 
-/** Gemini can't name this link: no key to ask with, or it tried since the app opened and couldn't. */
-export const placeNotFound = (href: string) => !canFindPlaces() || recentFailure(href)
+/** The link couldn't be named since the app opened (it's tried again next launch). */
+export const placeNotFound = (href: string) => recentFailure(href)
 
 /** Links being looked up right now. */
 export function usePendingPlaces(): Set<string> {
@@ -74,6 +75,22 @@ export const withPlaceName = (text: string, raw: string, name: string) =>
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
+/**
+ * The place from where a short link leads: unshorten.me follows it on its server (the browser may
+ * not) and answers with the final address, which for Google Maps reads "…maps?q=Name, address".
+ * Google may wrap it in its cookie-consent page; the real address is then its `continue`.
+ */
+async function placeFromRedirect(href: string): Promise<string | null> {
+  const res = await fetch(`https://unshorten.me/json/${href}`, { signal: AbortSignal.timeout(10_000) })
+  const json = (await res.json()) as { success?: boolean; resolved_url?: string }
+  if (!json.success || !json.resolved_url) return null
+  let url = new URL(json.resolved_url)
+  const inner = url.hostname.startsWith('consent.') ? url.searchParams.get('continue') : null
+  if (inner) url = new URL(inner)
+  const info = linkInfo(url.href)
+  return info.map && info.named ? info.label.replace(/ · (Google|Apple) Maps$/, '') : null
+}
+
 /** A request the model can't serve at all (e.g. the link tool unsupported): no point asking it again. */
 const refused = (message: string) => /\b(400|403|404)\b|INVALID_ARGUMENT|unsupported|not found/i.test(message)
 
@@ -86,6 +103,26 @@ const refused = (message: string) => /\b(400|403|404)\b|INVALID_ARGUMENT|unsuppo
 async function lookUp(href: string): Promise<string | null> {
   if (cache[href]?.name) return cache[href].name!
   setPending(new Set(pending).add(href))
+  // Quickest and needs no AI: read the name off where the link leads.
+  try {
+    const name = await placeFromRedirect(href)
+    if (name) {
+      remember(href, { name, at: Date.now() })
+      const next = new Set(pending)
+      next.delete(href)
+      setPending(next)
+      return name
+    }
+  } catch {
+    // Service down or offline: Gemini below.
+  }
+  if (!canAskGemini()) {
+    remember(href, { reason: 'link not resolved, no Gemini key', at: Date.now() })
+    const next = new Set(pending)
+    next.delete(href)
+    setPending(next)
+    return null
+  }
   // Lighter models first: reading a name off a page needs no more, and they answer faster with
   // more free quota. The bigger one stands in when they can't. (Bag scans keep the Settings model.)
   const models = GEMINI_MODELS.map((m) => m.id).sort((a, b) => Number(b.includes('lite')) - Number(a.includes('lite')))
@@ -138,7 +175,6 @@ async function lookUp(href: string): Promise<string | null> {
  * arrives — read fresh from the database then, so an edit made meanwhile isn't overwritten.
  */
 export function nameMapLinks(coffees: Coffee[]) {
-  if (!canFindPlaces()) return
   for (const c of coffees) {
     for (const raw of unnamedMapLinks(c.comment)) {
       const href = linkInfo(raw).href

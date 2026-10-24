@@ -5,6 +5,7 @@ import { blobToBase64 } from './image'
 import { getSettings } from './settings'
 import { ScanError } from './errors'
 import { BagSchema, SYSTEM, USER_PROMPT, toDraft } from './extract'
+import { linkInfo } from './links'
 
 // Gemini takes plain JSON Schema; drop the $schema marker it doesn't accept.
 const { $schema: _, ...responseJsonSchema } = z.toJSONSchema(BagSchema) as Record<string, unknown>
@@ -90,6 +91,12 @@ export async function placeFromLink(link: string, model?: string, signal?: Abort
     config: { tools: [{ urlContext: {} }], maxOutputTokens: 2000, abortSignal: signal },
   })
   const fetched = response.candidates?.[0]?.urlContextMetadata?.urlMetadata ?? []
+  // Where the link led often names the place ("…maps?q=Name, address") even when the page, drawn
+  // by scripts, only says "Google Maps".
+  for (const m of fetched) {
+    const led = m.retrievedUrl ? linkInfo(m.retrievedUrl) : null
+    if (led?.map && led.named) return { name: led.label.replace(/ · (Google|Apple) Maps$/, '') }
+  }
   const name = response.text?.match(/NAME:\s*(.+)/)?.[1]?.trim().replace(/^["«]|["»]$/g, '')
   // Why it didn't work, in plain words, so a failure can be told apart from "no place there".
   if (!fetched.some((m) => m.urlRetrievalStatus === UrlRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS)) {
