@@ -88,7 +88,7 @@ export function PredictionCard({ prediction, ratedCount, rated, pick }: { predic
                 </div>
                 <span className="spacer" />
                 <Stars value={coffee.rating} small />
-                {pick && <span className="pick-mark" aria-hidden="true">{on ? '✓' : '+'}</span>}
+                {on && <span className="pick-mark" aria-hidden="true">✓</span>}
               </>
             )
             return pick ? (
