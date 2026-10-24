@@ -22,12 +22,23 @@ const LIGHTER: Record<string, string> = {
   'gpt-6.1-sol': 'gpt-6-luna',
 }
 
-/** The model picked in Settings, then its lighter sibling, then the other providers you have a key for. */
+/**
+ * The lightest model has none lighter: when it's busy, its next model up stands in (Flash-Lite →
+ * Flash), since a busy light model doesn't mean the bigger one is too.
+ */
+const STRONGER: Record<string, string> = {
+  'gemini-3.5-flash-lite': 'gemini-3.8-flash',
+  'claude-haiku-4-5': 'claude-sonnet-5',
+  'gpt-6-luna': 'gpt-6.1-sol',
+}
+
+/** The model picked in Settings, then its lighter sibling (or next one up), then the other providers you have a key for. */
 function targets(s: Settings): Target[] {
   const own = (p: AIProvider): Target => ({ provider: p, model: s[AI_FIELDS[p].model] })
   const first = usesAI(s.provider) ? own(s.provider) : own('gemini')
   const list = [first]
-  if (LIGHTER[first.model]) list.push({ provider: first.provider, model: LIGHTER[first.model] })
+  const sibling = LIGHTER[first.model] ?? STRONGER[first.model]
+  if (sibling) list.push({ provider: first.provider, model: sibling })
   for (const p of PROVIDERS) if (usesAI(p) && p !== first.provider && s[AI_FIELDS[p].key]) list.push(own(p))
   return list
 }
