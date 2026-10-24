@@ -10,6 +10,8 @@ import type { Coffee } from './types'
 const KEY = 'coffee-shelf.placeLookups'
 /** Pauses before trying again after a busy server, a network hiccup or an unopened page. */
 const RETRY_DELAYS_MS = [3_000, 8_000]
+/** A request that hasn't answered by then is dropped and counts as a failed try. */
+const ATTEMPT_TIMEOUT_MS = 20_000
 
 interface Lookup {
   name?: string
@@ -92,8 +94,14 @@ async function lookUp(href: string): Promise<string | null> {
     for (const model of models) {
       let reason = ''
       for (let attempt = 0; ; attempt++) {
+        const ac = new AbortController()
+        const timer = setTimeout(() => ac.abort(new Error('timed out')), ATTEMPT_TIMEOUT_MS)
         try {
-          const found = await placeFromLink(href, model)
+          const found = await Promise.race([
+            placeFromLink(href, model, ac.signal),
+            // Settles even if the request ignores the abort.
+            new Promise<never>((_, reject) => ac.signal.addEventListener('abort', () => reject(ac.signal.reason), { once: true })),
+          ])
           if (found.name) {
             remember(href, { name: found.name, at: Date.now() })
             return found.name
@@ -105,7 +113,10 @@ async function lookUp(href: string): Promise<string | null> {
           }
         } catch (e) {
           reason = (e as Error)?.message?.slice(0, 160) || 'request failed'
-          if (refused(reason)) break
+          // Refused, or no answer at all: waiting on this model again won't help, try the other.
+          if (refused(reason) || ac.signal.aborted) break
+        } finally {
+          clearTimeout(timer)
         }
         if (attempt >= RETRY_DELAYS_MS.length) break
         await wait(RETRY_DELAYS_MS[attempt])
