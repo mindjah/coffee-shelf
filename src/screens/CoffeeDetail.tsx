@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { addShelfToCompare, db, MAX_COMPARE, type CompareItem } from '../db'
 import { predict, type Model } from '../recommend'
 import type { Coffee } from '../types'
@@ -25,6 +25,14 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
     setCompareNote(result === 'added' ? t.compare.addedFromShelf : result === 'duplicate' ? t.compare.alreadyAdded : t.compare.full(MAX_COMPARE))
   }
   const [comment, setComment] = useState(coffee.comment)
+  // The saved note changed elsewhere (a place name added in the background): show it, unless
+  // you've typed changes of your own that aren't saved yet.
+  const savedComment = useRef(coffee.comment)
+  useEffect(() => {
+    if (coffee.comment === savedComment.current) return
+    setComment((c) => (c === savedComment.current ? coffee.comment : c))
+    savedComment.current = coffee.comment
+  }, [coffee.comment])
   const { brew } = useSettings()
   // Also for a rated coffee: its "Closest to" list (itself left out), to compare with on the spot.
   const prediction = useMemo(() => predict(model, coffee, brew, coffee.id), [model, coffee, brew])

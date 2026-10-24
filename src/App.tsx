@@ -12,6 +12,7 @@ import { CameraIcon, GearIcon, ShelfIcon, TasteIcon } from './components/icons'
 import { useLang, useT } from './i18n'
 import { cameBackFromSignIn } from './gdrive'
 import { PhotoViewer } from './components/PhotoViewer'
+import { nameMapLinks } from './placeNames'
 
 type Tab = 'scan' | 'shelf' | 'taste' | 'settings'
 
@@ -45,6 +46,11 @@ export default function App() {
   useEffect(() => {
     requestPersistence()
   }, [])
+
+  // Saved notes with a short map link get the place's name in the background (see placeNames.ts).
+  useEffect(() => {
+    if (all) nameMapLinks(all)
+  }, [all])
 
   useEffect(() => {
     document.documentElement.lang = lang
