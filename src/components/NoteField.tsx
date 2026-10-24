@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { linkInfo, URL_IN_TEXT } from '../links'
 import { useT } from '../i18n'
-import { usePendingPlaces, withPlaceName } from '../placeNames'
+import { placeNotFound, usePendingPlaces, withPlaceName } from '../placeNames'
 
 /**
  * Text with its web addresses shown by name (see links.ts); links open outside the app. A map link
@@ -21,7 +21,8 @@ function NoteText({ text, pending, onName }: { text: string; pending: Set<string
         {link.map ? '📍' : '🔗'} {looking ? t.coffee.findingPlace : link.label}
       </a>,
     )
-    if (link.map && !link.named && !looking) {
+    // Name it yourself only when Gemini couldn't (or can't be asked): it usually finds the name.
+    if (link.map && !link.named && !looking && placeNotFound(link.href)) {
       parts.push(
         <button
           key={`name-${start}`}

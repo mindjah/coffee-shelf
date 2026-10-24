@@ -32,6 +32,9 @@ function setPending(next: Set<string>) {
 /** Needs a Gemini key: Gemini is what opens the link (also when another provider reads bags). */
 export const canFindPlaces = () => !!getSettings().geminiKey
 
+/** Gemini can't name this link: no key to ask with, or it tried and found no place. */
+export const placeNotFound = (href: string) => !canFindPlaces() || cache[href] === '' || failed.has(href)
+
 /** Links being looked up right now. */
 export function usePendingPlaces(): Set<string> {
   return useSyncExternalStore((l) => (listeners.add(l), () => listeners.delete(l)), () => pending)
