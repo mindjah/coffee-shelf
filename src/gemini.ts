@@ -1,4 +1,4 @@
-import { ApiError, FinishReason, GoogleGenAI } from '@google/genai'
+import { ApiError, FinishReason, GoogleGenAI, UrlRetrievalStatus } from '@google/genai'
 import { z } from 'zod'
 import type { CoffeeDraft } from './types'
 import { blobToBase64 } from './image'
@@ -71,4 +71,26 @@ export async function readBag(images: Blob[], signal?: AbortSignal, model?: stri
   }
   if (!parsed.success) throw new ScanError('unreadable')
   return toDraft(parsed.data)
+}
+
+/**
+ * The place a short map link points to ("maps.app.goo.gl/…" carries no name). The browser can't
+ * open other sites' pages, but Gemini's URL context tool opens it on Google's side. Answers only
+ * count when the page was really retrieved, so a name is never guessed.
+ */
+export async function placeFromLink(link: string, signal?: AbortSignal): Promise<string | null> {
+  const { geminiKey, geminiModel } = getSettings()
+  if (!geminiKey) return null
+  const response = await new GoogleGenAI({ apiKey: geminiKey }).models.generateContent({
+    model: geminiModel,
+    contents: [{
+      role: 'user',
+      parts: [{ text: `${link}\n\nOpen this map link. Reply with one line: NAME: <the place's name exactly as the page shows it>. If the page doesn't open or doesn't show a place, reply NAME: NONE.` }],
+    }],
+    config: { tools: [{ urlContext: {} }], maxOutputTokens: 2000, abortSignal: signal },
+  })
+  const retrieved = (response.candidates?.[0]?.urlContextMetadata?.urlMetadata ?? [])
+    .some((m) => m.urlRetrievalStatus === UrlRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS)
+  const name = response.text?.match(/NAME:\s*(.+)/)?.[1]?.trim().replace(/^["«]|["»]$/g, '')
+  return retrieved && name && !/^none$/i.test(name) && name.length <= 80 ? name : null
 }

@@ -190,6 +190,7 @@ const en = {
   coffee: {
     brewedWith: 'Brewed with',
     namePlace: 'Name',
+    findingPlace: 'Finding the place…',
     namePlacePrompt: 'What is this place called?',
     noBrew: '— not chosen —',
     grams: (g: number) => `${g} g`,
@@ -610,6 +611,7 @@ const ru: Dict = {
   coffee: {
     brewedWith: 'Чем заваривали',
     namePlace: 'Назвать',
+    findingPlace: 'Узнаю название…',
     namePlacePrompt: 'Как называется это место?',
     noBrew: '— не выбрано —',
     grams: (g) => `${g} г`,
@@ -1024,6 +1026,7 @@ const es: Dict = {
   coffee: {
     brewedWith: 'Preparado con',
     namePlace: 'Nombrar',
+    findingPlace: 'Buscando el lugar…',
     namePlacePrompt: '¿Cómo se llama este lugar?',
     noBrew: '— sin elegir —',
     grams: (g) => `${g} g`,

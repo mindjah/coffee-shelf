@@ -1,12 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { linkInfo, URL_IN_TEXT } from '../links'
 import { useT } from '../i18n'
+import { canFindPlaces, findPlace } from '../placeNames'
 
 /**
  * Text with its web addresses shown by name (see links.ts); links open outside the app. A map link
  * that doesn't say which place (a short share link) gets a button to name it.
  */
-function NoteText({ text, onName }: { text: string; onName: (raw: string, href: string, name: string) => void }) {
+function NoteText({ text, finding, onName }: { text: string; finding: string[]; onName: (raw: string, href: string, name: string) => void }) {
   const t = useT()
   const parts: ReactNode[] = []
   let last = 0
@@ -14,12 +15,13 @@ function NoteText({ text, onName }: { text: string; onName: (raw: string, href: 
     const start = m.index ?? 0
     const link = m[2] ? linkInfo(m[2], m[1]) : linkInfo(m[0])
     parts.push(text.slice(last, start))
+    const looking = finding.includes(m[0])
     parts.push(
       <a key={start} href={link.href} target="_blank" rel="noopener noreferrer" className="note-link" title={m[2] ?? m[0]} onClick={(e) => e.stopPropagation()}>
-        {link.map ? '📍' : '🔗'} {link.label}
+        {link.map ? '📍' : '🔗'} {looking ? t.coffee.findingPlace : link.label}
       </a>,
     )
-    if (link.map && !link.named) {
+    if (link.map && !link.named && !looking) {
       parts.push(
         <button
           key={`name-${start}`}
@@ -55,6 +57,33 @@ export function NoteField({ value, placeholder, onChange, onDone }: {
   const [editing, setEditing] = useState(false)
   const box = useRef<HTMLTextAreaElement>(null)
 
+  // Map links that don't say which place get named automatically, once you've finished typing.
+  const [finding, setFinding] = useState<string[]>([])
+  const tried = useRef(new Set<string>())
+  const latest = useRef({ value, onChange, onDone })
+  latest.current = { value, onChange, onDone }
+  const nameLink = (raw: string, href: string, name: string) => {
+    // Stored as "[name](link)": the link keeps working and reads by its name from now on.
+    const next = latest.current.value.replace(raw, `[${name.replace(/[[\]]/g, '')}](${href})`)
+    latest.current.onChange(next)
+    latest.current.onDone?.(next)
+  }
+  useEffect(() => {
+    if (editing || !canFindPlaces()) return
+    for (const m of value.matchAll(URL_IN_TEXT)) {
+      const raw = m[0]
+      const link = linkInfo(raw)
+      if (m[2] || !link.map || link.named || tried.current.has(raw)) continue
+      tried.current.add(raw)
+      setFinding((f) => [...f, raw])
+      findPlace(link.href).then((name) => {
+        setFinding((f) => f.filter((x) => x !== raw))
+        if (name && latest.current.value.includes(raw)) nameLink(raw, link.href, name)
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, editing])
+
   // Grow (or shrink) to fit everything typed, no inner scrolling.
   useLayoutEffect(() => {
     const el = box.current
@@ -69,15 +98,7 @@ export function NoteField({ value, placeholder, onChange, onDone }: {
   if (!editing && value.trim()) {
     return (
       <div className="input note-view" role="button" tabIndex={0} onClick={() => setEditing(true)} onKeyDown={(e) => e.key === 'Enter' && setEditing(true)}>
-        <NoteText
-          text={value}
-          onName={(raw, href, name) => {
-            // Stored as "[name](link)": the link keeps working and reads by its name from now on.
-            const next = value.replace(raw, `[${name.replace(/[[\]]/g, '')}](${href})`)
-            onChange(next)
-            onDone?.(next)
-          }}
-        />
+        <NoteText text={value} finding={finding} onName={nameLink} />
       </div>
     )
   }
