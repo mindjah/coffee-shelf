@@ -78,19 +78,23 @@ export async function readBag(images: Blob[], signal?: AbortSignal, model?: stri
  * open other sites' pages, but Gemini's URL context tool opens it on Google's side. Answers only
  * count when the page was really retrieved, so a name is never guessed.
  */
-export async function placeFromLink(link: string, signal?: AbortSignal): Promise<string | null> {
+export async function placeFromLink(link: string, model?: string, signal?: AbortSignal): Promise<{ name?: string; reason?: string }> {
   const { geminiKey, geminiModel } = getSettings()
-  if (!geminiKey) return null
+  if (!geminiKey) return { reason: 'no Gemini key' }
   const response = await new GoogleGenAI({ apiKey: geminiKey }).models.generateContent({
-    model: geminiModel,
+    model: model ?? geminiModel,
     contents: [{
       role: 'user',
       parts: [{ text: `${link}\n\nOpen this map link. Reply with one line: NAME: <the place's name exactly as the page shows it>. If the page doesn't open or doesn't show a place, reply NAME: NONE.` }],
     }],
     config: { tools: [{ urlContext: {} }], maxOutputTokens: 2000, abortSignal: signal },
   })
-  const retrieved = (response.candidates?.[0]?.urlContextMetadata?.urlMetadata ?? [])
-    .some((m) => m.urlRetrievalStatus === UrlRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS)
+  const fetched = response.candidates?.[0]?.urlContextMetadata?.urlMetadata ?? []
   const name = response.text?.match(/NAME:\s*(.+)/)?.[1]?.trim().replace(/^["«]|["»]$/g, '')
-  return retrieved && name && !/^none$/i.test(name) && name.length <= 80 ? name : null
+  // Why it didn't work, in plain words, so a failure can be told apart from "no place there".
+  if (!fetched.some((m) => m.urlRetrievalStatus === UrlRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS)) {
+    return { reason: fetched.length ? `page not opened (${fetched.map((m) => m.urlRetrievalStatus?.replace('URL_RETRIEVAL_STATUS_', '')).join(', ')})` : 'the model did not open the link' }
+  }
+  if (!name || /^none$/i.test(name) || name.length > 80) return { reason: `no place on the page (${(response.text ?? '').slice(0, 60)})` }
+  return { name }
 }

@@ -1,26 +1,45 @@
 // Names for short map links in your notes ("maps.app.goo.gl/…" doesn't say which place). Gemini
 // finds them (see placeFromLink) in the background, straight into the saved notes, so you can paste
-// a link, save and leave. Results are remembered on this device; a link is never looked up twice.
+// a link, save and leave. Results are remembered on this device.
 import { useSyncExternalStore } from 'react'
 import { db } from './db'
 import { linkInfo, URL_IN_TEXT } from './links'
-import { getSettings } from './settings'
+import { GEMINI_MODELS, getSettings } from './settings'
 import type { Coffee } from './types'
 
-const KEY = 'coffee-shelf.placeNames'
-/** Link → place name, or '' when the page opened but showed no place. */
-let cache: Record<string, string> = load()
+const KEY = 'coffee-shelf.placeLookups'
+/** Pauses before trying again after a busy server, a network hiccup or an unopened page. */
+const RETRY_DELAYS_MS = [3_000, 8_000]
+
+interface Lookup {
+  name?: string
+  /** Why Gemini couldn't name it (kept for troubleshooting). */
+  reason?: string
+  at: number
+}
+
+/** Link → what the last lookup found. */
+let cache: Record<string, Lookup> = load()
+/** When the app opened: a lookup that failed before this is tried again (each launch). */
+const launchedAt = Date.now()
 /** Links being looked up now (shown as "Finding the place…"). */
 let pending = new Set<string>()
-/** Lookups that failed for another reason (offline, busy): tried again next launch, not on every change. */
-const failed = new Set<string>()
 const listeners = new Set<() => void>()
 
-function load(): Record<string, string> {
+function load(): Record<string, Lookup> {
   try {
     return JSON.parse(localStorage.getItem(KEY) ?? '{}')
   } catch {
     return {}
+  }
+}
+
+function remember(href: string, lookup: Lookup) {
+  cache = { ...cache, [href]: lookup }
+  try {
+    localStorage.setItem(KEY, JSON.stringify(cache))
+  } catch {
+    // Looked up again next launch.
   }
 }
 
@@ -32,8 +51,10 @@ function setPending(next: Set<string>) {
 /** Needs a Gemini key: Gemini is what opens the link (also when another provider reads bags). */
 export const canFindPlaces = () => !!getSettings().geminiKey
 
-/** Gemini can't name this link: no key to ask with, or it tried and found no place. */
-export const placeNotFound = (href: string) => !canFindPlaces() || cache[href] === '' || failed.has(href)
+const recentFailure = (href: string) => !!cache[href]?.reason && cache[href].at >= launchedAt
+
+/** Gemini can't name this link: no key to ask with, or it tried since the app opened and couldn't. */
+export const placeNotFound = (href: string) => !canFindPlaces() || recentFailure(href)
 
 /** Links being looked up right now. */
 export function usePendingPlaces(): Set<string> {
@@ -49,21 +70,49 @@ export function unnamedMapLinks(text: string): string[] {
 export const withPlaceName = (text: string, raw: string, name: string) =>
   text.replace(raw, `[${name.replace(/[[\]]/g, '')}](${linkInfo(raw).href})`)
 
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+/** A request the model can't serve at all (e.g. the link tool unsupported): no point asking it again. */
+const refused = (message: string) => /\b(400|403|404)\b|INVALID_ARGUMENT|unsupported|not found/i.test(message)
+
+/**
+ * Asks Gemini like a bag scan does: the model picked in Settings first, then the other Gemini model.
+ * Each model gets a retry after a pause when the server was busy, the network dropped or the page
+ * didn't open (these often pass); a model refusing the request moves on at once, and a page that
+ * opened without a place isn't asked about again.
+ */
 async function lookUp(href: string): Promise<string | null> {
-  if (href in cache) return cache[href] || null
+  if (cache[href]?.name) return cache[href].name!
   setPending(new Set(pending).add(href))
+  const { geminiModel } = getSettings()
+  const models = [geminiModel, ...GEMINI_MODELS.map((m) => m.id).filter((id) => id !== geminiModel)]
+  const reasons: string[] = []
   try {
     const { placeFromLink } = await import('./gemini')
-    const name = await placeFromLink(href)
-    cache = { ...cache, [href]: name ?? '' }
-    try {
-      localStorage.setItem(KEY, JSON.stringify(cache))
-    } catch {
-      // Looked up again next launch.
+    for (const model of models) {
+      let reason = ''
+      for (let attempt = 0; ; attempt++) {
+        try {
+          const found = await placeFromLink(href, model)
+          if (found.name) {
+            remember(href, { name: found.name, at: Date.now() })
+            return found.name
+          }
+          reason = found.reason ?? 'unknown'
+          if (reason.startsWith('no place') || reason.startsWith('no Gemini')) {
+            remember(href, { reason: `${model}: ${reason}`, at: Date.now() })
+            return null
+          }
+        } catch (e) {
+          reason = (e as Error)?.message?.slice(0, 160) || 'request failed'
+          if (refused(reason)) break
+        }
+        if (attempt >= RETRY_DELAYS_MS.length) break
+        await wait(RETRY_DELAYS_MS[attempt])
+      }
+      reasons.push(`${model}: ${reason}`)
     }
-    return name
-  } catch {
-    failed.add(href)
+    remember(href, { reason: reasons.join('; '), at: Date.now() })
     return null
   } finally {
     const next = new Set(pending)
@@ -81,7 +130,7 @@ export function nameMapLinks(coffees: Coffee[]) {
   for (const c of coffees) {
     for (const raw of unnamedMapLinks(c.comment)) {
       const href = linkInfo(raw).href
-      if (pending.has(href) || failed.has(href) || cache[href] === '') continue
+      if (pending.has(href) || recentFailure(href)) continue
       lookUp(href).then(async (name) => {
         if (!name || c.id == null) return
         const fresh = await db.coffees.get(c.id)
