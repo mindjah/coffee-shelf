@@ -16,28 +16,33 @@ function NoteText({ text, pending, onName }: { text: string; pending: Set<string
     const link = m[2] ? linkInfo(m[2], m[1]) : linkInfo(m[0])
     parts.push(text.slice(last, start))
     const looking = !m[2] && pending.has(link.href)
-    parts.push(
-      <a key={start} href={link.href} target="_blank" rel="noopener noreferrer" className="note-link" title={m[2] ?? m[0]} onClick={(e) => e.stopPropagation()}>
+    const anchor = (
+      <a href={link.href} target="_blank" rel="noopener noreferrer" className="note-link" title={m[2] ?? m[0]} onClick={(e) => e.stopPropagation()}>
         {link.map ? '📍' : '🔗'} {looking ? t.coffee.findingPlace : link.label}
-      </a>,
+      </a>
     )
     // Name it yourself only when Gemini couldn't (or can't be asked): it usually finds the name.
-    if (link.map && !link.named && !looking && placeNotFound(link.href)) {
-      parts.push(
-        <button
-          key={`name-${start}`}
-          type="button"
-          className="note-name"
-          onClick={(e) => {
-            e.stopPropagation()
-            const name = prompt(t.coffee.namePlacePrompt)?.trim()
-            if (name) onName(m[0], link.href, name)
-          }}
-        >
-          ✎ {t.coffee.namePlace}
-        </button>,
-      )
-    }
+    // The button is part of the link's chip, so it never wraps away from it.
+    parts.push(
+      link.map && !link.named && !looking && placeNotFound(link.href) ? (
+        <span key={start} className="note-link-group">
+          {anchor}
+          <button
+            type="button"
+            className="note-name"
+            onClick={(e) => {
+              e.stopPropagation()
+              const name = prompt(t.coffee.namePlacePrompt)?.trim()
+              if (name) onName(m[0], link.href, name)
+            }}
+          >
+            ✎ {t.coffee.namePlace}
+          </button>
+        </span>
+      ) : (
+        <span key={start}>{anchor}</span>
+      ),
+    )
     last = start + m[0].length
   }
   parts.push(text.slice(last))
