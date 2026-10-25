@@ -97,7 +97,7 @@ export function ClosestList({ similar, pick }: { similar: Prediction['similar'];
           <>
             <div style={{ minWidth: 0, textAlign: 'left' }}>
               <div style={{ fontWeight: 600 }}>{coffee.name || coffee.roaster}</div>
-              {countryName(coffee, lang) && <div>{countryName(coffee, lang)}</div>}
+              {(coffee.country || coffee.area) && <div>{[countryName(coffee, lang), coffee.area].filter(Boolean).join(' · ')}</div>}
               <div className="muted">{coffee.roaster} · {t.prediction.similar(Math.round(similarity * 100))}</div>
             </div>
             <span className="spacer" />
