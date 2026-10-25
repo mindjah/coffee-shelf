@@ -74,17 +74,52 @@ export const BookIcon = () => (
     <path d="M24 42h11.5M26.5 45.3h6.5" stroke="#d6ad5c" strokeWidth="1.3" strokeLinecap="round" />
   </svg>
 )
-/** Empty comparison: two dashed bag outlines waiting to be filled, with compare arrows between. */
+/**
+ * A stand-up coffee pouch in a 56×92 box: crimped top seal with a tear notch, zip line,
+ * degassing valve, label, a body that widens toward the gusseted bottom.
+ * `ghost` draws it dashed — a place where a bag will go.
+ */
+function Bag({ x, y, mark, ghost = false }: { x: number; y: number; mark: string; ghost?: boolean }) {
+  const line = { stroke: 'var(--maybe)', strokeWidth: 1.8, strokeLinejoin: 'round', strokeLinecap: 'round' } as const
+  const dash = ghost ? '4 3' : undefined
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <path d="M7 4h42v10c0 20 5 44 5 66a10 10 0 0 1-10 10H12A10 10 0 0 1 2 80c0-22 5-46 5-66z" fill="var(--surface-2)" {...line} strokeDasharray={dash} />
+      {!ghost && (
+        <>
+          <path d="M11 5v8M15 5v8M19 5v8M23 5v8M27 5v8M31 5v8M35 5v8M39 5v8M43 5v8M47 5v8" stroke="var(--maybe)" strokeWidth="0.9" opacity="0.7" />
+          <path d="M7 14h42" {...line} strokeWidth={1.4} />
+          <path d="M7 18l3 2-3 2" fill="none" {...line} strokeWidth={1.2} />
+          <path d="M8 24h40" stroke="var(--maybe)" strokeWidth="1.2" strokeDasharray="2.5 2" />
+          <circle cx="28" cy="32" r="3.8" fill="none" {...line} strokeWidth={1.4} />
+          <circle cx="28" cy="32" r="1.2" fill="var(--maybe)" />
+          <path d="M4 82c8-5 40-5 48 0" fill="none" {...line} strokeWidth={1.2} opacity="0.7" />
+        </>
+      )}
+      <rect x="14" y="41" width="28" height="31" rx="3" fill={ghost ? 'none' : 'var(--surface)'} {...line} strokeWidth={1.4} strokeDasharray={dash} />
+      <text x="28" y="64.5" textAnchor="middle" fontSize="21" fontWeight="700" fill="var(--maybe)" fontFamily="-apple-system, system-ui, sans-serif">{mark}</text>
+    </g>
+  )
+}
+
+/** Empty comparison: two unknown bags with compare arrows between. */
 export const EmptyCompareArt = () => (
   <svg viewBox="0 0 160 112" className="empty-art" aria-hidden="true">
-    {[14, 94].map((x) => (
-      <g key={x} transform={`translate(${x} 8)`}>
-        <path d="M6 14 10 4h32l4 10v76a6 6 0 0 1-6 6H12a6 6 0 0 1-6-6z" fill="var(--surface-2)" stroke="var(--maybe)" strokeWidth="2" strokeDasharray="5 4" strokeLinejoin="round" />
-        <path d="M6 14h40" stroke="var(--maybe)" strokeWidth="2" strokeDasharray="5 4" />
-        <circle cx="26" cy="26" r="3.5" fill="none" stroke="var(--maybe)" strokeWidth="1.6" />
-        <text x="26" y="68" textAnchor="middle" fontSize="28" fontWeight="700" fill="var(--maybe)" fontFamily="-apple-system, system-ui, sans-serif">?</text>
-      </g>
-    ))}
-    <path d="M70 48h20M84 42l6 6-6 6M90 66H70M76 60l-6 6 6 6" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    <Bag x={6} y={10} mark="?" />
+    <Bag x={98} y={10} mark="?" />
+    <path d="M69 50h22M85 44l6 6-6 6M91 70H69M75 64l-6 6 6 6" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+/** Empty shelf: a shelving cabinet with nothing on it but the outline of the first bag to come. */
+export const EmptyShelfArt = () => (
+  <svg viewBox="0 0 160 150" className="empty-art" aria-hidden="true">
+    <rect x="16" y="4" width="128" height="136" rx="6" fill="var(--surface-2)" stroke="var(--maybe)" strokeWidth="2" />
+    <path d="M16 48h128M16 94h128" stroke="var(--maybe)" strokeWidth="2" />
+    <path d="M18 48h124v4H18zM18 94h124v4H18z" fill="color-mix(in srgb, var(--maybe) 35%, transparent)" />
+    <path d="M32 140v7M128 140v7" stroke="var(--maybe)" strokeWidth="3" strokeLinecap="round" />
+    <g transform="translate(68 54) scale(0.42)">
+      <Bag x={0} y={0} mark="+" ghost />
+    </g>
   </svg>
 )

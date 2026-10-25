@@ -7,7 +7,7 @@ import type { Coffee } from '../types'
 import { useLang, useT } from '../i18n'
 import { originLine } from '../components/CoffeeSummary'
 import { CoffeeThumb } from '../components/CoffeeThumb'
-import { CompareIcon, ShelfIcon } from '../components/icons'
+import { CompareIcon, EmptyShelfArt } from '../components/icons'
 import { DriveBanner } from '../components/DriveSection'
 import { useShelfFilters } from '../components/ShelfFilters'
 import { Bookcase } from '../components/Bookcase'
@@ -54,7 +54,7 @@ export function LibraryScreen({ coffees, model, onOpen }: { coffees: Coffee[]; m
       {controls}
       {shown.length === 0 ? (
         <div className="empty">
-          <ShelfIcon />
+          <EmptyShelfArt />
           <div>{coffees.length ? t.shelf.noMatch : t.shelf.empty}</div>
           {filtering && (
             <button className="btn plain" onClick={clearFilters}>{t.shelf.clearFilters}</button>
