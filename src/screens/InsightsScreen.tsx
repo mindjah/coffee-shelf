@@ -50,7 +50,7 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
 
   return (
     <div className="screen">
-      <div className="row taste-head">
+      <div className="row screen-head">
         <div>
           <h1 className="screen-title">{t.taste.title}</h1>
           <p className="screen-sub">{t.taste.subtitle}</p>

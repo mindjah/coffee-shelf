@@ -312,9 +312,6 @@ textarea.input { min-height: 84px; resize: vertical; }
   border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--text);
 }
 .icon-btn svg { width: 22px; height: 22px; }
-/* Round header button, on one line with the screen title (like the Scan tab avatar) */
-.icon-btn.title-btn { width: 40px; height: 40px; border-radius: 50%; margin-top: 10px; }
-.icon-btn.title-btn svg { width: 21px; height: 21px; }
 .count-badge {
   position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
   background: var(--accent); color: var(--on-accent); font-size: 11px; font-weight: 700; line-height: 18px; text-align: center;
@@ -556,11 +553,13 @@ textarea.input { min-height: 84px; resize: vertical; }
 .note-name { flex: none; border: 0; border-left: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); border-radius: 0 999px 999px 0; background: none; padding: 1px 10px 1px 8px; font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); }
 
 /* Encyclopedia: a book on the Taste title row, chapters and foldable articles in a sheet */
-/* The book spans the title and the subtitle, centered on both */
-.taste-head { margin: 14px 0 20px; }
-.taste-head > div { min-width: 0; }
-.taste-head .screen-title { margin-top: 0; }
-.taste-head .screen-sub { margin-bottom: 0; }
+/* Title + subtitle with a big button beside both, centered on the pair (Shelf compare, Taste book) */
+.screen-head { margin: 14px 0 20px; }
+.screen-head > div { min-width: 0; }
+.screen-head .screen-title { margin-top: 0; }
+.screen-head .screen-sub { margin-bottom: 0; }
+.icon-btn.head-btn { width: 54px; height: 54px; border-radius: 50%; box-shadow: var(--shadow); }
+.icon-btn.head-btn svg { width: 28px; height: 28px; }
 .book-btn {
   flex: none; width: 54px; height: 62px; padding: 0; border: 0; background: none;
   filter: drop-shadow(0 3px 5px rgba(30, 23, 20, 0.22)); transition: transform 0.12s ease;

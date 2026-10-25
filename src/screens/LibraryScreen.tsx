@@ -39,15 +39,17 @@ export function LibraryScreen({ coffees, model, onOpen }: { coffees: Coffee[]; m
 
   return (
     <div className="screen">
-      <div className="row title-row">
-        <h1 className="screen-title">{t.shelf.title}</h1>
+      <div className="row screen-head">
+        <div>
+          <h1 className="screen-title">{t.shelf.title}</h1>
+          <p className="screen-sub">{t.shelf.logged(coffees.length)}</p>
+        </div>
         <span className="spacer" />
-        <button type="button" className="icon-btn title-btn" onClick={() => setComparing(true)} aria-label={t.compare.title}>
+        <button type="button" className="icon-btn head-btn" onClick={() => setComparing(true)} aria-label={t.compare.title}>
           <CompareIcon />
           {compareItems.length > 0 && <span className="count-badge">{compareItems.length}</span>}
         </button>
       </div>
-      <p className="screen-sub">{t.shelf.logged(coffees.length)}</p>
       <DriveBanner />
       {controls}
       {shown.length === 0 ? (
