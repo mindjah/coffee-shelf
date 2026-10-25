@@ -74,3 +74,17 @@ export const BookIcon = () => (
     <path d="M24 42h11.5M26.5 45.3h6.5" stroke="#d6ad5c" strokeWidth="1.3" strokeLinecap="round" />
   </svg>
 )
+/** Empty comparison: two dashed bag outlines waiting to be filled, with compare arrows between. */
+export const EmptyCompareArt = () => (
+  <svg viewBox="0 0 160 112" className="empty-art" aria-hidden="true">
+    {[14, 94].map((x) => (
+      <g key={x} transform={`translate(${x} 8)`}>
+        <path d="M6 14 10 4h32l4 10v76a6 6 0 0 1-6 6H12a6 6 0 0 1-6-6z" fill="var(--surface-2)" stroke="var(--maybe)" strokeWidth="2" strokeDasharray="5 4" strokeLinejoin="round" />
+        <path d="M6 14h40" stroke="var(--maybe)" strokeWidth="2" strokeDasharray="5 4" />
+        <circle cx="26" cy="26" r="3.5" fill="none" stroke="var(--maybe)" strokeWidth="1.6" />
+        <text x="26" y="68" textAnchor="middle" fontSize="28" fontWeight="700" fill="var(--maybe)" fontFamily="-apple-system, system-ui, sans-serif">?</text>
+      </g>
+    ))}
+    <path d="M70 48h20M84 42l6 6-6 6M90 66H70M76 60l-6 6 6 6" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)

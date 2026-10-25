@@ -9,6 +9,7 @@ import { Sheet } from '../components/Sheet'
 import { Stars } from '../components/Stars'
 import { useShelfFilters } from '../components/ShelfFilters'
 import { Bookcase } from '../components/Bookcase'
+import { EmptyCompareArt } from '../components/icons'
 import { useSettings } from '../settings'
 
 interface Props {
@@ -144,7 +145,10 @@ export function CompareSheet({ items, model, coffees, onClose, onQuickRemove }: 
     <Sheet title={t.compare.title} onClose={onClose} closeLabel={t.common.done}>
       {cols.length === 0 ? (
         <>
-          <div className="empty">{t.compare.empty}</div>
+          <div className="empty">
+            <EmptyCompareArt />
+            <div>{t.compare.empty}</div>
+          </div>
           {!onQuickRemove && <button className="btn ghost block" onClick={() => setPicking(true)}>{t.compare.fromShelf}</button>}
         </>
       ) : (
