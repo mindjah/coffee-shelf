@@ -4,7 +4,7 @@ import type { Coffee } from '../types'
 import { groupRoasters } from '../roaster'
 import { methodRatings } from '../ratings'
 import { countryName, reasonText, useLang, useT } from '../i18n'
-import { BookIcon, TasteIcon } from '../components/icons'
+import { BookIcon, EmptyTasteArt } from '../components/icons'
 
 // The book's text and drawings load only when it's first opened.
 const Encyclopedia = lazy(() => import('../components/Encyclopedia').then((m) => ({ default: m.Encyclopedia })))
@@ -64,7 +64,7 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
 
       {rated.length < MIN_RATINGS ? (
         <div className="empty">
-          <TasteIcon />
+          <EmptyTasteArt />
           <div>{t.taste.needMore(MIN_RATINGS)}</div>
         </div>
       ) : (

@@ -123,3 +123,20 @@ export const EmptyShelfArt = () => (
     </g>
   </svg>
 )
+/** Empty taste profile: a cup in front of an unfilled flavor wheel, five stars still to give. */
+export const EmptyTasteArt = () => (
+  <svg viewBox="0 0 160 140" className="empty-art" aria-hidden="true">
+    <circle cx="80" cy="56" r="50" fill="var(--surface-2)" stroke="var(--maybe)" strokeWidth="1.6" strokeDasharray="4 4" />
+    <circle cx="80" cy="56" r="32" fill="none" stroke="var(--maybe)" strokeWidth="1.2" strokeDasharray="3 4" opacity="0.7" />
+    <g stroke="var(--maybe)" strokeWidth="1.2" strokeDasharray="3 4" opacity="0.7">
+      {[0, 45, 90, 135].map((a) => <path key={a} d="M80 6v100" transform={`rotate(${a} 80 56)`} />)}
+    </g>
+    <path d="M60 46h40v22a14 14 0 0 1-14 14H74a14 14 0 0 1-14-14z" fill="var(--surface)" stroke="var(--maybe)" strokeWidth="2" strokeLinejoin="round" />
+    <path d="M100 52h4a7 7 0 0 1 0 14h-5" fill="none" stroke="var(--maybe)" strokeWidth="2" />
+    <path d="M55 86h50" stroke="var(--maybe)" strokeWidth="2" strokeLinecap="round" />
+    <path d="M73 38c-3-4 3-6 0-10M81 38c-3-4 3-6 0-10M89 38c-3-4 3-6 0-10" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" />
+    {[0, 1, 2, 3, 4].map((i) => (
+      <path key={i} transform={`translate(${36 + i * 18} 118) scale(0.6)`} d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinejoin="round" />
+    ))}
+  </svg>
+)
