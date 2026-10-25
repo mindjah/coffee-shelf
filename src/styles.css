@@ -626,4 +626,4 @@ textarea.input { min-height: 84px; resize: vertical; }
   flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center;
   background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 700;
 }
-.empty .empty-art { display: block; width: 160px; height: auto; margin: 0 auto 14px; opacity: 1; }
+.empty .empty-art { display: block; width: 84px; height: 84px; margin: 0 auto 12px; opacity: 0.45; }

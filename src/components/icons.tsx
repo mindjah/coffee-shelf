@@ -74,69 +74,33 @@ export const BookIcon = () => (
     <path d="M24 42h11.5M26.5 45.3h6.5" stroke="#d6ad5c" strokeWidth="1.3" strokeLinecap="round" />
   </svg>
 )
-/**
- * A stand-up coffee pouch in a 56×92 box: crimped top seal with a tear notch, zip line,
- * degassing valve, label, a body that widens toward the gusseted bottom.
- * `ghost` draws it dashed — a place where a bag will go.
- */
-function Bag({ x, y, mark, ghost = false }: { x: number; y: number; mark: string; ghost?: boolean }) {
-  const line = { stroke: 'var(--maybe)', strokeWidth: 1.8, strokeLinejoin: 'round', strokeLinecap: 'round' } as const
-  const dash = ghost ? '4 3' : undefined
-  return (
-    <g transform={`translate(${x} ${y})`}>
-      <path d="M7 4h42v10c0 20 5 44 5 66a10 10 0 0 1-10 10H12A10 10 0 0 1 2 80c0-22 5-46 5-66z" fill="var(--surface-2)" {...line} strokeDasharray={dash} />
-      {!ghost && (
-        <>
-          <path d="M11 5v8M15 5v8M19 5v8M23 5v8M27 5v8M31 5v8M35 5v8M39 5v8M43 5v8M47 5v8" stroke="var(--maybe)" strokeWidth="0.9" opacity="0.7" />
-          <path d="M7 14h42" {...line} strokeWidth={1.4} />
-          <path d="M7 18l3 2-3 2" fill="none" {...line} strokeWidth={1.2} />
-          <path d="M8 24h40" stroke="var(--maybe)" strokeWidth="1.2" strokeDasharray="2.5 2" />
-          <circle cx="28" cy="32" r="3.8" fill="none" {...line} strokeWidth={1.4} />
-          <circle cx="28" cy="32" r="1.2" fill="var(--maybe)" />
-          <path d="M4 82c8-5 40-5 48 0" fill="none" {...line} strokeWidth={1.2} opacity="0.7" />
-        </>
-      )}
-      <rect x="14" y="41" width="28" height="31" rx="3" fill={ghost ? 'none' : 'var(--surface)'} {...line} strokeWidth={1.4} strokeDasharray={dash} />
-      <text x="28" y="64.5" textAnchor="middle" fontSize="21" fontWeight="700" fill="var(--maybe)" fontFamily="-apple-system, system-ui, sans-serif">{mark}</text>
-    </g>
-  )
-}
+// Empty-state pictures: the line-icon style, drawn on a 48 grid and shown large and muted.
+const art = { viewBox: '0 0 48 48', className: 'empty-art', 'aria-hidden': true, fill: 'none', stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
-/** Empty comparison: two unknown bags with compare arrows between. */
+/** Empty comparison: two bags with arrows between. */
 export const EmptyCompareArt = () => (
-  <svg viewBox="0 0 160 112" className="empty-art" aria-hidden="true">
-    <Bag x={6} y={10} mark="?" />
-    <Bag x={98} y={10} mark="?" />
-    <path d="M69 50h22M85 44l6 6-6 6M91 70H69M75 64l-6 6 6 6" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+  <svg {...art}>
+    <path d="M4 11h12v2c0 7 2 15 2 22a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3c0-7 2-15 2-22zM4 14h12" />
+    <path d="M32 11h12v2c0 7 2 15 2 22a3 3 0 0 1-3 3H33a3 3 0 0 1-3-3c0-7 2-15 2-22zM32 14h12" />
+    <path d="M21 21h6m-2-2 2 2-2 2M27 28h-6m2-2-2 2 2 2" />
   </svg>
 )
 
-/** Empty shelf: a shelving cabinet with nothing on it but the outline of the first bag to come. */
+/** Empty shelf: the shelf cabinet with a single bag waiting on it. */
 export const EmptyShelfArt = () => (
-  <svg viewBox="0 0 160 150" className="empty-art" aria-hidden="true">
-    <rect x="16" y="4" width="128" height="136" rx="6" fill="var(--surface-2)" stroke="var(--maybe)" strokeWidth="2" />
-    <path d="M16 48h128M16 94h128" stroke="var(--maybe)" strokeWidth="2" />
-    <path d="M18 48h124v4H18zM18 94h124v4H18z" fill="color-mix(in srgb, var(--maybe) 35%, transparent)" />
-    <path d="M32 140v7M128 140v7" stroke="var(--maybe)" strokeWidth="3" strokeLinecap="round" />
-    <g transform="translate(68 54) scale(0.42)">
-      <Bag x={0} y={0} mark="+" ghost />
-    </g>
+  <svg {...art}>
+    <rect x="10" y="4" width="28" height="36" rx="2.5" />
+    <path d="M10 16h28M10 28h28M14 40v3M34 40v3" />
+    <path d="M21 28v-6.5l1-1.5h4l1 1.5V28" />
   </svg>
 )
-/** Empty taste profile: a cup in front of an unfilled flavor wheel, five stars still to give. */
+
+/** Empty taste profile: a cup still to be tasted. */
 export const EmptyTasteArt = () => (
-  <svg viewBox="0 0 160 140" className="empty-art" aria-hidden="true">
-    <circle cx="80" cy="56" r="50" fill="var(--surface-2)" stroke="var(--maybe)" strokeWidth="1.6" strokeDasharray="4 4" />
-    <circle cx="80" cy="56" r="32" fill="none" stroke="var(--maybe)" strokeWidth="1.2" strokeDasharray="3 4" opacity="0.7" />
-    <g stroke="var(--maybe)" strokeWidth="1.2" strokeDasharray="3 4" opacity="0.7">
-      {[0, 45, 90, 135].map((a) => <path key={a} d="M80 6v100" transform={`rotate(${a} 80 56)`} />)}
+  <svg {...art}>
+    <g transform="translate(-2 0)">
+    <path d="M13 20h18v8a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8zM31 22h2a4 4 0 0 1 0 8h-2M10 40h24" />
+    <path d="M19 16c-1.5-2 1.5-3 0-5M25 16c-1.5-2 1.5-3 0-5" />
     </g>
-    <path d="M60 46h40v22a14 14 0 0 1-14 14H74a14 14 0 0 1-14-14z" fill="var(--surface)" stroke="var(--maybe)" strokeWidth="2" strokeLinejoin="round" />
-    <path d="M100 52h4a7 7 0 0 1 0 14h-5" fill="none" stroke="var(--maybe)" strokeWidth="2" />
-    <path d="M55 86h50" stroke="var(--maybe)" strokeWidth="2" strokeLinecap="round" />
-    <path d="M73 38c-3-4 3-6 0-10M81 38c-3-4 3-6 0-10M89 38c-3-4 3-6 0-10" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" />
-    {[0, 1, 2, 3, 4].map((i) => (
-      <path key={i} transform={`translate(${36 + i * 18} 118) scale(0.6)`} d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinejoin="round" />
-    ))}
   </svg>
 )
