@@ -39,17 +39,32 @@ export const CompareIcon = () => <svg {...base}><rect x="3.5" y="5" width="7" he
 export const FilterIcon = () => <svg {...base}><path d="M4 6h16M7 12h10M10 18h4" /></svg>
 const StarPath = () => <path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" />
 export const StarIcon = () => <svg viewBox="0 0 24 24" fill="currentColor"><StarPath /></svg>
-/** A closed book with a coffee bean on the cover; colors follow the theme. */
+/** A leather-bound encyclopedia volume: gilt spine bands, a framed cover and a gold coffee bean. */
 export const BookIcon = () => (
-  <svg viewBox="0 0 44 50">
-    <path d="M9 7h27a3 3 0 0 1 3 3v34a3 3 0 0 1-3 3H9z" fill="var(--surface)" stroke="var(--maybe)" strokeWidth="1" />
-    <path d="M36 11v32M33.5 11v32" stroke="var(--line)" strokeWidth="0.8" />
-    <rect x="4" y="3" width="31" height="41" rx="3" fill="var(--accent)" />
-    <rect x="4" y="3" width="5" height="41" rx="2" fill="#000" opacity="0.18" />
-    <g transform="rotate(-32 22 21)">
-      <ellipse cx="22" cy="21" rx="6" ry="8.6" fill="var(--on-accent)" />
-      <path d="M22.2 13c-2.9 5.1 2.6 10.6-.4 16" fill="none" stroke="var(--accent)" strokeWidth="1.3" strokeLinecap="round" />
+  <svg viewBox="0 0 52 60">
+    <defs>
+      <linearGradient id="book-leather" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stopColor="#80522f" />
+        <stop offset="1" stopColor="#5a3820" />
+      </linearGradient>
+    </defs>
+    <rect x="12" y="6" width="36" height="51" rx="2.5" fill="#f6efe4" stroke="#c4af93" strokeWidth="0.8" />
+    <path d="M45.6 9v45M43.4 9v45" stroke="#d9cbb7" strokeWidth="0.6" />
+    <rect x="10" y="3" width="35" height="51" rx="3" fill="url(#book-leather)" />
+    <rect x="4" y="3" width="10" height="51" rx="2.5" fill="#4a2c18" />
+    <path d="M14 3.5v50" stroke="#2f1b0e" strokeWidth="1" />
+    <g fill="#d6ad5c">
+      <rect x="5" y="8" width="8" height="1.4" rx="0.5" />
+      <rect x="5" y="11" width="8" height="1.4" rx="0.5" />
+      <rect x="5" y="45" width="8" height="1.4" rx="0.5" />
+      <rect x="5" y="48" width="8" height="1.4" rx="0.5" />
+      <rect x="6.5" y="23" width="5" height="11" rx="1" opacity="0.85" />
     </g>
-    <path d="M15 36h14" stroke="var(--on-accent)" strokeWidth="1.4" strokeLinecap="round" opacity="0.55" />
+    <rect x="18" y="8" width="23" height="41" rx="1.5" fill="none" stroke="#d6ad5c" strokeWidth="1" />
+    <g transform="rotate(-30 29.5 24)">
+      <ellipse cx="29.5" cy="24" rx="5.4" ry="7.8" fill="#d6ad5c" />
+      <path d="M29.7 16.6c-2.6 4.6 2.4 9.6-.4 14.8" fill="none" stroke="#5f3b22" strokeWidth="1.2" strokeLinecap="round" />
+    </g>
+    <path d="M23.5 38.5h12M26 42h7" stroke="#d6ad5c" strokeWidth="1.3" strokeLinecap="round" />
   </svg>
 )

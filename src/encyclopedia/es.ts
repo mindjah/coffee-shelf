@@ -263,7 +263,7 @@ const book: Book = [
   {
     id: 'processing',
     title: 'Proceso',
-    summary: 'Lavado, natural, honey, anaeróbico: cómo cambia el sabor',
+    summary: 'Lavado, natural, honey, anaeróbico, choque térmico, barricas: cómo cambia el sabor',
     articles: [
       {
         title: 'Por qué importa el proceso',
@@ -315,9 +315,64 @@ const book: Book = [
         text: [
           'Las cerezas o los granos se cierran en tanques herméticos, a veces con válvula o llenos de dióxido de carbono. Sin oxígeno trabajan otros microorganismos y el sabor se vuelve explosivo: fruta tropical, canela, chicle, ron, yogur.',
           'La maceración carbónica viene del vino; Sasa Sestic la hizo famosa en el café al ganar el Campeonato Mundial de Baristas de 2015.',
-          'Experimentos parecidos: fermentación láctica, choque térmico, doble fermentación, levaduras seleccionadas.',
+          'Otros experimentos (fermentación láctica, choque térmico, levaduras, añejado en barrica) se describen más abajo.',
         ],
         tip: 'Si un anaeróbico te resulta «demasiado», muele un poco más grueso y usa agua más fría: las notas de fermentación se suavizan.',
+      },
+      {
+        title: 'Fermentación láctica',
+        lead: 'Fermentación dominada por bacterias lácticas: cremosa y suave, con yogur y mantequilla.',
+        text: [
+          'El café fermenta sin oxígeno de forma que dominen las bacterias lácticas; a veces se añaden a propósito. En lugar de ácido málico y cítrico, la taza tiene más ácido láctico, suave y redondo.',
+          'Sabor: yogur, nata, mantequilla, fruta madura, a veces queso. Cuerpo denso, acidez suave.',
+        ],
+      },
+      {
+        title: 'Choque térmico',
+        lead: 'Tras una fermentación larga el café se lava con agua caliente y luego fría: aromas intensos como caramelos.',
+        text: [
+          'Lo popularizó el caficultor colombiano Diego Bermúdez (Finca El Paraíso, Cauca). Las cerezas o el grano fermentan mucho tiempo sin oxígeno y luego se cambia la temperatura de golpe: agua caliente y después fría. La idea es «abrir» el grano y fijar los aromas de la fermentación.',
+          'El sabor es muy intenso: fruta tropical, frutos rojos, flores, caramelos. A menudo se confunden con cafés aromatizados, pero no llevan añadidos.',
+        ],
+      },
+      {
+        title: 'Levaduras, mosto y koji',
+        lead: 'La fermentación se dirige añadiendo microorganismos elegidos, como en el vino, el pan y el sake.',
+        terms: [
+          ['Levaduras seleccionadas', 'cepas del vino y la cerveza. Fermentación más predecible; taza más limpia y frutal.'],
+          ['Mosto', 'el jugo fermentado de un lote anterior se añade al siguiente, como masa madre. Popular en Colombia; aporta dulzor y fruta.'],
+          ['Koji', 'el hongo Aspergillus oryzae del sake y el miso. Experimento raro: dulzor, acidez suave, profundidad inusual.'],
+          ['Levaduras de vino', 'dan notas vinosas, de frutos rojos, a veces licorosas.'],
+        ],
+      },
+      {
+        title: 'Fermentación doble y prolongada',
+        lead: 'Más tiempo en contacto con la pulpa y el mucílago: más fruta y complejidad.',
+        terms: [
+          ['Doble (Kenia)', 'el café se fermenta, se lava y se vuelve a remojar: la limpieza y el brillo clásicos de Kenia.'],
+          ['Doble (moderna)', 'por ejemplo, anaeróbica en cereza y luego otra vez en pergamino en tanque.'],
+          ['Prolongada', 'las cerezas fermentan 2–8 días antes de secarse: más frutos rojos, vino, dulzor.'],
+          ['Secado lento', 'secar a la sombra o en cuartos oscuros ralentiza el proceso y da una taza más pareja y dulce.'],
+        ],
+      },
+      {
+        title: 'Añejado en barrica (barrel aged)',
+        lead: 'El café verde reposa en barricas de whisky, ron o vino y absorbe su aroma.',
+        text: [
+          'El café verde se mete en barricas usadas (de bourbon, whisky, ron, jerez o vino) durante semanas o meses y se gira con regularidad. El grano seco absorbe los aromas de la madera y de la bebida. También existe el barrel fermented, en el que las cerezas fermentan dentro de la barrica.',
+          'Sabor: vainilla, roble, caramelo, frutos secos, notas cálidas «licorosas». No hay alcohol en la taza: apenas pasa al grano y no sobrevive al tueste.',
+          'Un buen tostador indica la barrica y el tiempo. La base tiene que ser un buen café: la barrica suma, pero no arregla.',
+        ],
+        tip: 'Prepáralo un poco más frío (88–92 °C): la madera se suaviza y el dulzor gana protagonismo.',
+      },
+      {
+        title: 'Café añejo y monzonado',
+        lead: 'El grano se envejece a propósito: el sabor se vuelve suave y especiado, sin acidez.',
+        terms: [
+          ['Monsooned Malabar (India)', 'el grano pasa semanas en almacenes abiertos expuesto a los vientos húmedos del monzón; se hincha y palidece.'],
+          ['Sumatra añejo', 'el grano se guarda durante años: notas terrosas, especiadas, leñosas.'],
+          ['Por qué no es un defecto', 'el café viejo corriente sabe plano y a cartón; aquí el envejecimiento es controlado y crea un estilo propio.'],
+        ],
       },
       {
         title: 'Infusionados y co-fermentados',
@@ -325,6 +380,18 @@ const book: Book = [
         text: [
           'En la co-fermentación se añade al café, por ejemplo, maracuyá, canela o levadura de vino. La taza resulta muy llamativa, pero el sabor ya no viene solo del café. Parte de la comunidad lo considera aromatización y espera que el tostador indique los añadidos en la bolsa.',
         ],
+      },
+      {
+        title: 'Cómo entender un lote experimental',
+        lead: 'Qué buscar en la bolsa y cómo prepararlo.',
+        terms: [
+          ['Anaerobic, CM, lactic', 'fermentación sin oxígeno, maceración carbónica, láctica: intensos, pero sin añadidos.'],
+          ['Thermal shock', 'choque térmico: muy aromático, sin añadidos.'],
+          ['Yeast inoculated, mosto', 'con levadura o mosto añadidos: tampoco aportan sabores ajenos.'],
+          ['Co-fermented, infused with…', 'con frutas, especias o aromas añadidos: el sabor ya no es solo del café.'],
+          ['Barrel aged', 'reposado en barrica: notas de madera y de lo que contenía la barrica.'],
+        ],
+        tip: 'Empieza con una molienda algo más gruesa, agua a 88–92 °C y proporción 1:16–1:17. Si sabe a chicle con un aroma imposible en el café (por ejemplo, exactamente a yogur de fresa), probablemente sea infusionado.',
       },
       {
         title: 'Descascarado en húmedo (giling basah)',

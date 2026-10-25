@@ -263,7 +263,7 @@ const book: Book = [
   {
     id: 'processing',
     title: 'Processing',
-    summary: 'Washed, natural, honey, anaerobic — how processing changes the taste',
+    summary: 'Washed, natural, honey, anaerobic, thermal shock, barrels — how processing changes the taste',
     articles: [
       {
         title: 'Why processing matters',
@@ -315,9 +315,64 @@ const book: Book = [
         text: [
           'Cherries or beans are sealed in tanks, sometimes with a valve or flushed with carbon dioxide. Without oxygen different microbes take over, and the taste gets explosive: tropical fruit, cinnamon, bubblegum, rum, yogurt.',
           'Carbonic maceration comes from winemaking; Sasa Sestic made it famous in coffee by winning the 2015 World Barista Championship.',
-          'Related experiments: lactic fermentation, thermal shock, double fermentation, selected yeasts.',
+          'Other experiments — lactic fermentation, thermal shock, yeasts, barrel aging — are described below.',
         ],
         tip: 'If an anaerobic coffee feels like “too much”, grind a bit coarser and brew cooler — the fermentation notes soften.',
+      },
+      {
+        title: 'Lactic fermentation',
+        lead: 'Fermentation led by lactic acid bacteria: creamy and soft, with yogurt and butter.',
+        text: [
+          'Coffee is fermented without oxygen in a way that lets lactic acid bacteria take over; sometimes they’re added on purpose. Instead of malic and citric acid, the cup gets more lactic acid — soft and round.',
+          'Taste: yogurt, cream, butter, ripe fruit, sometimes cheese. Heavy body, gentle acidity.',
+        ],
+      },
+      {
+        title: 'Thermal shock',
+        lead: 'After a long fermentation the coffee is washed with hot, then cold water: aromas as vivid as candy.',
+        text: [
+          'Made famous by Colombian farmer Diego Bermúdez (Finca El Paraíso, Cauca). Cherries or beans first ferment for a long time without oxygen, then the temperature is changed sharply: hot water, then cold. The idea is to “open” the bean and lock in the fermentation aromas.',
+          'The taste is very intense: tropical fruit, berries, florals, candy. These lots are often mistaken for flavored ones, but nothing is added.',
+        ],
+      },
+      {
+        title: 'Yeasts, starters and koji',
+        lead: 'Fermentation is steered by adding chosen microbes — as in wine, bread and sake.',
+        terms: [
+          ['Selected yeasts', 'strains from winemaking and brewing. Fermentation is more predictable; the cup cleaner and fruitier.'],
+          ['Mosto', 'fermenting juice from a previous batch is added to the next, like a sourdough starter. Popular in Colombia; adds sweetness and fruit.'],
+          ['Koji', 'the Aspergillus oryzae mold used for sake and miso. A rare experiment: sweetness, soft acidity, unusual depth.'],
+          ['Wine yeasts', 'give winey, berry, sometimes boozy notes.'],
+        ],
+      },
+      {
+        title: 'Double and extended fermentation',
+        lead: 'More time in contact with pulp and mucilage — more fruit and complexity.',
+        terms: [
+          ['Double (Kenya)', 'coffee is fermented, washed and soaked again — the classic Kenyan clarity and brightness.'],
+          ['Double (modern)', 'for example anaerobic in the cherry, then again in parchment in a tank.'],
+          ['Extended', 'cherries ferment for 2–8 days before drying: more berries, wine, sweetness.'],
+          ['Slow drying', 'drying in shade or dark rooms slows things down and makes the cup more even and sweeter.'],
+        ],
+      },
+      {
+        title: 'Barrel aged',
+        lead: 'Green coffee rests in whisky, rum or wine barrels and soaks up their aroma.',
+        text: [
+          'Green coffee goes into used barrels — bourbon, whisky, rum, sherry or wine — for a few weeks or months and is rolled regularly. The dry beans absorb aromas from the wood and the drink. There’s also barrel fermented, where cherries ferment in the barrel itself.',
+          'Taste: vanilla, oak, caramel, dried fruit, warm “boozy” notes. There’s no alcohol in the cup — hardly any gets into the bean, and none survives roasting.',
+          'A good roaster names the barrel and the time. The base has to be good coffee: the barrel adds to it but doesn’t fix it.',
+        ],
+        tip: 'Brew a little cooler (88–92 °C): the wood softens and the sweetness comes forward.',
+      },
+      {
+        title: 'Aged and monsooned coffee',
+        lead: 'Beans are aged on purpose — the taste turns soft and spicy, with no acidity.',
+        terms: [
+          ['Monsooned Malabar (India)', 'beans lie for weeks in open warehouses in damp monsoon winds, swelling and turning pale.'],
+          ['Aged Sumatra', 'beans are stored for years: earthy, spicy, woody notes.'],
+          ['Why it isn’t a defect', 'ordinary old coffee is flat and cardboardy; here the aging is controlled and makes a style of its own.'],
+        ],
       },
       {
         title: 'Infused and co-fermented coffee',
@@ -325,6 +380,18 @@ const book: Book = [
         text: [
           'In co-fermentation, things like passion fruit, cinnamon or wine yeast are added to the coffee. The cup becomes very vivid, but the taste no longer comes from the coffee alone. Part of the community calls it flavoring and expects roasters to list additions honestly on the bag.',
         ],
+      },
+      {
+        title: 'Making sense of an experimental lot',
+        lead: 'What to look for on the bag and how to brew it.',
+        terms: [
+          ['Anaerobic, CM, lactic', 'fermentation without oxygen, carbonic maceration, lactic — intense, but nothing added.'],
+          ['Thermal shock', 'very aromatic, nothing added.'],
+          ['Yeast inoculated, mosto', 'yeast or a starter added — still no outside flavors.'],
+          ['Co-fermented, infused with…', 'fruit, spices or flavorings added — the taste isn’t only the coffee’s.'],
+          ['Barrel aged', 'rested in a barrel — notes of wood and whatever the barrel held.'],
+        ],
+        tip: 'Start with a slightly coarser grind, 88–92 °C water and a 1:16–1:17 ratio. If it tastes like bubblegum with an aroma coffee can’t have (say, exactly strawberry yogurt), it’s probably infused.',
       },
       {
         title: 'Wet-hulled (giling basah)',

@@ -48,15 +48,17 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
 
   return (
     <div className="screen">
-      <div className="row title-row">
-        <h1 className="screen-title">{t.taste.title}</h1>
+      <div className="row taste-head">
+        <div>
+          <h1 className="screen-title">{t.taste.title}</h1>
+          <p className="screen-sub">{t.taste.subtitle}</p>
+        </div>
         <span className="spacer" />
         <button type="button" className="book-btn" onClick={() => setReading(true)} aria-label={t.book.open}>
           <BookIcon />
         </button>
       </div>
       {reading && <Encyclopedia onClose={() => setReading(false)} />}
-      <p className="screen-sub">{t.taste.subtitle}</p>
 
       {rated.length < MIN_RATINGS ? (
         <div className="empty">
