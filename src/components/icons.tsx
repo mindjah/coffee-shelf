@@ -39,32 +39,34 @@ export const CompareIcon = () => <svg {...base}><rect x="3.5" y="5" width="7" he
 export const FilterIcon = () => <svg {...base}><path d="M4 6h16M7 12h10M10 18h4" /></svg>
 const StarPath = () => <path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" />
 export const StarIcon = () => <svg viewBox="0 0 24 24" fill="currentColor"><StarPath /></svg>
-/** A leather-bound encyclopedia volume: gilt spine bands, a framed cover and a gold coffee bean. */
+/** A leather-bound encyclopedia volume seen from above-left: page edges on top, a gilt spine, a gold bean on the cover. */
 export const BookIcon = () => (
   <svg viewBox="0 0 52 60">
     <defs>
-      <linearGradient id="book-leather" x1="0" x2="1" y1="0" y2="1">
-        <stop offset="0" stopColor="#80522f" />
-        <stop offset="1" stopColor="#5a3820" />
+      <linearGradient id="book-cover" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stopColor="#86562f" />
+        <stop offset="1" stopColor="#5c3a21" />
+      </linearGradient>
+      <linearGradient id="book-spine" x1="0" x2="1" y1="0" y2="0">
+        <stop offset="0" stopColor="#3e2413" />
+        <stop offset="0.45" stopColor="#5e3a21" />
+        <stop offset="1" stopColor="#3a2212" />
       </linearGradient>
     </defs>
-    <rect x="12" y="6" width="36" height="51" rx="2.5" fill="#f6efe4" stroke="#c4af93" strokeWidth="0.8" />
-    <path d="M45.6 9v45M43.4 9v45" stroke="#d9cbb7" strokeWidth="0.6" />
-    <rect x="10" y="3" width="35" height="51" rx="3" fill="url(#book-leather)" />
-    <rect x="4" y="3" width="10" height="51" rx="2.5" fill="#4a2c18" />
-    <path d="M14 3.5v50" stroke="#2f1b0e" strokeWidth="1" />
-    <g fill="#d6ad5c">
-      <rect x="5" y="8" width="8" height="1.4" rx="0.5" />
-      <rect x="5" y="11" width="8" height="1.4" rx="0.5" />
-      <rect x="5" y="45" width="8" height="1.4" rx="0.5" />
-      <rect x="5" y="48" width="8" height="1.4" rx="0.5" />
-      <rect x="6.5" y="23" width="5" height="11" rx="1" opacity="0.85" />
+    <path d="M13 11.5 6 6h33l7 5.5z" fill="#f4ecdf" stroke="#5c3a21" strokeWidth="0.7" strokeLinejoin="round" />
+    <path d="M11.4 9.7h31.6M9.1 7.9h31.6" stroke="#d9c9b1" strokeWidth="0.5" />
+    <path d="M13 11.5 6 6v43l7 5.5z" fill="url(#book-spine)" />
+    <g stroke="#d6ad5c" strokeWidth="1.1" strokeLinecap="round">
+      <path d="M12.3 17.8 6.7 13.4M12.3 20.6 6.7 16.2M12.3 46.6 6.7 42.2M12.3 49.4 6.7 45" />
     </g>
-    <rect x="18" y="8" width="23" height="41" rx="1.5" fill="none" stroke="#d6ad5c" strokeWidth="1" />
-    <g transform="rotate(-30 29.5 24)">
-      <ellipse cx="29.5" cy="24" rx="5.4" ry="7.8" fill="#d6ad5c" />
-      <path d="M29.7 16.6c-2.6 4.6 2.4 9.6-.4 14.8" fill="none" stroke="#5f3b22" strokeWidth="1.2" strokeLinecap="round" />
+    <path d="M12.2 27.5 7 23.4v9.4l5.2 4.1z" fill="#d6ad5c" opacity="0.85" />
+    <path d="M13 11.5h33v41a2 2 0 0 1-2 2H13z" fill="url(#book-cover)" />
+    <path d="M13 11.5v43" stroke="#2f1b0e" strokeWidth="0.7" />
+    <rect x="17.5" y="15.5" width="24.5" height="35" rx="1.2" fill="none" stroke="#d6ad5c" strokeWidth="1" />
+    <g transform="rotate(-30 29.75 28.5)">
+      <ellipse cx="29.75" cy="28.5" rx="5.2" ry="7.5" fill="#d6ad5c" />
+      <path d="M29.95 21.4c-2.5 4.4 2.3 9.2-.4 14.2" fill="none" stroke="#5f3b22" strokeWidth="1.2" strokeLinecap="round" />
     </g>
-    <path d="M23.5 38.5h12M26 42h7" stroke="#d6ad5c" strokeWidth="1.3" strokeLinecap="round" />
+    <path d="M24 42h11.5M26.5 45.3h6.5" stroke="#d6ad5c" strokeWidth="1.3" strokeLinecap="round" />
   </svg>
 )

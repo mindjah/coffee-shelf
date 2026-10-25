@@ -88,6 +88,134 @@ const book: Book = [
     ],
   },
   {
+    id: 'sca',
+    title: 'SCA y estándares',
+    summary: 'Qué es la SCA, cómo se evalúan el grano y la taza, la Taza de Oro, el agua, la formación y los campeonatos',
+    articles: [
+      {
+        title: 'Qué es la SCA',
+        lead: 'La Specialty Coffee Association, una organización sin ánimo de lucro que fija los estándares del café de especialidad.',
+        text: [
+          'La SCA nació en 2017 de la fusión de la estadounidense SCAA (fundada en 1982) y la europea SCAE (1998). Reúne a productores, importadores, tostadores, baristas, fabricantes de equipos e investigadores.',
+          'Redacta estándares (clasificación del verde, catación, preparación, agua), financia investigación, ofrece formación y organiza ferias: Specialty Coffee Expo en EE. UU. y World of Coffee en Europa. Los campeonatos los organiza su rama World Coffee Events.',
+        ],
+        tip: '«85 puntos SCA» en una bolsa significa una puntuación según el protocolo SCA, no que la asociación haya catado ese café.',
+      },
+      {
+        title: 'Café verde de grado especialidad',
+        lead: 'Antes de catarlo, el grano se revisa en busca de defectos: el de especialidad casi no tiene.',
+        facts: [
+          ['Muestra', '350 g de café verde'],
+          ['Defectos primarios', '0'],
+          ['Defectos totales', '5 como máximo'],
+          ['Humedad', '9–13%'],
+          ['Quakers', '0 en 100 g tostado'],
+          ['Catación', '80 puntos o más'],
+        ],
+        terms: [
+          ['Defectos primarios', 'granos negros o agrios completos, cerezas secas enteras, moho, piedras, daño grave de insectos: uno solo estropea mucho la taza.'],
+          ['Defectos secundarios', 'granos parcialmente negros o agrios, inmaduros, partidos, arrugados, restos de pergamino; se cuentan por grupos (por ejemplo, 5 partidos = 1 defecto).'],
+        ],
+      },
+      {
+        title: 'El formulario de catación SCA (2004)',
+        lead: 'La escala clásica de 100 puntos: diez atributos de 10 puntos cada uno, menos los defectos.',
+        facts: [
+          ['6–6,75', 'bueno'],
+          ['7–7,75', 'muy bueno'],
+          ['8–8,75', 'excelente'],
+          ['9–9,75', 'excepcional'],
+        ],
+        text: [
+          'Los atributos de calidad se puntúan de 6 a 9,75 en pasos de 0,25, así que en la práctica la escala no empieza en cero: el café comercial corriente queda en 70–79 y el de especialidad en 80+.',
+        ],
+        terms: [
+          ['Fragancia/aroma', 'el olor del café molido y de la infusión.'],
+          ['Sabor', 'la impresión principal en boca y nariz.'],
+          ['Posgusto', 'cuánto dura y qué tan agradable es tras tragar.'],
+          ['Acidez', 'brillo; se puntúa la calidad, no la cantidad.'],
+          ['Cuerpo', 'riqueza y textura.'],
+          ['Balance', 'cómo encajan los atributos entre sí.'],
+          ['Uniformidad, taza limpia, dulzor', '2 puntos por cada una de las cinco tazas de la muestra.'],
+          ['Puntaje del catador', 'la valoración personal del catador.'],
+          ['Defectos', '−2 por un sabor extraño (taint) y −4 por un defecto claro (fault) en cada taza afectada.'],
+        ],
+      },
+      {
+        title: 'CVA: la nueva evaluación',
+        lead: 'Desde 2024 la SCA separa «cómo es este café» de «qué tan bueno es».',
+        text: [
+          'La Coffee Value Assessment sustituye al formulario de 2004. En el antiguo, un solo número describía a la vez intensidad, calidad y el gusto del catador: un cuerpo «8» podía significar «mucho» o «bueno».',
+          'Ahora la evaluación tiene partes separadas que no se mezclan. Se mantiene la cifra de 100 puntos, pero la acompaña una descripción del sabor.',
+        ],
+        terms: [
+          ['Física', 'inspección del café verde: defectos, humedad, tamaño.'],
+          ['Descriptiva', 'intensidad de aroma, sabor, acidez, dulzor y cuerpo, y las notas marcadas, sin juicio de bueno o malo.'],
+          ['Afectiva', 'la impresión de calidad en una escala de 1 a 9; de ella se calcula la puntuación final.'],
+          ['Extrínseca', 'todo lo que no está en la taza: origen, certificaciones, historia de la finca, que también influyen en el valor.'],
+        ],
+      },
+      {
+        title: 'La Taza de Oro',
+        lead: 'El estándar SCA para café filtrado: cuánto café usar y qué intensidad buscar.',
+        facts: [
+          ['Proporción', '55 g por 1 L de agua (±10%)'],
+          ['Extracción', '18–22%'],
+          ['Intensidad (TDS)', '1,15–1,35%'],
+          ['Agua', '92–96 °C'],
+        ],
+        text: [
+          'Se basa en la carta de control de preparación (Brewing Control Chart): intensidad en un eje y extracción en el otro. En el centro está la zona «ideal»; a la izquierda, subextracción (ácido); a la derecha, sobreextracción (amargo); arriba, demasiado fuerte; abajo, aguado.',
+          '55 g/L es más o menos 1:18. Hoy muchos preparan algo más fuerte (1:15–1:17): el estándar es una referencia, no una regla.',
+        ],
+        tip: 'Sin refractómetro, guíate por el sabor: ácido, más fino; amargo, más grueso (ver «Bases de la preparación»).',
+      },
+      {
+        title: 'El estándar del agua',
+        lead: 'Qué agua hace brillar al café: limpia, sin olor, con una cantidad moderada de minerales.',
+        facts: [
+          ['Residuo seco (TDS)', '150 mg/L (75–250)'],
+          ['Dureza cálcica', '68 mg/L de CaCO₃ (17–85)'],
+          ['Alcalinidad', 'unos 40 mg/L'],
+          ['pH', '7,0 (6,5–7,5)'],
+          ['Sodio', 'unos 10 mg/L'],
+          ['Cloro', '0'],
+        ],
+        text: [
+          'El calcio y el magnesio ayudan a extraer el sabor; la alcalinidad (bicarbonatos) amortigua la acidez: poca y el café sale agresivo y ácido; mucha y sale plano y calcáreo. El manual de calidad del agua de la SCA (2018) da rangos más amplios: dureza total 50–175 mg/L, alcalinidad 40–75 mg/L.',
+        ],
+      },
+      {
+        title: 'Formación y certificados',
+        lead: 'Los cursos de la SCA para baristas, tostadores y catadores, y en qué se diferencia un Q grader.',
+        terms: [
+          ['Coffee Skills Program', 'módulos: Introducción al café, Barista, Métodos de preparación, Análisis sensorial, Café verde, Tueste. Niveles: Foundation, Intermediate, Professional.'],
+          ['Coffee Diploma', 'se obtiene con un conjunto de módulos y puntos.'],
+          ['Q grader', 'certificado de otra organización, el Coffee Quality Institute (CQI). Los Q graders puntúan según el protocolo SCA y se recalibran cada tres años.'],
+        ],
+      },
+      {
+        title: 'Campeonatos y ferias',
+        lead: 'Donde aparecen nuevas recetas, procesos y tendencias.',
+        terms: [
+          ['World Barista Championship', 'espresso, una bebida con leche y una bebida de autor en 15 minutos.'],
+          ['World Brewers Cup', 'preparación manual: una ronda obligatoria y una libre.'],
+          ['Cup Tasters', 'encontrar contra reloj la taza distinta en cada grupo de tres.'],
+          ['Latte Art, Coffee Roasting, Coffee in Good Spirits, Cezve/Ibrik', 'otros campeonatos de World Coffee Events.'],
+          ['World AeroPress Championship', 'independiente de la SCA, se celebra desde 2008.'],
+          ['Ferias', 'Specialty Coffee Expo (EE. UU.) y World of Coffee (Europa).'],
+        ],
+      },
+      {
+        title: 'La rueda de sabores de la SCA',
+        lead: 'Un vocabulario común de sabores, creado con World Coffee Research.',
+        text: [
+          'La rueda de 2016 se basa en el léxico sensorial de WCR: cada palabra tiene una referencia (una mermelada o una especia concreta, por ejemplo) para que catadores de distintos países entiendan lo mismo. En el centro están las categorías generales y en el borde las notas concretas. Más en «Cata».',
+        ],
+      },
+    ],
+  },
+  {
     id: 'origins',
     title: 'Orígenes',
     summary: 'Qué esperar de Etiopía, Kenia, Colombia y otros países',

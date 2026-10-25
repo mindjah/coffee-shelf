@@ -88,6 +88,134 @@ const book: Book = [
     ],
   },
   {
+    id: 'sca',
+    title: 'SCA & standards',
+    summary: 'What the SCA is, how beans and cups are graded, the Golden Cup, water, education and championships',
+    articles: [
+      {
+        title: 'What the SCA is',
+        lead: 'The Specialty Coffee Association — a non-profit that sets the standards for specialty coffee.',
+        text: [
+          'The SCA was formed in 2017 when the American SCAA (founded 1982) and the European SCAE (1998) merged. Its members are farmers, importers, roasters, baristas, equipment makers and researchers.',
+          'It writes standards (green grading, cupping, brewing, water), funds research, runs education and holds trade shows: Specialty Coffee Expo in the US and World of Coffee in Europe. Championships are run by its World Coffee Events arm.',
+        ],
+        tip: '“85 SCA points” on a bag means a score on the SCA protocol, not that the association itself tasted the coffee.',
+      },
+      {
+        title: 'Specialty-grade green coffee',
+        lead: 'Before tasting, beans are checked for defects — specialty has almost none.',
+        facts: [
+          ['Sample', '350 g of green coffee'],
+          ['Primary defects', '0'],
+          ['Total defects', '5 at most'],
+          ['Moisture', '9–13%'],
+          ['Quakers', '0 in 100 g roasted'],
+          ['Cupping', '80 points or more'],
+        ],
+        terms: [
+          ['Primary defects', 'fully black or sour beans, whole dried cherries, mold, stones, severe insect damage — one of these spoils a cup badly.'],
+          ['Secondary defects', 'partly black or sour, unripe, broken, withered beans, parchment — counted in groups (for example, 5 broken = 1 defect).'],
+        ],
+      },
+      {
+        title: 'The SCA cupping form (2004)',
+        lead: 'The classic 100-point scale: ten attributes worth 10 points each, minus defects.',
+        facts: [
+          ['6–6.75', 'good'],
+          ['7–7.75', 'very good'],
+          ['8–8.75', 'excellent'],
+          ['9–9.75', 'outstanding'],
+        ],
+        text: [
+          'Quality attributes are scored from 6 to 9.75 in steps of 0.25, so in practice the scale doesn’t start at zero: ordinary commercial coffee lands at 70–79, specialty at 80+.',
+        ],
+        terms: [
+          ['Fragrance/aroma', 'the smell of the dry grounds and the brew.'],
+          ['Flavor', 'the main impression in the mouth and nose.'],
+          ['Aftertaste', 'how long and how pleasant it lasts after swallowing.'],
+          ['Acidity', 'brightness; quality is scored, not quantity.'],
+          ['Body', 'richness and texture.'],
+          ['Balance', 'how the attributes work together.'],
+          ['Uniformity, clean cup, sweetness', '2 points for each of the sample’s five cups.'],
+          ['Overall', 'the cupper’s personal judgement.'],
+          ['Defects', '−2 for a taint and −4 for a fault in each affected cup.'],
+        ],
+      },
+      {
+        title: 'CVA — the new assessment',
+        lead: 'Since 2024 the SCA separates “what this coffee is” from “how good it is”.',
+        text: [
+          'The Coffee Value Assessment replaces the 2004 cupping form. On the old form one number described intensity, quality and the cupper’s taste all at once — body “8” could mean “a lot” or “good”.',
+          'Now the assessment has separate parts that don’t mix. The familiar 100-point number stays, but a description of the taste comes with it.',
+        ],
+        terms: [
+          ['Physical', 'inspecting the green coffee: defects, moisture, size.'],
+          ['Descriptive', 'intensity of aroma, flavor, acidity, sweetness and body, plus the notes ticked — no good or bad.'],
+          ['Affective', 'an impression of quality on a 1–9 scale; the final score is calculated from it.'],
+          ['Extrinsic', 'everything outside the cup: origin, certifications, the farm’s story — things that also shape value.'],
+        ],
+      },
+      {
+        title: 'The Golden Cup',
+        lead: 'The SCA standard for filter coffee: how much coffee to use and what strength to aim for.',
+        facts: [
+          ['Ratio', '55 g per 1 L of water (±10%)'],
+          ['Extraction', '18–22%'],
+          ['Strength (TDS)', '1.15–1.35%'],
+          ['Water', '92–96 °C'],
+        ],
+        text: [
+          'It’s built on the Brewing Control Chart: strength on one axis, extraction on the other. The center is the “ideal” zone; left is under-extracted (sour), right over-extracted (bitter), above too strong, below watery.',
+          '55 g/L is about 1:18. Many people now brew a little stronger (1:15–1:17) — the standard is a reference, not a rule.',
+        ],
+        tip: 'Without a refractometer, go by taste: sour — finer, bitter — coarser (see “Brewing basics”).',
+      },
+      {
+        title: 'The water standard',
+        lead: 'What water lets coffee shine: clean, odorless, with a moderate amount of minerals.',
+        facts: [
+          ['Total dissolved solids', '150 mg/L (75–250)'],
+          ['Calcium hardness', '68 mg/L as CaCO₃ (17–85)'],
+          ['Alkalinity', 'about 40 mg/L'],
+          ['pH', '7.0 (6.5–7.5)'],
+          ['Sodium', 'about 10 mg/L'],
+          ['Chlorine', '0'],
+        ],
+        text: [
+          'Calcium and magnesium help extract flavor; alkalinity (bicarbonates) buffers acidity — too little and coffee is sharp and sour, too much and it’s flat and chalky. The SCA Water Quality Handbook (2018) gives wider ranges: total hardness 50–175 mg/L, alkalinity 40–75 mg/L.',
+        ],
+      },
+      {
+        title: 'Education and certificates',
+        lead: 'SCA courses for baristas, roasters and tasters — and how a Q grader differs.',
+        terms: [
+          ['Coffee Skills Program', 'modules: Introduction to Coffee, Barista Skills, Brewing, Sensory Skills, Green Coffee, Roasting. Levels: Foundation, Intermediate, Professional.'],
+          ['Coffee Diploma', 'awarded for a set of modules and points.'],
+          ['Q grader', 'a certificate from another organization, the Coffee Quality Institute (CQI). Q graders score coffee to the SCA protocol and recalibrate every three years.'],
+        ],
+      },
+      {
+        title: 'Championships and shows',
+        lead: 'Where new recipes, processing methods and trends appear.',
+        terms: [
+          ['World Barista Championship', 'espresso, a milk drink and a signature drink in 15 minutes.'],
+          ['World Brewers Cup', 'manual brewing: a compulsory and an open round.'],
+          ['Cup Tasters', 'find the odd cup out in each set of three, against the clock.'],
+          ['Latte Art, Coffee Roasting, Coffee in Good Spirits, Cezve/Ibrik', 'more World Coffee Events championships.'],
+          ['World AeroPress Championship', 'independent of the SCA, held since 2008.'],
+          ['Trade shows', 'Specialty Coffee Expo (US) and World of Coffee (Europe).'],
+        ],
+      },
+      {
+        title: 'The SCA flavor wheel',
+        lead: 'A shared vocabulary of flavors, made with World Coffee Research.',
+        text: [
+          'The 2016 wheel is built on the WCR Sensory Lexicon — each word has a reference (a specific jam or spice, say) so tasters in different countries mean the same thing. General categories sit in the middle, specific notes at the edge. More in “Tasting”.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'origins',
     title: 'Origins',
     summary: 'What to expect from Ethiopia, Kenya, Colombia and other countries',
