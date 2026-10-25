@@ -1,6 +1,6 @@
 import type { Prediction } from '../recommend'
 import { MIN_RATINGS, toneFor } from '../recommend'
-import { reasonText, useLang, useT } from '../i18n'
+import { countryName, reasonText, useLang, useT } from '../i18n'
 import { Stars } from './Stars'
 import { BREWS } from '../types'
 
@@ -85,6 +85,7 @@ export function PredictionCard({ prediction, ratedCount, rated, pick }: { predic
  */
 export function ClosestList({ similar, pick }: { similar: Prediction['similar']; pick?: ClosestPick }) {
   const t = useT()
+  const lang = useLang()
   if (!similar.length) return null
   return (
     <>
@@ -96,6 +97,7 @@ export function ClosestList({ similar, pick }: { similar: Prediction['similar'];
           <>
             <div style={{ minWidth: 0, textAlign: 'left' }}>
               <div style={{ fontWeight: 600 }}>{coffee.name || coffee.roaster}</div>
+              {countryName(coffee, lang) && <div>{countryName(coffee, lang)}</div>}
               <div className="muted">{coffee.roaster} · {t.prediction.similar(Math.round(similarity * 100))}</div>
             </div>
             <span className="spacer" />

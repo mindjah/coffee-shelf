@@ -354,12 +354,14 @@ textarea.input { min-height: 84px; resize: vertical; }
   background: var(--bg); animation: rise 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .sheet-bar {
-  position: sticky; top: 0; z-index: 2; display: flex; align-items: center;
+  position: sticky; top: 0; z-index: 2; display: grid; grid-template-columns: minmax(max-content, 1fr) minmax(0, auto) minmax(max-content, 1fr); align-items: center;
   padding: calc(var(--safe-top) + 6px) 8px 6px;
   background: var(--glass); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
 }
-.sheet-bar .title { flex: 1; text-align: center; font-weight: 600; }
-.sheet-bar .btn.plain { min-width: 72px; }
+.sheet-bar .title { min-width: 0; text-align: center; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sheet-bar > :first-child { justify-self: start; }
+.sheet-bar > :last-child { justify-self: end; }
+.sheet-bar .btn.plain { min-width: 72px; white-space: nowrap; }
 @keyframes rise { from { transform: translateY(100%); } }
 @keyframes fade { from { opacity: 0; } }
 
@@ -627,3 +629,47 @@ textarea.input { min-height: 84px; resize: vertical; }
   background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 700;
 }
 .empty .empty-art { display: block; width: 120px; height: 120px; margin: 0 auto 14px; opacity: 0.45; }
+
+/* Encyclopedia: brew recipes on top of the contents, and the step-by-step brew timer */
+.card.article { scroll-margin-top: calc(var(--safe-top) + 64px); }
+.card.book-brew {
+  display: flex; align-items: center; gap: 14px; width: 100%; margin-bottom: 12px; padding: 16px 18px;
+  border: 0; background: var(--accent-soft); color: inherit; text-align: left;
+}
+.book-brew > svg:first-child { flex: none; width: 30px; height: 30px; color: var(--accent); }
+.book-brew > svg:last-child { flex: none; width: 18px; height: 18px; color: var(--maybe); transform: rotate(-90deg); }
+.btn.brew-start { margin-top: 14px; }
+.brew-facts { margin-bottom: 14px; }
+.brew-dial {
+  position: sticky; top: calc(var(--safe-top) + 56px); z-index: 1;
+  margin: 0 -16px; padding: 6px 16px 16px; text-align: center; background: var(--bg);
+}
+.brew-clock { font: 600 56px/1 var(--serif); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.brew-dial.idle .brew-clock { color: var(--muted); }
+.brew-status { margin-top: 8px; font-size: 15px; color: var(--muted); }
+.brew-bar { height: 6px; margin: 14px auto 0; max-width: 260px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.brew-bar span { display: block; height: 100%; background: var(--accent); transition: width 0.2s linear; }
+.brew-steps { list-style: none; margin: 0; padding: 0; }
+.brew-steps li {
+  display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 16px;
+  font-size: 15px; line-height: 1.45; transition: background 0.2s ease, opacity 0.2s ease;
+}
+.brew-steps li.past { opacity: 0.45; }
+.brew-steps li.now { background: var(--surface); box-shadow: var(--shadow); font-size: 17px; }
+.brew-step-num {
+  flex: none; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--surface-2); color: var(--accent); font-weight: 700; font-size: 13px;
+}
+.brew-steps li.now .brew-step-num { background: var(--accent); color: var(--on-accent); }
+.brew-step-text { flex: 1; min-width: 0; }
+.brew-step-of { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.brew-step-time { flex: none; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 2px; }
+.brew-controls {
+  position: sticky; bottom: 0; display: flex; gap: 10px; margin-top: 16px;
+  padding: 12px 0 calc(var(--safe-bottom) + 8px); background: var(--bg);
+}
+.brew-done { text-align: center; padding: 48px 8px; }
+.brew-done h2 { font: 600 26px/1.2 var(--serif); margin: 16px 0 6px; }
+.brew-done .btn.block { margin-top: 10px; }
+.brew-done .btn:not(.plain) { margin-top: 28px; }
+.brew-title { margin-bottom: 14px; }

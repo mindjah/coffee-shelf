@@ -3,8 +3,9 @@ import type { Article, Book, Chapter } from '../encyclopedia/types'
 import type { Lang } from '../types'
 import { useLang, useT } from '../i18n'
 import { Figure } from '../encyclopedia/figures'
-import { ChevronIcon, ClearIcon } from './icons'
+import { ChevronIcon, ClearIcon, KettleIcon, TimerIcon } from './icons'
 import { Sheet } from './Sheet'
+import { BrewTimer } from './BrewTimer'
 
 // Each language is its own chunk, fetched the first time the book opens.
 const books: Record<Lang, () => Promise<{ default: Book }>> = {
@@ -58,9 +59,17 @@ function search(book: Book, query: string): Hit[] {
   return hits.sort((a, b) => a.rank - b.rank)
 }
 
-function ArticleCard({ article, chapter, snippet }: { article: Article; chapter?: string; snippet?: string }) {
+/** The chapter with brewable recipes, shown apart at the top of the contents. */
+const BREW_CHAPTER = 'methods'
+
+function ArticleCard({ article, chapter, snippet, onBrew }: { article: Article; chapter?: string; snippet?: string; onBrew: (a: Article) => void }) {
+  const t = useT()
   return (
-    <details className="card article">
+    <details
+      className="card article"
+      // Opening an article brings it to the top of the sheet, so its body reads from the start.
+      onToggle={(e) => e.currentTarget.open && e.currentTarget.scrollIntoView({ block: 'start', behavior: 'smooth' })}
+    >
       <summary>
         {chapter && <span className="article-chapter">{chapter}</span>}
         <span className="article-title">{article.title}</span>
@@ -85,6 +94,12 @@ function ArticleCard({ article, chapter, snippet }: { article: Article; chapter?
         )}
         {article.text?.map((p, i) => <p key={i}>{p}</p>)}
         {article.steps && <ol className="article-steps">{article.steps.map((s, i) => <li key={i}>{s}</li>)}</ol>}
+        {article.timer && (
+          <button type="button" className="btn block brew-start" onClick={() => onBrew(article)}>
+            <TimerIcon />
+            {t.brewing.start}
+          </button>
+        )}
         {article.terms && (
           <dl className="article-terms">
             {article.terms.map(([k, v]) => (
@@ -104,6 +119,7 @@ export function Encyclopedia({ onClose }: { onClose: () => void }) {
   const [book, setBook] = useState<Book | null>(null)
   const [chapterId, setChapterId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
+  const [brewing, setBrewing] = useState<Article | null>(null)
   const top = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -121,14 +137,14 @@ export function Encyclopedia({ onClose }: { onClose: () => void }) {
     <Sheet
       title={t.book.title}
       onClose={chapter ? () => setChapterId(null) : onClose}
-      closeLabel={chapter ? `‹ ${t.book.contents}` : undefined}
+      closeLabel={`‹ ${t.book.back}`}
     >
       <div ref={top} />
       {!book ? null : chapter ? (
         <>
           <h2 className="book-chapter-title">{chapter.title}</h2>
           <p className="screen-sub">{chapter.summary}</p>
-          {chapter.articles.map((a) => <ArticleCard key={a.title} article={a} />)}
+          {chapter.articles.map((a) => <ArticleCard key={a.title} article={a} onBrew={setBrewing} />)}
         </>
       ) : (
         <>
@@ -149,13 +165,24 @@ export function Encyclopedia({ onClose }: { onClose: () => void }) {
           </div>
           {query.trim() ? (
             hits.length ? (
-              hits.map((h) => <ArticleCard key={`${h.chapter.id}/${h.article.title}`} article={h.article} chapter={h.chapter.title} snippet={h.snippet} />)
+              hits.map((h) => <ArticleCard key={`${h.chapter.id}/${h.article.title}`} article={h.article} chapter={h.chapter.title} snippet={h.snippet} onBrew={setBrewing} />)
             ) : (
               <p className="muted" style={{ textAlign: 'center', margin: '32px 0' }}>{t.book.noResults}</p>
             )
           ) : (
+            <>
+              {book.filter((c) => c.id === BREW_CHAPTER).map((c) => (
+                <button type="button" key={c.id} className="card book-brew" onClick={() => setChapterId(c.id)}>
+                  <KettleIcon />
+                  <span className="book-toc-text">
+                    <b>{c.title}</b>
+                    <span>{t.book.brewHint}</span>
+                  </span>
+                  <ChevronIcon />
+                </button>
+              ))}
             <div className="card book-toc">
-              {book.map((c, i) => (
+              {book.filter((c) => c.id !== BREW_CHAPTER).map((c, i) => (
                 <button type="button" key={c.id} className="book-toc-row" onClick={() => setChapterId(c.id)}>
                   <span className="book-toc-num">{i + 1}</span>
                   <span className="book-toc-text">
@@ -166,9 +193,11 @@ export function Encyclopedia({ onClose }: { onClose: () => void }) {
                 </button>
               ))}
             </div>
+            </>
           )}
         </>
       )}
+      {brewing && <BrewTimer article={brewing} onClose={() => setBrewing(null)} />}
     </Sheet>
   )
 }

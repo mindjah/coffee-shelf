@@ -943,6 +943,7 @@ const book: Book = [
           'Remueve suavemente por el borde y gira el gotero para que la cama quede plana.',
           'Deja que drene; la cama de café debe quedar plana.',
         ],
+        timer: [null, null, 45, 30, 30, 15, null],
         tip: 'Si drena antes de 2:45 y sabe ácido, muele más fino. Si pasa de 4:00 y amarga, más grueso.',
       },
       {
@@ -961,6 +962,7 @@ const book: Book = [
           '2:15: hasta 240 g.',
           '3:00: hasta 300 g y deja que drene.',
         ],
+        timer: [45, 45, 45, 45, null],
         text: [
           'Para una taza más dulce, haz el primer vertido más pequeño que el segundo (50 + 70); para una más brillante y ácida, al revés (70 + 50). Para más intensidad divide el último 60% en más vertidos; para menos, en menos.',
         ],
@@ -982,6 +984,7 @@ const book: Book = [
           'Gira suavemente la AeroPress para bajar la espuma.',
           'Espera 30 segundos más y presiona despacio, unos 30 segundos, parando antes del silbido.',
         ],
+        timer: [null, 10, 5, 105, 5, 60],
         tip: 'Si amarga, muele más grueso o usa agua más fría. Si sabe vacío y ácido, más fino o más tiempo.',
       },
       {
@@ -1000,6 +1003,7 @@ const book: Book = [
           'A los 1:30, dale la vuelta con cuidado sobre la taza.',
           'Presiona durante 20–30 segundos.',
         ],
+        timer: [null, 30, 60, 10, 30],
         tip: 'Gírala con decisión, sujetando cámara y émbolo: el agua caliente es peligrosa.',
       },
       {
@@ -1015,6 +1019,7 @@ const book: Book = [
           'Presiona al cabo de 1 minuto.',
           'Completa con agua caliente hasta 200 g o añade leche.',
         ],
+        timer: [10, 50, null],
       },
       {
         title: 'Filtrado con hielo (estilo japonés)',
@@ -1030,6 +1035,7 @@ const book: Book = [
           'Prepara como un V60 normal, pero solo con 200 g de agua.',
           'El café cae sobre el hielo y se enfría al instante; remueve y sirve sobre hielo nuevo.',
         ],
+        timer: [null, 180, null],
       },
       {
         title: 'Kalita Wave y goteros de fondo plano',
@@ -1046,6 +1052,7 @@ const book: Book = [
           'Luego vierte 50–70 g cada 20–30 segundos, manteniendo el nivel de agua constante.',
           'Llega a 320 g hacia los 2:00 y deja que drene.',
         ],
+        timer: [null, 30, 90, null],
       },
       {
         title: 'Chemex',
@@ -1062,6 +1069,7 @@ const book: Book = [
           'Vierte en espiral y por etapas hasta 500 g hacia los 2:30.',
           'Deja que drene, retira el filtro y gira la jarra.',
         ],
+        timer: [null, 45, 105, null],
       },
       {
         title: 'Prensa francesa',
@@ -1079,6 +1087,7 @@ const book: Book = [
           'Espera otros 5–8 minutos: los posos bajan solos.',
           'Baja el émbolo solo hasta la superficie y sirve despacio.',
         ],
+        timer: [15, 225, 30, 300, null],
       },
       {
         title: 'Clever Dripper',
@@ -1095,6 +1104,7 @@ const book: Book = [
           'Remueve a los 2 minutos.',
           'Colócalo sobre la taza: la válvula se abre y drena en un minuto.',
         ],
+        timer: [null, 15, 105, 60],
       },
       {
         title: 'Cafetera moka (italiana)',
@@ -1111,6 +1121,7 @@ const book: Book = [
           'Cuando el chorro se aclare y empiece a borbotear, retírala del fuego.',
           'Enfría la base con agua fría para detener la extracción.',
         ],
+        timer: [null, null, null, null, null],
       },
       {
         title: 'Cold brew',
@@ -1127,6 +1138,7 @@ const book: Book = [
           'Cuela con un colador y luego con un filtro de papel.',
           'Es un concentrado: diluye 1:1 con agua o leche y sirve con hielo.',
         ],
+        timer: [null, null, null, null],
         tip: 'El concentrado aguanta hasta una semana en la nevera.',
       },
       {
@@ -1143,6 +1155,7 @@ const book: Book = [
           'Cuando la espuma empiece a subir, retíralo antes de que hierva.',
           'Reparte la espuma en las tazas y sirve el café. Deja reposar los posos un minuto.',
         ],
+        timer: [null, null, null, 60],
       },
     ],
   },

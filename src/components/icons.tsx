@@ -40,6 +40,10 @@ export const ChevronIcon = () => <svg {...base}><path d="m6 9 6 6 6-6" /></svg>
 export const SaveIcon = () => <svg {...base}><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5" /><path d="M5 12v6.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V12" /></svg>
 /** Two bags side by side. */
 export const CompareIcon = () => <svg {...base}><rect x="3.5" y="5" width="7" height="14" rx="1.5" /><rect x="13.5" y="5" width="7" height="14" rx="1.5" /><path d="M5.8 9h2.4M15.8 9h2.4" /></svg>
+export const TimerIcon = () => <svg {...base}><circle cx="12" cy="13.5" r="7.5" /><path d="M12 13.5V9.5M10 2.8h4M18.2 6.8l1.3-1.3" /></svg>
+export const KettleIcon = () => (
+  <svg {...base}><path d="M6 20h10a1 1 0 0 0 1-1.1L16 10H7l-1 8.9A1 1 0 0 0 6 20z" /><path d="M9 10a2.5 1.8 0 0 1 5 0M11.5 6.2v1.6M16.5 12c3 0 3.5 4.5.6 5.5M6.6 13.5C4 13.5 3.5 8.5 1.8 7" /></svg>
+)
 export const FilterIcon = () => <svg {...base}><path d="M4 6h16M7 12h10M10 18h4" /></svg>
 const StarPath = () => <path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" />
 export const StarIcon = () => <svg viewBox="0 0 24 24" fill="currentColor"><StarPath /></svg>

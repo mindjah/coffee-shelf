@@ -943,6 +943,7 @@ const book: Book = [
           'Give a gentle stir around the edge, then swirl the dripper so the bed settles flat.',
           'Let it drain; the coffee bed should end up flat.',
         ],
+        timer: [null, null, 45, 30, 30, 15, null],
         tip: 'Drains faster than 2:45 and tastes sour — grind finer. Longer than 4:00 and bitter — coarser.',
       },
       {
@@ -961,6 +962,7 @@ const book: Book = [
           '2:15 — up to 240 g.',
           '3:00 — up to 300 g, then let it drain.',
         ],
+        timer: [45, 45, 45, 45, null],
         text: [
           'For a sweeter cup make the first pour smaller than the second (50 + 70); for a brighter, more acidic one, the reverse (70 + 50). For more strength split the last 60% into more pours; for less, into fewer.',
         ],
@@ -982,6 +984,7 @@ const book: Book = [
           'Gently swirl the AeroPress to settle the foam.',
           'Wait 30 seconds more and press slowly, about 30 seconds, stopping before the hiss.',
         ],
+        timer: [null, 10, 5, 105, 5, 60],
         tip: 'Bitter — grind coarser or use cooler water. Hollow and sour — finer or steep longer.',
       },
       {
@@ -1000,6 +1003,7 @@ const book: Book = [
           'At 1:30, carefully flip it onto a cup.',
           'Press for 20–30 seconds.',
         ],
+        timer: [null, 30, 60, 10, 30],
         tip: 'Flip confidently, holding both the chamber and the plunger — hot water is dangerous.',
       },
       {
@@ -1015,6 +1019,7 @@ const book: Book = [
           'Press after 1 minute.',
           'Top up with hot water to 200 g, or add milk.',
         ],
+        timer: [10, 50, null],
       },
       {
         title: 'Iced pour-over (Japanese style)',
@@ -1030,6 +1035,7 @@ const book: Book = [
           'Brew as a normal V60, but with only 200 g of water.',
           'The coffee drips onto ice and chills at once; stir and pour over fresh ice.',
         ],
+        timer: [null, 180, null],
       },
       {
         title: 'Kalita Wave and flat-bottom drippers',
@@ -1046,6 +1052,7 @@ const book: Book = [
           'Then pour 50–70 g every 20–30 seconds, keeping the water level steady.',
           'Reach 320 g by about 2:00 and let it drain.',
         ],
+        timer: [null, 30, 90, null],
       },
       {
         title: 'Chemex',
@@ -1062,6 +1069,7 @@ const book: Book = [
           'Pour in spirals and stages up to 500 g by about 2:30.',
           'Let it drain, remove the filter, swirl the carafe.',
         ],
+        timer: [null, 45, 105, null],
       },
       {
         title: 'French press',
@@ -1079,6 +1087,7 @@ const book: Book = [
           'Wait another 5–8 minutes — the grounds sink on their own.',
           'Lower the plunger only to the surface and pour slowly.',
         ],
+        timer: [15, 225, 30, 300, null],
       },
       {
         title: 'Clever Dripper',
@@ -1095,6 +1104,7 @@ const book: Book = [
           'Stir after 2 minutes.',
           'Set it on a cup — the valve opens and it drains in about a minute.',
         ],
+        timer: [null, 15, 105, 60],
       },
       {
         title: 'Moka pot',
@@ -1111,6 +1121,7 @@ const book: Book = [
           'When the stream turns pale and starts to sputter, take it off the heat.',
           'Cool the base under cold water to stop extraction.',
         ],
+        timer: [null, null, null, null, null],
       },
       {
         title: 'Cold brew',
@@ -1127,6 +1138,7 @@ const book: Book = [
           'Strain through a sieve, then through a paper filter.',
           'That’s a concentrate: dilute 1:1 with water or milk and serve over ice.',
         ],
+        timer: [null, null, null, null],
         tip: 'The concentrate keeps in the fridge for up to a week.',
       },
       {
@@ -1143,6 +1155,7 @@ const book: Book = [
           'When the foam starts to rise, take it off the heat before it boils.',
           'Spoon the foam into cups and pour the coffee. Let the grounds settle for a minute.',
         ],
+        timer: [null, null, null, 60],
       },
     ],
   },
