@@ -619,3 +619,11 @@ textarea.input { min-height: 84px; resize: vertical; }
 .article-terms dt { font-weight: 600; }
 .article-terms dd { margin: 2px 0 0; color: var(--muted); }
 .article-tip { padding: 10px 12px; border-radius: 12px; background: var(--accent-soft); font-size: 14px; }
+.article-figure { display: block; width: 100%; max-width: 360px; margin: 0 auto 12px; }
+.article-parts { list-style: none; margin: 0 0 12px; padding: 0; }
+.article-parts li { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; }
+.article-parts li + li { border-top: 0.5px solid var(--line); }
+.article-part-num {
+  flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: var(--on-accent); font-size: 12px; font-weight: 700;
+}

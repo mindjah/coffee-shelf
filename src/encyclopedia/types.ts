@@ -10,6 +10,10 @@ export interface Article {
   /** Term and its explanation, shown stacked. */
   terms?: [string, string][]
   tip?: string
+  /** A schematic drawing from figures.tsx, shown above the body. */
+  figure?: string
+  /** What each numbered callout on the figure points at: [part, what it does]. */
+  parts?: [string, string][]
 }
 
 export interface Chapter {

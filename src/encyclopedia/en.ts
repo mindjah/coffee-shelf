@@ -736,7 +736,7 @@ const book: Book = [
         ],
       },
       {
-        title: 'Equipment',
+        title: 'What to buy first',
         lead: 'A good burr grinder matters most, then a scale.',
         terms: [
           ['Grinder', 'burr (conical or flat), not blade — the grind has to be even.'],
@@ -745,6 +745,178 @@ const book: Book = [
           ['Filters', 'paper gives a clean cup; metal gives more body and oils.'],
         ],
         tip: 'Always rinse a paper filter with hot water: it removes the papery taste and preheats the dripper.',
+      },
+    ],
+  },
+  {
+    id: 'equipment',
+    title: 'Equipment',
+    summary: 'V60, AeroPress, Chemex, moka, espresso, grinders — how they work, in diagrams',
+    articles: [
+      {
+        title: 'Hario V60',
+        lead: 'A 60° cone with one large hole: you control the flow.',
+        figure: 'v60',
+        parts: [
+          ['Spiral ribs', 'let air escape and keep the filter off the walls, so water flows freely.'],
+          ['Large hole', 'barely restricts water — drawdown time depends on your grind and pour.'],
+          ['Paper filter', 'conical; holds back oils and fines for a clean cup.'],
+          ['Server or cup', 'where the brewed coffee collects.'],
+        ],
+        text: [
+          'Japan’s Hario launched the V60 in 2004. It quickly became the pour-over standard: bright, transparent cups, but it rewards a careful pour.',
+          'Material matters little: plastic holds heat well and doesn’t break; ceramic and glass need preheating; metal heats and cools fast. Size 01 brews 1–2 cups, 02 brews 1–4.',
+        ],
+        tip: 'Recipes are in “Brew methods”.',
+      },
+      {
+        title: 'Kalita Wave and flat-bottom drippers',
+        lead: 'A flat bed and three small holes — more even and easier than a cone.',
+        figure: 'kalita',
+        parts: [
+          ['Flat bottom', 'the coffee lies in an even layer of one depth — more even extraction.'],
+          ['Three small holes', 'slow the water a little, so an uneven pour is forgiven.'],
+          ['Wave filter', 'touches the walls only with its ridges: less heat loss, and water can’t bypass along the edge.'],
+          ['Server or cup', 'where the brewed coffee collects.'],
+        ],
+        text: [
+          'The Kalita Wave is a Japanese dripper with “wave” filters: size 155 for 1–2 cups, 185 for 2–4. Cups are usually sweeter and fuller than a V60’s, a touch less bright.',
+          'Similar flat-bottom drippers: Orea, April, Origami with a wave filter.',
+        ],
+      },
+      {
+        title: 'Chemex',
+        lead: 'A glass hourglass and a thick filter: a very clean, light cup.',
+        figure: 'chemex',
+        parts: [
+          ['Thick filter', '20–30% heavier than usual, it holds back almost all oils and fines. Triple side toward the spout.'],
+          ['Wooden collar', 'tied with a leather cord — for holding the hot flask.'],
+          ['Spout and air channel', 'air escapes through the channel; if the filter seals it, the flow stops.'],
+          ['Glass flask', 'dripper and server in one.'],
+        ],
+        text: [
+          'Chemist Peter Schlumbohm invented the Chemex in 1941; it’s in the collection of New York’s Museum of Modern Art. Sizes run 3, 6, 8 and 10 cups — handy for a group.',
+          'Because of the thick filter the body is light and the taste transparent, with aroma a little muted next to a V60.',
+        ],
+      },
+      {
+        title: 'AeroPress',
+        lead: 'Steeping plus gentle pressure: versatile, forgiving and nearly unbreakable.',
+        figure: 'aeropress',
+        parts: [
+          ['Plunger', 'pushes the coffee through the filter; inserted right away, its vacuum stops dripping.'],
+          ['Rubber seal', 'fits the chamber airtight, so the pressure works.'],
+          ['Chamber with numbers', 'where the coffee steeps; the numbers are a rough guide — weighing is better.'],
+          ['Filter', 'paper gives a clean cup; metal gives more body and oils.'],
+          ['Cap', 'screws on below and holds the filter; the Flow Control version stops drips.'],
+        ],
+        text: [
+          'Engineer Alan Adler invented the AeroPress in 2005. There are thousands of recipes, from “almost espresso” to a light filter cup, and the World AeroPress Championship has run since 2008.',
+          'There are Go (compact, for travel), XL (two cups) and Clear (transparent) versions.',
+        ],
+      },
+      {
+        title: 'French press',
+        lead: 'Classic steeping and a metal mesh: a full, oily cup.',
+        figure: 'frenchPress',
+        parts: [
+          ['Mesh filter', 'metal lets oils and some fines through — hence the heavy body.'],
+          ['Rod and lid', 'hold the filter; lower it only to the surface, without stirring up the grounds.'],
+          ['Carafe', 'glass, or double-walled steel — which keeps heat better.'],
+          ['Sediment', 'settles to the bottom if you wait 5–8 minutes after stirring.'],
+        ],
+        text: [
+          'Italian Attilio Calimani patented the French press in its familiar form in 1929. It’s the simplest method: add coffee, pour, wait.',
+          'A French press also works for cold brew — and for frothing milk with the plunger.',
+        ],
+      },
+      {
+        title: 'Clever Dripper',
+        lead: 'A cone with a valve: steeped like a French press, filtered like a pour-over.',
+        figure: 'clever',
+        parts: [
+          ['Valve', 'stays shut while the dripper sits on the counter — the coffee steeps without leaking.'],
+          ['Paper filter', 'a standard cone filter for a clean cup.'],
+          ['Cup rim', 'lifts the valve when the dripper is set on top, and the coffee drains.'],
+          ['Steeping coffee', 'in contact with water the whole time — a steady, sweet cup.'],
+        ],
+        text: [
+          'A very forgiving method: the result hardly depends on pouring technique. Great for comparing two coffees under the same conditions.',
+        ],
+      },
+      {
+        title: 'Moka pot',
+        lead: 'Steam pushes water up through the coffee: strong and heavy, but not espresso.',
+        figure: 'moka',
+        parts: [
+          ['Bottom chamber', 'the water heats; steam pressure drives it upward.'],
+          ['Safety valve', 'releases pressure if the path is blocked. Never fill above it.'],
+          ['Funnel basket', 'holds the coffee; fill it heaped and level it, without tamping.'],
+          ['Column', 'the brewed coffee rises through it into the top.'],
+          ['Top chamber', 'collects the coffee.'],
+        ],
+        text: [
+          'Alfonso Bialetti launched the Moka Express in 1933. It works at about 1–1.5 bar — several times less than an espresso machine’s 9 bar, so there’s no real crema.',
+          'Aluminium moka pots don’t work on induction hobs — those need steel ones.',
+        ],
+      },
+      {
+        title: 'Espresso machine',
+        lead: 'A pump forces hot water at ~9 bar through a dense puck of coffee.',
+        figure: 'espresso',
+        parts: [
+          ['Group head', 'delivers hot water under pressure.'],
+          ['Shower screen', 'spreads the water evenly over the puck.'],
+          ['Basket and puck', 'ground coffee pressed with a tamper; the basket has hundreds of tiny holes.'],
+          ['Portafilter', 'the handle holding the basket, locked into the group.'],
+          ['Spouts', 'split the flow into one or two cups; a bottomless portafilter without them reveals channeling.'],
+        ],
+        terms: [
+          ['Single boiler', 'brewing and steaming take turns — cheap, but you wait.'],
+          ['Heat exchanger', 'steam and brew at once; less stable temperature.'],
+          ['Dual boiler', 'separate boilers for brewing and steam, precise temperature.'],
+          ['Lever', 'a spring or the barista’s arm makes the pressure, which changes through the shot.'],
+        ],
+        tip: 'For espresso the grinder matters more than the machine: it needs a very even, finely adjustable grind.',
+      },
+      {
+        title: 'Grinders: burrs',
+        lead: 'Burrs crush beans to one size; blades chop them unevenly.',
+        figure: 'burrs',
+        parts: [
+          ['Conical burrs', 'a cone turns inside a narrowing ring. Quieter, often more body; found in almost every hand grinder.'],
+          ['Flat burrs', 'two toothed discs facing each other. Usually a more even grind and a clearer cup.'],
+          ['Burr gap', 'the grind setting: narrower means finer.'],
+        ],
+        text: [
+          'A blade “grinder” chops beans into dust and chunks at once: the dust over-extracts (bitter), the chunks under-extract (sour). That’s why even an inexpensive hand burr grinder (Comandante, 1Zpresso, Timemore) improves the cup noticeably.',
+          'Burr size (bigger is faster and usually more even), retention of grounds inside, and fine adjustment steps matter too — especially for espresso.',
+        ],
+      },
+      {
+        title: 'Cezve (ibrik)',
+        lead: 'A wide base, a narrow neck, a long handle — all for the foam.',
+        figure: 'cezve',
+        parts: [
+          ['Wide base', 'heats quickly and evenly.'],
+          ['Narrow neck', 'gathers the foam and keeps it from breaking.'],
+          ['Long handle', 'keeps your hand away from the heat.'],
+          ['Low heat', 'slow heating makes a dense foam; hot sand is gentler still.'],
+        ],
+        text: [
+          'Classic cezves are copper or brass, tin-lined inside. Pick the size for the number of cups: coffee and water should fill it up to where the neck begins.',
+        ],
+      },
+      {
+        title: 'Kettle and scale',
+        lead: 'A thin stream and an exact weight — the two tools that make pour-over repeatable.',
+        figure: 'kettleScale',
+        parts: [
+          ['Gooseneck spout', 'a thin, controllable stream: pour slowly and precisely in spirals.'],
+          ['Temperature control', 'holds 90–96 °C, no thermometer needed.'],
+          ['Scale with timer', '0.1 g resolution: weigh the coffee and track water and time together.'],
+        ],
+        tip: 'Put the dripper and server on the scale together and tare — then you see exactly how much water you’ve poured.',
       },
     ],
   },

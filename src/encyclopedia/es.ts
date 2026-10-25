@@ -736,7 +736,7 @@ const book: Book = [
         ],
       },
       {
-        title: 'Equipo',
+        title: 'Qué comprar primero',
         lead: 'Lo más importante es un buen molino de muelas; después, una báscula.',
         terms: [
           ['Molino', 'de muelas (cónicas o planas), no de cuchillas: la molienda debe ser uniforme.'],
@@ -745,6 +745,178 @@ const book: Book = [
           ['Filtros', 'el papel da una taza limpia; el metal, más cuerpo y aceites.'],
         ],
         tip: 'Enjuaga siempre el filtro de papel con agua caliente: quita el sabor a papel y precalienta el gotero.',
+      },
+    ],
+  },
+  {
+    id: 'equipment',
+    title: 'Equipo',
+    summary: 'V60, AeroPress, Chemex, moka, espresso, molinos: cómo funcionan, con esquemas',
+    articles: [
+      {
+        title: 'Hario V60',
+        lead: 'Un cono de 60° con un solo agujero grande: el flujo lo controlas tú.',
+        figure: 'v60',
+        parts: [
+          ['Estrías en espiral', 'dejan salir el aire y separan el filtro de las paredes, así el agua fluye libremente.'],
+          ['Agujero grande', 'apenas frena el agua: el tiempo de drenaje depende de la molienda y de cómo viertes.'],
+          ['Filtro de papel', 'cónico; retiene aceites y finos para una taza limpia.'],
+          ['Jarra o taza', 'donde cae el café preparado.'],
+        ],
+        text: [
+          'La japonesa Hario lanzó el V60 en 2004. Pronto se convirtió en el estándar del filtrado: tazas brillantes y transparentes, pero exige un vertido cuidadoso.',
+          'El material importa poco: el plástico retiene bien el calor y no se rompe; la cerámica y el vidrio hay que precalentarlos; el metal se calienta y se enfría rápido. El tamaño 01 es para 1–2 tazas; el 02, para 1–4.',
+        ],
+        tip: 'Las recetas están en «Métodos de preparación».',
+      },
+      {
+        title: 'Kalita Wave y goteros de fondo plano',
+        lead: 'Cama plana y tres agujeros pequeños: más uniforme y más fácil que un cono.',
+        figure: 'kalita',
+        parts: [
+          ['Fondo plano', 'el café queda en una capa pareja del mismo grosor: extracción más uniforme.'],
+          ['Tres agujeros pequeños', 'frenan un poco el agua, así que perdonan un vertido irregular.'],
+          ['Filtro ondulado', 'solo toca las paredes con sus crestas: pierde menos calor y el agua no se escapa por los bordes.'],
+          ['Jarra o taza', 'donde cae el café preparado.'],
+        ],
+        text: [
+          'El Kalita Wave es un gotero japonés con filtros «de onda»: tamaño 155 para 1–2 tazas y 185 para 2–4. La taza suele ser más dulce y con más cuerpo que en un V60, algo menos brillante.',
+          'Goteros planos parecidos: Orea, April, Origami con filtro ondulado.',
+        ],
+      },
+      {
+        title: 'Chemex',
+        lead: 'Un reloj de arena de vidrio y un filtro grueso: taza muy limpia y ligera.',
+        figure: 'chemex',
+        parts: [
+          ['Filtro grueso', 'un 20–30% más pesado de lo normal; retiene casi todos los aceites y finos. El lado triple, hacia el pico.'],
+          ['Collar de madera', 'atado con un cordón de cuero, para sujetar la jarra caliente.'],
+          ['Pico y canal de aire', 'el aire sale por el canal; si el filtro lo tapa, el flujo se detiene.'],
+          ['Jarra de vidrio', 'gotero y jarra a la vez.'],
+        ],
+        text: [
+          'El químico Peter Schlumbohm inventó la Chemex en 1941; forma parte de la colección del MoMA de Nueva York. Hay tamaños de 3, 6, 8 y 10 tazas, práctica para varias personas.',
+          'Por el filtro grueso el cuerpo es ligero y el sabor transparente, con el aroma algo más apagado que en un V60.',
+        ],
+      },
+      {
+        title: 'AeroPress',
+        lead: 'Infusión más una presión suave: versátil, indulgente y casi irrompible.',
+        figure: 'aeropress',
+        parts: [
+          ['Émbolo', 'empuja el café a través del filtro; si lo colocas enseguida, el vacío evita el goteo.'],
+          ['Junta de goma', 'ajusta herméticamente con la cámara para que la presión funcione.'],
+          ['Cámara con números', 'donde reposa el café; los números son orientativos, mejor pesar.'],
+          ['Filtro', 'el de papel da una taza limpia; el metálico, más cuerpo y aceites.'],
+          ['Tapa', 'se enrosca abajo y sujeta el filtro; la versión Flow Control evita el goteo.'],
+        ],
+        text: [
+          'El ingeniero Alan Adler inventó la AeroPress en 2005. Hay miles de recetas, desde «casi espresso» hasta un filtrado ligero, y desde 2008 se celebra el World AeroPress Championship.',
+          'Existen las versiones Go (compacta, de viaje), XL (para dos tazas) y Clear (transparente).',
+        ],
+      },
+      {
+        title: 'Prensa francesa',
+        lead: 'Infusión clásica y malla metálica: taza con mucho cuerpo y aceites.',
+        figure: 'frenchPress',
+        parts: [
+          ['Filtro de malla', 'el metal deja pasar aceites y algunos finos: de ahí el cuerpo denso.'],
+          ['Varilla y tapa', 'sujetan el filtro; bájalo solo hasta la superficie, sin remover los posos.'],
+          ['Jarra', 'de vidrio o de acero de doble pared, que conserva mejor el calor.'],
+          ['Sedimento', 'baja al fondo si esperas 5–8 minutos después de remover.'],
+        ],
+        text: [
+          'El italiano Attilio Calimani patentó la prensa francesa tal como la conocemos en 1929. Es el método más simple: añadir, verter, esperar.',
+          'La prensa también sirve para cold brew y para espumar leche con el émbolo.',
+        ],
+      },
+      {
+        title: 'Clever Dripper',
+        lead: 'Un cono con válvula: infusión como en la prensa, filtrado como en un V60.',
+        figure: 'clever',
+        parts: [
+          ['Válvula', 'cerrada mientras el gotero está sobre la mesa: el café reposa sin gotear.'],
+          ['Filtro de papel', 'cónico estándar, para una taza limpia.'],
+          ['Borde de la taza', 'levanta la válvula al colocar el gotero encima y el café cae.'],
+          ['Café en infusión', 'en contacto con el agua todo el tiempo: taza estable y dulce.'],
+        ],
+        text: [
+          'Un método muy indulgente: el resultado casi no depende de la técnica de vertido. Ideal para comparar dos cafés en las mismas condiciones.',
+        ],
+      },
+      {
+        title: 'Cafetera moka (italiana)',
+        lead: 'El vapor empuja el agua hacia arriba a través del café: fuerte y denso, pero no es espresso.',
+        figure: 'moka',
+        parts: [
+          ['Depósito inferior', 'el agua se calienta y la presión del vapor la empuja hacia arriba.'],
+          ['Válvula de seguridad', 'libera presión si el paso se obstruye. No llenes por encima de ella.'],
+          ['Filtro embudo', 'con el café; llénalo con colmo y nivélalo sin apretar.'],
+          ['Columna', 'por ella sube el café preparado.'],
+          ['Depósito superior', 'recoge el café.'],
+        ],
+        text: [
+          'Alfonso Bialetti lanzó la Moka Express en 1933. Trabaja a unos 1–1,5 bar, varias veces menos que los 9 bar de una máquina de espresso, por eso no hay crema de verdad.',
+          'Las mokas de aluminio no funcionan en placas de inducción: hacen falta de acero.',
+        ],
+      },
+      {
+        title: 'Máquina de espresso',
+        lead: 'Una bomba empuja agua caliente a ~9 bar a través de una pastilla compacta de café.',
+        figure: 'espresso',
+        parts: [
+          ['Grupo', 'suministra agua caliente a presión.'],
+          ['Ducha', 'reparte el agua de forma uniforme sobre la pastilla.'],
+          ['Cesta y pastilla', 'café molido apisonado con el tamper; la cesta tiene cientos de agujeros diminutos.'],
+          ['Portafiltro', 'el mango con la cesta que se encaja en el grupo.'],
+          ['Caños', 'dividen el flujo en una o dos tazas; un portafiltro sin fondo deja ver la canalización.'],
+        ],
+        terms: [
+          ['Una caldera', 'café y vapor por turnos: barato, pero toca esperar.'],
+          ['Intercambiador de calor', 'vapor y café a la vez; temperatura menos estable.'],
+          ['Doble caldera', 'calderas separadas para café y vapor, temperatura precisa.'],
+          ['De palanca', 'la presión la crea un muelle o el brazo del barista y cambia a lo largo del shot.'],
+        ],
+        tip: 'Para espresso el molino importa más que la máquina: necesita una molienda muy uniforme y de ajuste fino.',
+      },
+      {
+        title: 'Molinos: muelas',
+        lead: 'Las muelas trituran el grano a un mismo tamaño; las cuchillas lo cortan de forma irregular.',
+        figure: 'burrs',
+        parts: [
+          ['Muelas cónicas', 'un cono gira dentro de un anillo que se estrecha. Más silenciosas, a menudo más cuerpo; casi todos los molinos manuales las usan.'],
+          ['Muelas planas', 'dos discos dentados enfrentados. Suelen dar una molienda más uniforme y una taza más clara.'],
+          ['Separación entre muelas', 'el ajuste de molienda: cuanto más estrecha, más fina.'],
+        ],
+        text: [
+          'Un «molinillo» de cuchillas corta el grano en polvo y trozos a la vez: el polvo se sobreextrae (amargor) y los trozos se subextraen (acidez). Por eso incluso un molino manual de muelas económico (Comandante, 1Zpresso, Timemore) mejora mucho la taza.',
+          'También importan el tamaño de las muelas (más grandes, más rápido y normalmente más uniforme), la retención de café dentro y la precisión del ajuste, sobre todo para espresso.',
+        ],
+      },
+      {
+        title: 'Cezve (ibrik)',
+        lead: 'Base ancha, cuello estrecho y mango largo: todo para la espuma.',
+        figure: 'cezve',
+        parts: [
+          ['Base ancha', 'se calienta rápido y de forma uniforme.'],
+          ['Cuello estrecho', 'recoge la espuma y evita que se rompa.'],
+          ['Mango largo', 'mantiene la mano lejos del fuego.'],
+          ['Fuego suave', 'el calentamiento lento da una espuma densa; en arena caliente, aún más suave.'],
+        ],
+        text: [
+          'Los cezves clásicos son de cobre o latón, estañados por dentro. Elige el tamaño según las tazas: café y agua deben llenarlo hasta donde empieza el cuello.',
+        ],
+      },
+      {
+        title: 'Hervidor y báscula',
+        lead: 'Un chorro fino y un peso exacto: las dos herramientas que hacen repetible un filtrado.',
+        figure: 'kettleScale',
+        parts: [
+          ['Cuello de cisne', 'un chorro fino y controlable: vierte despacio y con precisión en espiral.'],
+          ['Control de temperatura', 'mantiene 90–96 °C sin termómetro.'],
+          ['Báscula con temporizador', 'precisión de 0,1 g: pesa el café y sigue el agua y el tiempo a la vez.'],
+        ],
+        tip: 'Pon el gotero y la jarra juntos sobre la báscula y tara: así ves exactamente cuánta agua has vertido.',
       },
     ],
   },

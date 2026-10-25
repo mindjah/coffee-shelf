@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Article, Book, Chapter } from '../encyclopedia/types'
 import type { Lang } from '../types'
 import { useLang, useT } from '../i18n'
+import { Figure } from '../encyclopedia/figures'
 import { ChevronIcon, ClearIcon } from './icons'
 import { Sheet } from './Sheet'
 
@@ -18,6 +19,7 @@ const fold = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,
 /** Everything below the headline, one string per line, as the search sees it. */
 function bodyLines(a: Article): string[] {
   return [
+    ...(a.parts ?? []).map(([k, v]) => `${k} — ${v}`),
     ...(a.facts ?? []).map(([k, v]) => `${k}: ${v}`),
     ...(a.text ?? []),
     ...(a.steps ?? []),
@@ -66,6 +68,14 @@ function ArticleCard({ article, chapter, snippet }: { article: Article; chapter?
         {snippet && <span className="article-snippet">{snippet}</span>}
       </summary>
       <div className="article-body">
+        {article.figure && <Figure id={article.figure} />}
+        {article.parts && (
+          <ol className="article-parts">
+            {article.parts.map(([k, v], i) => (
+              <li key={k}><span className="article-part-num">{i + 1}</span><span><b>{k}</b> — {v}</span></li>
+            ))}
+          </ol>
+        )}
         {article.facts && (
           <dl className="article-facts">
             {article.facts.map(([k, v]) => (

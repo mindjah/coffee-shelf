@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { MIN_RATINGS, TUNE_FROM, tasteSummary, type Model } from '../recommend'
 import type { Coffee } from '../types'
 import { groupRoasters } from '../roaster'
 import { methodRatings } from '../ratings'
 import { countryName, reasonText, useLang, useT } from '../i18n'
 import { BookIcon, TasteIcon } from '../components/icons'
-import { Encyclopedia } from '../components/Encyclopedia'
+
+// The book's text and drawings load only when it's first opened.
+const Encyclopedia = lazy(() => import('../components/Encyclopedia').then((m) => ({ default: m.Encyclopedia })))
 
 function groupAverages(rated: Coffee[], key: (c: Coffee) => string | null) {
   const groups = new Map<string, number[]>()
@@ -58,7 +60,7 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
           <BookIcon />
         </button>
       </div>
-      {reading && <Encyclopedia onClose={() => setReading(false)} />}
+      {reading && <Suspense fallback={null}><Encyclopedia onClose={() => setReading(false)} /></Suspense>}
 
       {rated.length < MIN_RATINGS ? (
         <div className="empty">
