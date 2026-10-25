@@ -11,11 +11,11 @@ export const BeanIcon = () => (
 export const CameraIcon = () => (
   <svg {...base}><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.3l1.4-2h5.6l1.4 2h1.3A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z" /><circle cx="12" cy="13" r="3.6" /></svg>
 )
-/** A wall shelf on two brackets with three bags of different heights. */
+/** A shelving cabinet: a tall frame on short legs, divided by three shelves. */
 export const ShelfIcon = () => (
   <svg {...base}>
-    <path d="M2.5 17.5h19M6 17.5l2 4M18 17.5l-2 4" />
-    <path d="M4.5 17.5V6.5L6 4.5h3l1.5 2v11M12.5 17.5v-7.5h4.5v7.5M19 17.5v-4h2v4" />
+    <rect x="4.5" y="2.5" width="15" height="18" rx="1.5" />
+    <path d="M4.5 7h15M4.5 11.5h15M4.5 16h15M7 20.5v1.5M17 20.5v1.5" />
   </svg>
 )
 export const TasteIcon = () => (
