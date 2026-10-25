@@ -39,3 +39,17 @@ export const CompareIcon = () => <svg {...base}><rect x="3.5" y="5" width="7" he
 export const FilterIcon = () => <svg {...base}><path d="M4 6h16M7 12h10M10 18h4" /></svg>
 const StarPath = () => <path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" />
 export const StarIcon = () => <svg viewBox="0 0 24 24" fill="currentColor"><StarPath /></svg>
+/** A closed book with a coffee bean on the cover; colors follow the theme. */
+export const BookIcon = () => (
+  <svg viewBox="0 0 44 50">
+    <path d="M9 7h27a3 3 0 0 1 3 3v34a3 3 0 0 1-3 3H9z" fill="var(--surface)" stroke="var(--maybe)" strokeWidth="1" />
+    <path d="M36 11v32M33.5 11v32" stroke="var(--line)" strokeWidth="0.8" />
+    <rect x="4" y="3" width="31" height="41" rx="3" fill="var(--accent)" />
+    <rect x="4" y="3" width="5" height="41" rx="2" fill="#000" opacity="0.18" />
+    <g transform="rotate(-32 22 21)">
+      <ellipse cx="22" cy="21" rx="6" ry="8.6" fill="var(--on-accent)" />
+      <path d="M22.2 13c-2.9 5.1 2.6 10.6-.4 16" fill="none" stroke="var(--accent)" strokeWidth="1.3" strokeLinecap="round" />
+    </g>
+    <path d="M15 36h14" stroke="var(--on-accent)" strokeWidth="1.4" strokeLinecap="round" opacity="0.55" />
+  </svg>
+)

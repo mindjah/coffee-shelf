@@ -305,6 +305,13 @@ const en = {
     byRoast: 'By roast',
     roasters: 'Favourite roasters',
   },
+  book: {
+    title: 'Encyclopedia',
+    open: 'Coffee encyclopedia',
+    contents: 'Contents',
+    search: 'Search the encyclopedia',
+    noResults: 'Nothing found.',
+  },
   settings: {
     title: 'Settings',
     language: 'Language',
@@ -726,6 +733,13 @@ const ru: Dict = {
     byRoast: 'По обжарке',
     roasters: 'Любимые обжарщики',
   },
+  book: {
+    title: 'Энциклопедия',
+    open: 'Кофейная энциклопедия',
+    contents: 'Оглавление',
+    search: 'Поиск по энциклопедии',
+    noResults: 'Ничего не найдено.',
+  },
   settings: {
     title: 'Настройки',
     language: 'Язык',
@@ -1140,6 +1154,13 @@ const es: Dict = {
     byOrigin: 'Por país',
     byRoast: 'Por tueste',
     roasters: 'Tostadores favoritos',
+  },
+  book: {
+    title: 'Enciclopedia',
+    open: 'Enciclopedia del café',
+    contents: 'Índice',
+    search: 'Buscar en la enciclopedia',
+    noResults: 'No se encontró nada.',
   },
   settings: {
     title: 'Ajustes',

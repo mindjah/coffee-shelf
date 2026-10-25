@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { MIN_RATINGS, TUNE_FROM, tasteSummary, type Model } from '../recommend'
 import type { Coffee } from '../types'
 import { groupRoasters } from '../roaster'
 import { methodRatings } from '../ratings'
 import { countryName, reasonText, useLang, useT } from '../i18n'
-import { TasteIcon } from '../components/icons'
+import { BookIcon, TasteIcon } from '../components/icons'
+import { Encyclopedia } from '../components/Encyclopedia'
 
 function groupAverages(rated: Coffee[], key: (c: Coffee) => string | null) {
   const groups = new Map<string, number[]>()
@@ -40,12 +42,20 @@ export function InsightsScreen({ coffees, model }: { coffees: Coffee[]; model: M
   const lang = useLang()
   const rated = coffees.filter((c) => c.rating != null)
   const taste = tasteSummary(model)
+  const [reading, setReading] = useState(false)
   const roasterOf = groupRoasters(coffees.map((c) => c.roaster))
   const roasters = groupAverages(rated, (c) => roasterOf(c.roaster)?.label ?? null).filter((r) => r.n >= 2).slice(0, 3)
 
   return (
     <div className="screen">
-      <h1 className="screen-title">{t.taste.title}</h1>
+      <div className="row title-row">
+        <h1 className="screen-title">{t.taste.title}</h1>
+        <span className="spacer" />
+        <button type="button" className="book-btn" onClick={() => setReading(true)} aria-label={t.book.open}>
+          <BookIcon />
+        </button>
+      </div>
+      {reading && <Encyclopedia onClose={() => setReading(false)} />}
       <p className="screen-sub">{t.taste.subtitle}</p>
 
       {rated.length < MIN_RATINGS ? (

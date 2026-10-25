@@ -1,0 +1,22 @@
+export interface Article {
+  title: string
+  /** One-line gist, shown while the article is folded. */
+  lead: string
+  /** Key numbers as [label, value]: ratio, grind, time… */
+  facts?: [string, string][]
+  text?: string[]
+  /** Numbered instructions. */
+  steps?: string[]
+  /** Term and its explanation, shown stacked. */
+  terms?: [string, string][]
+  tip?: string
+}
+
+export interface Chapter {
+  id: string
+  title: string
+  summary: string
+  articles: Article[]
+}
+
+export type Book = Chapter[]

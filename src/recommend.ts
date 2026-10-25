@@ -450,7 +450,8 @@ export interface Taste {
 export function tasteSummary(model: Model): Taste | null {
   if (!model.beta) return null
   const items = model.features.map((f, j) => ({ f, w: model.beta![j] * Math.sqrt(f.weight * model.params.mult[f.group]) }))
-    .filter((i) => !i.f.hidden && Math.abs(i.w) >= 0.1)
+    // Roasters still steer predictions, but "you like roaster X" says nothing about taste.
+    .filter((i) => !i.f.hidden && i.f.group !== 'roaster' && Math.abs(i.w) >= 0.1)
     .sort((a, b) => b.w - a.w)
   return {
     likes: items.filter((i) => i.w > 0).slice(0, 5).map((i) => ({ id: i.f.id, up: true, impact: i.w })),

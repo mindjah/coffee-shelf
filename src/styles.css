@@ -554,3 +554,63 @@ textarea.input { min-height: 84px; resize: vertical; }
 .note-link-group { display: inline-flex; align-items: stretch; max-width: 100%; margin: 1px 0; vertical-align: bottom; border-radius: 999px; background: var(--accent-soft); white-space: nowrap; }
 .note-link-group .note-link { margin: 0; min-width: 0; border-radius: 999px 0 0 999px; padding-right: 6px; }
 .note-name { flex: none; border: 0; border-left: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); border-radius: 0 999px 999px 0; background: none; padding: 1px 10px 1px 8px; font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); }
+
+/* Encyclopedia: a book on the Taste title row, chapters and foldable articles in a sheet */
+.book-btn {
+  flex: none; width: 50px; height: 56px; margin-top: 6px; padding: 0; border: 0; background: none;
+  filter: drop-shadow(0 2px 4px rgba(30, 23, 20, 0.18)); transition: transform 0.12s ease;
+}
+.book-btn:active { transform: scale(0.94) rotate(-3deg); }
+.book-btn svg { width: 100%; height: 100%; display: block; }
+.book-search { position: relative; margin-bottom: 14px; }
+.book-search .input { padding-right: 42px; }
+.book-search .input::-webkit-search-cancel-button { display: none; }
+.book-search-clear {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 34px; height: 34px; padding: 7px; border: 0; background: none; color: var(--maybe);
+}
+.book-search-clear svg { width: 100%; height: 100%; display: block; }
+.book-toc { padding: 4px 18px; }
+.book-toc-row {
+  display: flex; align-items: center; gap: 14px; width: 100%; padding: 13px 0;
+  border: 0; background: none; text-align: left;
+}
+.book-toc-row + .book-toc-row { border-top: 0.5px solid var(--line); }
+.book-toc-num { flex: none; width: 24px; font: 600 22px/1 var(--serif); color: var(--accent); text-align: center; }
+.book-toc-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.book-toc-text span { font-size: 14px; color: var(--muted); }
+.book-toc-row svg { flex: none; width: 18px; height: 18px; color: var(--maybe); transform: rotate(-90deg); }
+.book-chapter-title { font: 600 28px/1.15 var(--serif); letter-spacing: -0.01em; margin: 8px 0 4px; }
+.card.article { padding: 0; }
+.article summary {
+  list-style: none; cursor: pointer; display: flex; flex-direction: column; gap: 3px;
+  padding: 15px 44px 15px 18px; position: relative;
+}
+.article summary::-webkit-details-marker { display: none; }
+.article summary::after {
+  content: ''; position: absolute; right: 20px; top: 21px; width: 8px; height: 8px;
+  border-right: 2px solid var(--maybe); border-bottom: 2px solid var(--maybe); transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+.article[open] summary::after { transform: translate(0, 3px) rotate(-135deg); }
+.article-chapter { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.article-title { font-weight: 600; font-size: 17px; }
+.article-lead { font-size: 14px; color: var(--muted); }
+.article-snippet { font-size: 14px; margin-top: 4px; padding-left: 10px; border-left: 2px solid var(--accent-soft); }
+.article-body { padding: 0 18px 16px; font-size: 15px; line-height: 1.5; }
+.article-body > :first-child { margin-top: 0; }
+.article-body > :last-child { margin-bottom: 0; }
+.article-body p { margin: 10px 0; }
+.article-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin: 0 0 12px; }
+.article-facts div { padding: 8px 10px; border-radius: 12px; background: var(--surface-2); }
+.article-facts dt { font-size: 12px; color: var(--muted); }
+.article-facts dd { margin: 2px 0 0; font-weight: 600; font-size: 14px; }
+.article-steps { margin: 10px 0; padding-left: 22px; }
+.article-steps li { padding: 3px 0; }
+.article-steps li::marker { color: var(--accent); font-weight: 700; }
+.article-terms { margin: 10px 0; }
+.article-terms div { padding: 8px 0; }
+.article-terms div + div { border-top: 0.5px solid var(--line); }
+.article-terms dt { font-weight: 600; }
+.article-terms dd { margin: 2px 0 0; color: var(--muted); }
+.article-tip { padding: 10px 12px; border-radius: 12px; background: var(--accent-soft); font-size: 14px; }
