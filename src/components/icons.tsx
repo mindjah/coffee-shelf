@@ -75,7 +75,7 @@ export const BookIcon = () => (
   </svg>
 )
 // Empty-state pictures: the line-icon style, drawn on a 48 grid and shown large and muted.
-const art = { viewBox: '0 0 48 48', className: 'empty-art', 'aria-hidden': true, fill: 'none', stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
+const art = { viewBox: '0 0 48 48', className: 'empty-art', 'aria-hidden': true, fill: 'none', stroke: 'currentColor', strokeWidth: 1.1, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
 /**
  * A coffee bag on a 16×26 box: rounded top seal, shoulders flaring to straight sides,
@@ -83,10 +83,10 @@ const art = { viewBox: '0 0 48 48', className: 'empty-art', 'aria-hidden': true,
  */
 function BagOutline({ x, y, scale = 1, bean = true }: { x: number; y: number; scale?: number; bean?: boolean }) {
   return (
-    <g transform={`translate(${x} ${y}) scale(${scale})`} vectorEffect="non-scaling-stroke">
-      <path d="M3 7V4.5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2V7z" vectorEffect="non-scaling-stroke" />
-      <path d="M3 7C1.2 10.5.5 14 .5 18v8h15v-8c0-4-.7-7.5-2.5-11M13 7c-1.5 3.5-2 7-2 11v8" vectorEffect="non-scaling-stroke" />
-      {bean && <path d="M4.2 21.3c-1-1.6-.2-4 1.6-5.2s3.9-.9 4.7.6-.1 4-1.8 5.2-3.7 1-4.5-.6zM4.7 21.6c1.6-.6 2.3-1.6 2.6-3.3s1.2-2.5 3-2.6" vectorEffect="non-scaling-stroke" />}
+    <g transform={`translate(${x} ${y}) scale(${scale})`} strokeWidth={art.strokeWidth / scale}>
+      <path d="M3 7V4.5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2V7z" />
+      <path d="M3 7C1.2 10.5.5 14 .5 18v8h15v-8c0-4-.7-7.5-2.5-11M13 7c-1.5 3.5-2 7-2 11v8" />
+      {bean && <path d="M4.2 21.3c-1-1.6-.2-4 1.6-5.2s3.9-.9 4.7.6-.1 4-1.8 5.2-3.7 1-4.5-.6zM4.7 21.6c1.6-.6 2.3-1.6 2.6-3.3s1.2-2.5 3-2.6" />}
     </g>
   )
 }
