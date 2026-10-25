@@ -91,7 +91,7 @@ export function useShelfFilters(coffees: Coffee[], { withView = false } = {}): S
   const [roaster, setRoaster] = useState('')
   const [country, setCountry] = useState('')
   const [sort, setSort] = useState<Sort>(() => remembered(SORT_KEY, SORTS, 'newest'))
-  const [view, setView] = useState<ShelfView>(() => (withView ? remembered(VIEW_KEY, VIEWS, 'list') : 'list'))
+  const [view, setView] = useState<ShelfView>(() => (withView ? remembered(VIEW_KEY, VIEWS, 'compact') : 'list'))
   const [open, setOpen] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
