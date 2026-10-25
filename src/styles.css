@@ -636,7 +636,7 @@ textarea.input { min-height: 84px; resize: vertical; }
   display: flex; align-items: center; gap: 14px; width: 100%; margin-bottom: 12px; padding: 16px 18px;
   border: 0; background: var(--accent-soft); color: inherit; text-align: left;
 }
-.book-brew > svg:first-child { flex: none; width: 30px; height: 30px; color: var(--accent); }
+.book-brew > svg:first-child { flex: none; width: 36px; height: 36px; color: var(--accent); }
 .book-brew > svg:last-child { flex: none; width: 18px; height: 18px; color: var(--maybe); transform: rotate(-90deg); }
 .btn.brew-start { margin-top: 14px; }
 .brew-facts { margin-bottom: 14px; }
