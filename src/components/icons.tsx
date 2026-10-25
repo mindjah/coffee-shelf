@@ -77,11 +77,25 @@ export const BookIcon = () => (
 // Empty-state pictures: the line-icon style, drawn on a 48 grid and shown large and muted.
 const art = { viewBox: '0 0 48 48', className: 'empty-art', 'aria-hidden': true, fill: 'none', stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
+/**
+ * A coffee bag on a 16×26 box: rounded top seal, shoulders flaring to straight sides,
+ * a side gusset on the right, and a bean on the front (left out when drawn small).
+ */
+function BagOutline({ x, y, scale = 1, bean = true }: { x: number; y: number; scale?: number; bean?: boolean }) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`} vectorEffect="non-scaling-stroke">
+      <path d="M3 7V4.5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2V7z" vectorEffect="non-scaling-stroke" />
+      <path d="M3 7C1.2 10.5.5 14 .5 18v8h15v-8c0-4-.7-7.5-2.5-11M13 7c-1.5 3.5-2 7-2 11v8" vectorEffect="non-scaling-stroke" />
+      {bean && <path d="M4.2 21.3c-1-1.6-.2-4 1.6-5.2s3.9-.9 4.7.6-.1 4-1.8 5.2-3.7 1-4.5-.6zM4.7 21.6c1.6-.6 2.3-1.6 2.6-3.3s1.2-2.5 3-2.6" vectorEffect="non-scaling-stroke" />}
+    </g>
+  )
+}
+
 /** Empty comparison: two bags with arrows between. */
 export const EmptyCompareArt = () => (
   <svg {...art}>
-    <path d="M4 11h12v2c0 7 2 15 2 22a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3c0-7 2-15 2-22zM4 14h12" />
-    <path d="M32 11h12v2c0 7 2 15 2 22a3 3 0 0 1-3 3H33a3 3 0 0 1-3-3c0-7 2-15 2-22zM32 14h12" />
+    <BagOutline x={2} y={10} />
+    <BagOutline x={30} y={10} />
     <path d="M21 21h6m-2-2 2 2-2 2M27 28h-6m2-2-2 2 2 2" />
   </svg>
 )
@@ -91,7 +105,7 @@ export const EmptyShelfArt = () => (
   <svg {...art}>
     <rect x="10" y="4" width="28" height="36" rx="2.5" />
     <path d="M10 16h28M10 28h28M14 40v3M34 40v3" />
-    <path d="M21 28v-6.5l1-1.5h4l1 1.5V28" />
+    <BagOutline x={20.4} y={17.6} scale={0.4} bean={false} />
   </svg>
 )
 
