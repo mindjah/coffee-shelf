@@ -1055,6 +1055,26 @@ const book: Book = [
         timer: [null, 30, 90, null],
       },
       {
+        title: 'Origami dripper',
+        lead: 'A Japanese porcelain cone with 20 deep ribs: takes both cone and wave filters.',
+        facts: [
+          ['Coffee', '15 g'],
+          ['Water', '250 g, 92–94 °C'],
+          ['Grind', 'medium-fine; medium with a wave filter'],
+          ['Time', '~2:30–3:00'],
+        ],
+        steps: [
+          'Put in a filter (cone or wave), rinse it with hot water and discard the water.',
+          'Add the coffee and shake the dripper to level the bed.',
+          '0:00 — bloom with 40 g of water and swirl gently.',
+          '0:40 — pour in slow circles up to 150 g by 1:10.',
+          '1:10 — pour the rest up to 250 g by 1:40.',
+          'Give one gentle swirl and let it drain; it should finish around 2:30–3:00.',
+        ],
+        timer: [null, null, 40, 30, 30, null],
+        tip: 'A cone filter makes it fast and bright, like a V60; a wave filter makes it rounder and sweeter, like a Kalita.',
+      },
+      {
         title: 'Chemex',
         lead: 'The thick filter gives a very clean, light cup — handy for several people.',
         facts: [

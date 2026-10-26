@@ -44,6 +44,7 @@ export const TimerIcon = () => <svg {...base}><circle cx="12" cy="13.5" r="7.5" 
 export const KettleIcon = () => (
   <svg {...base}><path d="M8.3 11.5h9.4l.8 7.5a1 1 0 0 1-1 1H8.5a1 1 0 0 1-1-1z" /><path d="M11 11.5V9.8h4v1.7M13 9.8V8.6" /><path d="M17.9 12.5c2.6 0 3.6 1 3.6 3.2 0 1.6-.8 2.6-2.8 2.8" /><path d="M7.8 17.5C5.2 17.5 5 14.5 4.7 11.8 4.5 9.9 3.8 8.4 2.2 8.2l-.4.7" /></svg>
 )
+export const PencilIcon = () => <svg {...base}><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z" /><path d="m14.5 7.5 3 3" /></svg>
 export const FilterIcon = () => <svg {...base}><path d="M4 6h16M7 12h10M10 18h4" /></svg>
 const StarPath = () => <path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z" />
 export const StarIcon = () => <svg viewBox="0 0 24 24" fill="currentColor"><StarPath /></svg>

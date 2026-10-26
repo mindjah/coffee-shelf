@@ -12,6 +12,8 @@ export interface Article {
    * starts on its own, or null for a step you finish yourself (tap Next). Makes the article brewable.
    */
   timer?: (number | null)[]
+  /** Set on a recipe you wrote yourself (db.recipes), which can be edited. */
+  recipeId?: number
   /** Term and its explanation, shown stacked. */
   terms?: [string, string][]
   tip?: string

@@ -26,13 +26,35 @@ export interface CompareItem {
 
 export const MAX_COMPARE = 6
 
+/** One step of your own brew recipe; `seconds` null is a step you finish at your own pace. */
+export interface RecipeStep {
+  text: string
+  seconds: number | null
+}
+
+/** A brew recipe you wrote yourself, shown with the encyclopedia's brew methods. */
+export interface Recipe {
+  id?: number
+  createdAt: number
+  name: string
+  note: string
+  /** Grams of coffee and water, water °C. */
+  coffee: number | null
+  water: number | null
+  temp: number | null
+  grind: string
+  steps: RecipeStep[]
+}
+
 export const db = new Dexie('coffee-shelf') as Dexie & {
   coffees: EntityTable<Coffee, 'id'>
   pending: Table<PendingScan, string>
   compare: EntityTable<CompareItem, 'id'>
+  recipes: EntityTable<Recipe, 'id'>
 }
 
 db.version(3).stores({ coffees: '++id, createdAt, rating, roaster', pending: '', compare: '++id, addedAt' })
+db.version(4).stores({ recipes: '++id, createdAt' })
 
 const PENDING_KEY = 'scan'
 export const loadPendingScan = () => db.pending.get(PENDING_KEY)
@@ -55,7 +77,14 @@ export async function exportBackup(): Promise<Blob> {
   const rows = await Promise.all(
     all.map(async ({ photo, ...c }) => ({ ...c, photo: photo ? `data:image/jpeg;base64,${await blobToBase64(new Blob([photo]))}` : null })),
   )
-  return new Blob([JSON.stringify({ app: 'coffee-shelf', version: 1, coffees: rows })], { type: 'application/json' })
+  const recipes = await db.recipes.toArray()
+  return new Blob([JSON.stringify({ app: 'coffee-shelf', version: 1, coffees: rows, recipes })], { type: 'application/json' })
+}
+
+/** Your recipes in a backup; undefined for backups made before recipes existed. */
+async function readRecipes(file: Blob): Promise<Recipe[] | undefined> {
+  const data = JSON.parse(await file.text())
+  return Array.isArray(data?.recipes) ? data.recipes.map(({ id: _id, ...r }: Recipe) => r) : undefined
 }
 
 async function readBackup(file: Blob): Promise<Coffee[]> {
@@ -72,9 +101,15 @@ async function readBackup(file: Blob): Promise<Coffee[]> {
 /** Replaces the whole shelf with a backup. */
 export async function importBackup(file: Blob): Promise<number> {
   const rows = await readBackup(file)
-  await db.transaction('rw', db.coffees, async () => {
+  const recipes = await readRecipes(file)
+  await db.transaction('rw', db.coffees, db.recipes, async () => {
     await db.coffees.clear()
     await db.coffees.bulkAdd(rows)
+    // An older backup has no recipes: keep the ones on this device rather than wiping them.
+    if (recipes) {
+      await db.recipes.clear()
+      await db.recipes.bulkAdd(recipes)
+    }
   })
   return rows.length
 }
@@ -84,10 +119,13 @@ const coffeeKey = (c: Pick<Coffee, 'roaster' | 'name'>) => `${c.roaster}|${c.nam
 /** Adds coffees from a file to the shelf, skipping ones already there (same roaster and name). */
 export async function mergeBackup(file: Blob): Promise<{ added: number; skipped: number }> {
   const rows = await readBackup(file)
-  return db.transaction('rw', db.coffees, async () => {
+  const recipes = (await readRecipes(file)) ?? []
+  return db.transaction('rw', db.coffees, db.recipes, async () => {
     const existing = new Set((await db.coffees.toArray()).map(coffeeKey))
     const fresh = rows.filter((c) => !existing.has(coffeeKey(c)))
     await db.coffees.bulkAdd(fresh)
+    const names = new Set((await db.recipes.toArray()).map((r) => r.name.trim().toLowerCase()))
+    await db.recipes.bulkAdd(recipes.filter((r) => !names.has(r.name.trim().toLowerCase())))
     return { added: fresh.length, skipped: rows.length - fresh.length }
   })
 }
@@ -135,3 +173,6 @@ function markChanged() {
 db.coffees.hook('creating', markChanged)
 db.coffees.hook('updating', markChanged)
 db.coffees.hook('deleting', markChanged)
+db.recipes.hook('creating', markChanged)
+db.recipes.hook('updating', markChanged)
+db.recipes.hook('deleting', markChanged)

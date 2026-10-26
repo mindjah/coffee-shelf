@@ -1055,6 +1055,26 @@ const book: Book = [
         timer: [null, 30, 90, null],
       },
       {
+        title: 'Gotero Origami',
+        lead: 'Cono japonés de porcelana con 20 nervaduras profundas: admite filtros cónicos y de onda.',
+        facts: [
+          ['Café', '15 g'],
+          ['Agua', '250 g, 92–94 °C'],
+          ['Molienda', 'media-fina; media con filtro de onda'],
+          ['Tiempo', '~2:30–3:00'],
+        ],
+        steps: [
+          'Coloca el filtro (cónico o de onda), enjuágalo con agua caliente y desecha el agua.',
+          'Añade el café y agita el gotero para nivelar la cama.',
+          '0:00 — preinfusión con 40 g de agua y gira suavemente.',
+          '0:40 — vierte en círculos lentos hasta 150 g a 1:10.',
+          '1:10 — vierte el resto hasta 250 g a 1:40.',
+          'Gira una vez con suavidad y deja que drene; termina hacia 2:30–3:00.',
+        ],
+        timer: [null, null, 40, 30, 30, null],
+        tip: 'Con filtro cónico drena rápido y la taza es brillante, como en un V60; con filtro de onda, más redonda y dulce, como en un Kalita.',
+      },
+      {
         title: 'Chemex',
         lead: 'El filtro grueso da una taza muy limpia y ligera; práctico para varias personas.',
         facts: [
