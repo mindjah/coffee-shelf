@@ -923,7 +923,7 @@ const book: Book = [
   {
     id: 'methods',
     title: 'Методы заваривания',
-    summary: 'Рецепты по шагам: V60, AeroPress, френч-пресс, Chemex и другие',
+    summary: 'Рецепты по шагам',
     articles: [
       {
         title: 'V60 — классический рецепт',

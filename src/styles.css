@@ -641,8 +641,10 @@ textarea.input { min-height: 84px; resize: vertical; }
 .brew-actions { display: flex; gap: 10px; margin-top: 14px; }
 .brew-actions .brew-start { flex: 1; white-space: nowrap; }
 .btn.brew-edit { width: 50px; padding: 0; flex: none; }
-.book-chapter-head { margin-top: 8px; }
-.book-chapter-head .book-chapter-title { flex: 1; margin-top: 0; }
+.book-chapter-head { gap: 16px; margin-top: 8px; }
+.book-chapter-head .book-chapter-title { flex: 1; margin: 0; font-size: 24px; }
+.icon-btn.chapter-add { width: 40px; height: 40px; border-radius: 50%; }
+.icon-btn.chapter-add svg { width: 20px; height: 20px; }
 .recipe-step { padding: 12px 14px; }
 .recipe-step .row { margin-bottom: 8px; }
 .recipe-step-btn { width: 32px; height: 32px; padding: 6px; border: 0; border-radius: 50%; background: var(--surface-2); color: var(--muted); }

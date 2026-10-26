@@ -923,7 +923,7 @@ const book: Book = [
   {
     id: 'methods',
     title: 'Brew methods',
-    summary: 'Step-by-step recipes: V60, AeroPress, French press, Chemex and more',
+    summary: 'Step-by-step recipes',
     articles: [
       {
         title: 'V60 — the classic recipe',

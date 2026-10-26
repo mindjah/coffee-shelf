@@ -198,7 +198,7 @@ export function Encyclopedia({ onClose }: { onClose: () => void }) {
           <div className="row book-chapter-head">
             <h2 className="book-chapter-title">{chapter.title}</h2>
             {chapter.id === BREW_CHAPTER && (
-              <button type="button" className="icon-btn head-btn" onClick={() => setEditing('new')} aria-label={t.recipe.add}>
+              <button type="button" className="icon-btn chapter-add" onClick={() => setEditing('new')} aria-label={t.recipe.add}>
                 <PlusIcon />
               </button>
             )}

@@ -923,7 +923,7 @@ const book: Book = [
   {
     id: 'methods',
     title: 'Métodos de preparación',
-    summary: 'Recetas paso a paso: V60, AeroPress, prensa francesa, Chemex y más',
+    summary: 'Recetas paso a paso',
     articles: [
       {
         title: 'V60: la receta clásica',
