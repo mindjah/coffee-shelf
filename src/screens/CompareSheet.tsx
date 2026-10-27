@@ -4,7 +4,7 @@ import { MIN_RATINGS, predict, toneFor, type Model, type Prediction } from '../r
 import { formatPrice, localized, pricePer100g, reasonText, useLang, useT } from '../i18n'
 import type { Coffee, CoffeeDraft } from '../types'
 import { originLine } from '../components/CoffeeSummary'
-import { CoffeeThumb } from '../components/CoffeeThumb'
+import { BagThumb } from '../components/CoffeeThumb'
 import { Sheet } from '../components/Sheet'
 import { Stars } from '../components/Stars'
 import { useShelfFilters } from '../components/ShelfFilters'
@@ -64,7 +64,7 @@ function ShelfPicker({ coffees, items, onClose }: { coffees: Coffee[]; items: Co
             const on = items.some((i) => i.coffeeId === c.id)
             return (
               <button key={c.id} className={`card list-item pick${on ? ' on' : ''}`} onClick={() => toggle(c)} aria-pressed={on}>
-                <CoffeeThumb photo={c.photo} name={[c.roaster, c.name].filter(Boolean).join(' – ')} />
+                <BagThumb coffee={c} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="roaster">{c.roaster || t.common.unknownRoaster}</div>
                   <div className="coffee-name">{c.name || t.common.untitled}</div>
@@ -162,7 +162,7 @@ export function CompareSheet({ items, model, coffees, onClose, onQuickRemove }: 
                 <div key={c.item.id} className={`cmp-cell cmp-head${c.item.id === best ? ' best' : ''}${c.onShelf ? ' shelf' : ''}`}>
                   {c.item.id === best && <div className="cmp-best">{t.compare.best}</div>}
                   {c.onShelf && <div className="cmp-best cmp-shelf">{t.compare.onShelf}</div>}
-                  <CoffeeThumb photo={c.d.photo} className="cmp-thumb" name={[c.d.roaster, c.d.name].filter(Boolean).join(' – ')} />
+                  <BagThumb coffee={c.d} className="cmp-thumb" />
                   <div className="roaster">{c.d.roaster || t.common.unknownRoaster}</div>
                   <div className="cmp-name">{c.d.name || t.common.untitled}</div>
                 </div>

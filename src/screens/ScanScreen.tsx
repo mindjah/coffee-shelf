@@ -275,6 +275,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
       ...rescanRating(existing),
       ...(note && note !== existing.comment.trim() && { comment: existing.comment.trim() ? `${existing.comment.trim()}\n\n${note}` : note }),
       ...(draft.photo && { photo: draft.photo }),
+      ...(draft.cover && { cover: draft.cover, coverFrom: draft.coverFrom }),
       // Bought again, so it's back on the shelf.
       archivedAt: null,
     })

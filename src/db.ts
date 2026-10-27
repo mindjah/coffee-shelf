@@ -72,10 +72,13 @@ export async function requestPersistence(): Promise<boolean> {
 }
 
 
+const dataUrl = async (jpeg?: ArrayBuffer) => (jpeg ? `data:image/jpeg;base64,${await blobToBase64(new Blob([jpeg]))}` : null)
+const bytes = async (url?: string | null) => (url ? (await fetch(url)).arrayBuffer() : undefined)
+
 export async function exportBackup(): Promise<Blob> {
   const all = await db.coffees.toArray()
   const rows = await Promise.all(
-    all.map(async ({ photo, ...c }) => ({ ...c, photo: photo ? `data:image/jpeg;base64,${await blobToBase64(new Blob([photo]))}` : null })),
+    all.map(async ({ photo, cover, ...c }) => ({ ...c, photo: await dataUrl(photo), ...(cover && { cover: await dataUrl(cover) }) })),
   )
   const recipes = await db.recipes.toArray()
   return new Blob([JSON.stringify({ app: 'coffee-shelf', version: 1, coffees: rows, recipes })], { type: 'application/json' })
@@ -91,9 +94,10 @@ async function readBackup(file: Blob): Promise<Coffee[]> {
   const data = JSON.parse(await file.text())
   if (data?.app !== 'coffee-shelf' || !Array.isArray(data.coffees)) throw new Error('notBackup')
   return Promise.all(
-    data.coffees.map(async ({ id: _id, photo, ...c }: Coffee & { photo: string | null }) => ({
+    data.coffees.map(async ({ id: _id, photo, cover, ...c }: Omit<Coffee, 'photo' | 'cover'> & { photo: string | null; cover?: string }) => ({
       ...c,
-      photo: photo ? await (await fetch(photo)).arrayBuffer() : undefined,
+      photo: await bytes(photo),
+      ...(cover && { cover: await bytes(cover) }),
     })),
   )
 }

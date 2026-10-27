@@ -252,7 +252,20 @@ h2.section {
 
 /* Full-screen photo viewer */
 .viewer { position: fixed; inset: 0; z-index: 50; background: #0d0b0a; animation: fade 0.18s ease; }
-.viewer-stage { position: absolute; inset: 0; overflow: auto; display: flex; touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch; }
+.viewer-track {
+  position: absolute; inset: 0; display: flex; overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory; overscroll-behavior: contain; scrollbar-width: none;
+}
+.viewer-track::-webkit-scrollbar { display: none; }
+.viewer-track.zoomed { overflow-x: hidden; }
+.viewer-stage {
+  position: relative; flex: 0 0 100%; height: 100%; overflow: auto; display: flex; scroll-snap-align: center; scroll-snap-stop: always;
+  touch-action: pan-x pan-y; -webkit-overflow-scrolling: touch;
+}
+.viewer-dots { position: absolute; left: 0; right: 0; bottom: calc(var(--safe-bottom) + 18px); display: flex; justify-content: center; gap: 4px; }
+.viewer-dots button { width: 22px; height: 22px; padding: 0; border: 0; background: transparent; display: grid; place-items: center; }
+.viewer-dots button::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.35); transition: background 0.2s ease, transform 0.2s ease; }
+.viewer-dots button.on::before { background: #fff; transform: scale(1.15); }
 .viewer-stage img { margin: auto; max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
 .viewer-actions { position: absolute; top: calc(var(--safe-top) + 10px); right: 14px; display: flex; gap: 10px; }
 .viewer-btn {
@@ -687,3 +700,23 @@ textarea.input { min-height: 84px; resize: vertical; }
 .brew-done .btn.block { margin-top: 10px; }
 .brew-done .btn:not(.plain) { margin-top: 28px; }
 .brew-title { margin-bottom: 14px; }
+
+/* Editor: label photo and cover photo side by side */
+.photo-slot { display: flex; flex-direction: column; min-width: 0; }
+.photo-slot-label { font-size: 13px; color: var(--muted); margin: 0 0 6px 4px; }
+.photo-slot-frame { position: relative; }
+.photo-slot-img { display: block; width: 100%; height: 170px; border-radius: 14px; object-fit: cover; background: var(--surface-2); }
+.photo-slot-add { display: grid; place-items: center; border: 1.5px dashed var(--line); color: var(--accent); }
+.photo-slot-add svg { width: 28px; height: 28px; }
+.photo-slot-remove {
+  position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; display: grid; place-items: center;
+  border: 0; border-radius: 50%; background: rgba(20, 17, 15, 0.55); color: #fff; font-size: 14px;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.btn.photo-slot-btn { margin-top: 8px; min-height: 40px; padding: 0 10px; font-size: 14px; white-space: nowrap; }
+
+/* A tab reached by swiping slides in from that side */
+.tab-page.enter-right { animation: enter-right 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.tab-page.enter-left { animation: enter-left 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes enter-right { from { transform: translateX(30%); opacity: 0; } }
+@keyframes enter-left { from { transform: translateX(-30%); opacity: 0; } }

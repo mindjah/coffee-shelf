@@ -1,5 +1,6 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { useT } from '../i18n'
+import { useSwipeBack } from '../gestures'
 
 interface Props {
   title: string
@@ -11,6 +12,9 @@ interface Props {
 
 export function Sheet({ title, onClose, closeLabel, action, children }: Props) {
   const t = useT()
+  const ref = useRef<HTMLDivElement>(null)
+  // Swiping right does what the close/back button does.
+  useSwipeBack(ref, onClose)
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -19,7 +23,7 @@ export function Sheet({ title, onClose, closeLabel, action, children }: Props) {
   return (
     <>
       <div className="sheet-backdrop" />
-      <div className="sheet" role="dialog" aria-modal="true" aria-label={title}>
+      <div ref={ref} className="sheet" role="dialog" aria-modal="true" aria-label={title}>
         <div className="sheet-bar">
           <button className="btn plain" onClick={onClose}>{closeLabel ?? t.common.close}</button>
           <div className="title">{title}</div>

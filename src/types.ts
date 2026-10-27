@@ -34,6 +34,10 @@ export interface Coffee {
   createdAt: number
   /** JPEG bytes. Stored as ArrayBuffer because WebKit can refuse Blobs in IndexedDB. */
   photo?: ArrayBuffer
+  /** A second picture, just for looks (e.g. the bag's front); `photo` stays the one the label is read from. */
+  cover?: ArrayBuffer
+  /** Which picture stands for the bag on the shelf and in lists; the cover one when there is one, unless 'label'. */
+  coverFrom?: 'label' | 'cover'
   roaster: string
   name: string
   country: string

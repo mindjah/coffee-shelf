@@ -13,6 +13,7 @@ import { useLang, useT } from './i18n'
 import { cameBackFromSignIn } from './gdrive'
 import { PhotoViewer } from './components/PhotoViewer'
 import { nameMapLinks } from './placeNames'
+import { useSwipeNavigation } from './gestures'
 
 type Tab = 'scan' | 'shelf' | 'taste' | 'settings'
 
@@ -60,23 +61,38 @@ export default function App() {
     window.scrollTo(0, 0)
   }, [tab])
 
+  // Swiping sideways moves along the tab bar; the new tab slides in from the side you swiped from.
+  const [entering, setEntering] = useState<{ tab: Tab; from: 'left' | 'right' }>()
+  useSwipeNavigation((step) => {
+    const next = TABS[TABS.findIndex((x) => x.id === tab) + step]
+    if (!next) return false
+    setEntering({ tab: next.id, from: step > 0 ? 'right' : 'left' })
+    setTab(next.id)
+    return true
+  })
+  const page = (id: Tab) => ({
+    className: `tab-page${entering?.tab === id ? ` enter-${entering.from}` : ''}`,
+    hidden: tab !== id,
+    onAnimationEnd: (e: React.AnimationEvent) => e.target === e.currentTarget && setEntering(undefined),
+  })
+
   if (!coffees || !all) return null
 
   return (
     <>
       {/* Kept mounted so photos, an in-flight scan and an unsaved result survive tab switches. */}
-      <div hidden={tab !== 'scan'}>
+      <div {...page('scan')}>
         <ScanScreen model={model} coffees={all} onSaved={(id) => (setTab('shelf'), setOpenId(id))} onOpenSettings={() => setTab('settings')} />
       </div>
       {/* Built on first visit, then kept: coming back shows it at once instead of rebuilding it and
           reloading every bag photo. It still follows the shelf as coffees are added or changed. */}
       {shelfOpened && (
-        <div hidden={tab !== 'shelf'}>
+        <div {...page('shelf')}>
           <LibraryScreen coffees={coffees} model={model} onOpen={setOpenId} />
         </div>
       )}
-      {tab === 'taste' && <InsightsScreen coffees={coffees} model={model} />}
-      {tab === 'settings' && <SettingsScreen archived={archived} onOpen={setOpenId} />}
+      {tab === 'taste' && <div {...page('taste')}><InsightsScreen coffees={coffees} model={model} /></div>}
+      {tab === 'settings' && <div {...page('settings')}><SettingsScreen archived={archived} onOpen={setOpenId} /></div>}
 
       {open && <CoffeeDetail key={open.id} coffee={open} model={model} onClose={() => setOpenId(undefined)} />}
 

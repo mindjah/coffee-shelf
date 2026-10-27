@@ -1,13 +1,17 @@
 import { useRef, useState } from 'react'
 import { PHOTO_SIDE, resizeImage } from '../image'
-import { CoffeeThumb } from './CoffeeThumb'
-import { CameraIcon } from './icons'
+import { CoffeeThumb, photosOf } from './CoffeeThumb'
+import { CameraIcon, PlusIcon } from './icons'
 import { FLAVORS, PROCESSES, REGIONS, ROASTS, ROAST_FOR, type CoffeeDraft, type Flavor, type Structure } from '../types'
 import { estimateFlavors, findNotes, flavorsFromNotes, lookupCountry } from '../parse'
 import { countryName, localized, useLang, useT } from '../i18n'
 import { CURRENCIES, getSettings, saveSettings } from '../settings'
 import { Sheet } from './Sheet'
 import { RescanSheet } from './RescanSheet'
+
+type PhotoSlot = 'photo' | 'cover'
+/** The label photo (read for the details) and a cover photo, just for looks. */
+const SLOTS: PhotoSlot[] = ['photo', 'cover']
 
 const list = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean)
 
@@ -83,6 +87,7 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   const [currency, setCurrency] = useState(coffee.currency ?? getSettings().currency)
   const [fillNote, setFillNote] = useState<string>()
   const photoRef = useRef<HTMLInputElement>(null)
+  const [picking, setPicking] = useState<PhotoSlot>('photo')
   const [rescanning, setRescanning] = useState(false)
   const [rescanned, setRescanned] = useState(false)
 
@@ -104,10 +109,12 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   }
 
   /** Bag picture from Photos or Files, e.g. one saved from the roaster's website. */
-  async function pickPhoto(file?: File) {
+  async function pickPhoto(slot: PhotoSlot, file?: File) {
     if (!file) return
     try {
-      set('photo', await (await resizeImage(file, PHOTO_SIDE, 0.82)).arrayBuffer())
+      const jpeg = await (await resizeImage(file, PHOTO_SIDE, 0.82)).arrayBuffer()
+      // A newly added cover is what the bag shows; replacing one keeps your choice.
+      setC((p) => ({ ...p, [slot]: jpeg, ...(slot === 'cover' && !p.cover && { coverFrom: 'cover' }) }))
     } catch {
       // Unreadable image: keep the current photo.
     }
@@ -164,15 +171,46 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
 
   return (
     <Sheet title={t.editor.title} closeLabel={t.common.cancel} onClose={onClose} action={{ label: t.common.done, onClick: save }}>
-      <div className="card row" style={{ marginBottom: 12 }}>
-        <CoffeeThumb photo={c.photo} name={[c.roaster, c.name].filter(Boolean).join(' – ')} />
-        <div className="stack" style={{ flex: 1 }}>
-          <button type="button" className="btn ghost block" onClick={() => photoRef.current?.click()}>
-            {c.photo ? t.editor.changePhoto : t.editor.addPhoto}
-          </button>
-          {c.photo && <button type="button" className="btn plain block" onClick={() => set('photo', undefined)}>{t.editor.removePhoto}</button>}
+      <div className="card" style={{ marginBottom: 12 }}>
+        <div className="grid-2">
+          {SLOTS.map((slot) => (
+            <div key={slot} className="photo-slot">
+              <span className="photo-slot-label">{slot === 'photo' ? t.editor.labelPhoto : t.editor.coverPhoto}</span>
+              <div className="photo-slot-frame">
+                {c[slot] ? (
+                  <>
+                    <CoffeeThumb photo={c[slot]} gallery={photosOf(c)} className="photo-slot-img" name={[c.roaster, c.name].filter(Boolean).join(' – ')} />
+                    <button type="button" className="photo-slot-remove" onClick={() => set(slot, undefined)} aria-label={t.editor.removePhoto}>✕</button>
+                  </>
+                ) : (
+                  <button type="button" className="photo-slot-img photo-slot-add" onClick={() => (setPicking(slot), photoRef.current?.click())} aria-label={t.editor.addPhoto}>
+                    <PlusIcon />
+                  </button>
+                )}
+              </div>
+              <button type="button" className="btn ghost block photo-slot-btn" onClick={() => (setPicking(slot), photoRef.current?.click())}>
+                {c[slot] ? t.editor.changePhoto : t.editor.addPhoto}
+              </button>
+            </div>
+          ))}
         </div>
-        <input ref={photoRef} className="file-input" type="file" accept="image/*" onChange={(e) => (pickPhoto(e.target.files?.[0]), (e.target.value = ''))} />
+        {c.photo && c.cover && (
+          <div className="field" style={{ marginTop: 14 }}>
+            <span>{t.editor.shownAsCover}</span>
+            <div className="segmented" role="radiogroup" aria-label={t.editor.shownAsCover} style={{ marginBottom: 0 }}>
+              {(['label', 'cover'] as const).map((k) => {
+                const on = (c.coverFrom ?? 'cover') === k
+                return (
+                  <button key={k} type="button" role="radio" aria-checked={on} className={on ? 'on' : ''} onClick={() => set('coverFrom', k)}>
+                    {k === 'label' ? t.editor.labelPhoto : t.editor.coverPhoto}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+        <p className="muted small" style={{ margin: '10px 4px 0' }}>{t.editor.photosHint}</p>
+        <input ref={photoRef} className="file-input" type="file" accept="image/*" onChange={(e) => (pickPhoto(picking, e.target.files?.[0]), (e.target.value = ''))} />
       </div>
       <button type="button" className="btn ghost block" style={{ marginBottom: 12 }} onClick={() => setRescanning(true)}>
         <CameraIcon /> {t.editor.rescan}

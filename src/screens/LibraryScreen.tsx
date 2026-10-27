@@ -6,7 +6,7 @@ import { CompareSheet } from './CompareSheet'
 import type { Coffee } from '../types'
 import { useLang, useT } from '../i18n'
 import { originLine } from '../components/CoffeeSummary'
-import { CoffeeThumb } from '../components/CoffeeThumb'
+import { BagThumb } from '../components/CoffeeThumb'
 import { CompareIcon, EmptyShelfArt } from '../components/icons'
 import { DriveBanner } from '../components/DriveSection'
 import { useShelfFilters } from '../components/ShelfFilters'
@@ -17,7 +17,7 @@ function Row({ coffee, onOpen }: { coffee: Coffee; onOpen: () => void }) {
   const lang = useLang()
   return (
     <button className="card list-item" onClick={onOpen}>
-      <CoffeeThumb photo={coffee.photo} name={[coffee.roaster, coffee.name].filter(Boolean).join(' – ')} />
+      <BagThumb coffee={coffee} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="roaster">{coffee.roaster || t.common.unknownRoaster}</div>
         <div className="coffee-name">{coffee.name || t.common.untitled}</div>

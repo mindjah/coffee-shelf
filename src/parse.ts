@@ -436,4 +436,4 @@ export function emptyDraft(): CoffeeDraft {
 
 /** Nothing entered yet — e.g. a manual entry cancelled straight away. */
 export const isBlankDraft = (d: CoffeeDraft) =>
-  !d.roaster && !d.name && !d.country && !d.notes.length && FLAVORS.every((f) => !d.flavors[f]) && !d.photo
+  !d.roaster && !d.name && !d.country && !d.notes.length && FLAVORS.every((f) => !d.flavors[f]) && !d.photo && !d.cover

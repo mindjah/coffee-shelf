@@ -174,7 +174,9 @@ export function Encyclopedia({ onClose }: { onClose: () => void }) {
     return () => void (live = false)
   }, [lang])
 
-  useEffect(() => top.current?.closest('.sheet')?.scrollTo(0, 0), [chapterId])
+  useEffect(() => {
+    top.current?.closest('.sheet')?.scrollTo(0, 0)
+  }, [chapterId])
 
   // Your own recipes lead the brew methods chapter.
   const full = useMemo(

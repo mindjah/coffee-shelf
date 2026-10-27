@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { FLAVORS, type CoffeeDraft, type Lang } from '../types'
 import { countryName, formatPrice, localized, pricePer100g, useLang, useT, type Dict } from '../i18n'
-import { CoffeeThumb } from './CoffeeThumb'
+import { BagThumb } from './CoffeeThumb'
 import { brewMethod, type BrewGuess } from '../brew'
 
 export function usePhotoUrl(photo?: Blob | ArrayBuffer) {
@@ -55,7 +55,7 @@ export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }
   return (
     <div className="card">
       <div className="coffee-head">
-        <CoffeeThumb photo={coffee.photo} name={[coffee.roaster, coffee.name].filter(Boolean).join(' – ')} />
+        <BagThumb coffee={coffee} />
         <div>
           <div className="roaster">{coffee.roaster || t.common.unknownRoaster}</div>
           <div className="coffee-name">{coffee.name || t.common.untitled}</div>

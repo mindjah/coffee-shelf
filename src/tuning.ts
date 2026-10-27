@@ -23,7 +23,7 @@ function load(): Tuned | null {
 
 /** Rated coffees without photos: everything predictions depend on, and nothing heavy. */
 function ratedData(coffees: Coffee[]): Coffee[] {
-  return coffees.filter((c) => c.rating != null).map((c) => ({ ...c, photo: undefined }))
+  return coffees.filter((c) => c.rating != null).map((c) => ({ ...c, photo: undefined, cover: undefined }))
 }
 
 export function useTuning(coffees: Coffee[] | undefined): Tuned | null {
@@ -31,7 +31,7 @@ export function useTuning(coffees: Coffee[] | undefined): Tuned | null {
   useEffect(() => {
     if (!coffees) return
     const data = ratedData(coffees)
-    const signature = JSON.stringify(data.map(({ createdAt, ratedAt, comment, photo, archivedAt, ...c }) => c))
+    const signature = JSON.stringify(data.map(({ createdAt, ratedAt, comment, photo, cover, coverFrom, archivedAt, ...c }) => c))
     if (tuned?.signature === signature) return
     // Waits for a pause in edits (e.g. tapping through stars) before starting.
     let worker: Worker | undefined

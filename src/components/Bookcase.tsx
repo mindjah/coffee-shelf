@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Coffee } from '../types'
 import { useT } from '../i18n'
-import { CoffeeThumb } from './CoffeeThumb'
+import { BagThumb } from './CoffeeThumb'
 import { GENERIC_WORDS } from '../roaster'
 import { Cobweb, Spider } from './Cobweb'
 
@@ -94,7 +94,7 @@ export function Bookcase({ coffees, onPick, selected, dusty = false }: { coffees
               >
                 <span className="bag-label">{roasterLabel(c.roaster, width) || t.common.unknownRoaster}</span>
                 <span className="bag-body">
-                  <CoffeeThumb photo={c.photo} className="bag-photo" zoomable={false} />
+                  <BagThumb coffee={c} className="bag-photo" zoomable={false} />
                   {c.rating != null && <span className="bag-rating">{c.rating.toFixed(1)}</span>}
                   {selected?.(c) && <span className="bag-check" aria-hidden="true">✓</span>}
                   {dusty && <Cobweb corner={(i + j) % 3 === 0 ? 'tr' : (i + j) % 3 === 1 ? 'tl' : 'br'} className={`bag-web${(i + j) % 2 ? ' big' : ''}`} />}
