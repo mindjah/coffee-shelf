@@ -99,11 +99,11 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
             <button className="btn plain" style={{ marginTop: 6, paddingLeft: 0 }} onClick={clearRating}>{t.coffee.clearRating}</button>
           )}
         </div>
+        <CoffeeSummary coffee={coffee} />
         {coffee.rating == null && !archived && <PredictionCard prediction={prediction} ratedCount={model.count} pick={pick} />}
         {coffee.rating != null && !archived && prediction && prediction.similar.length > 0 && (
           <div className="card"><ClosestList similar={prediction.similar} pick={pick} /></div>
         )}
-        <CoffeeSummary coffee={coffee} />
         <p className="muted small" style={{ textAlign: 'center' }}>{t.coffee.scanned} {new Date(coffee.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
         {!archived && <button className="btn ghost block" onClick={addToCompare}>{t.compare.add}</button>}
         {compareNote && <div className="notice" style={{ marginTop: 0 }}>{compareNote}</div>}
