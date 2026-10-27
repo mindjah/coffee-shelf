@@ -720,3 +720,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 .tab-page.enter-left { animation: enter-left 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
 @keyframes enter-right { from { transform: translateX(30%); opacity: 0; } }
 @keyframes enter-left { from { transform: translateX(-30%); opacity: 0; } }
+
+/* The page a back swipe lands on, under a sheet that stays (encyclopedia chapter → contents) */
+.sheet.sheet-under { visibility: hidden; animation: none; overflow: hidden; }
+.sheet.sheet-under.shown { visibility: visible; }

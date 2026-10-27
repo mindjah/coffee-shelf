@@ -1,4 +1,5 @@
 import { useEffect, useRef, type RefObject } from 'react'
+import { flushSync } from 'react-dom'
 
 /**
  * Swipe navigation, as in iOS apps:
@@ -56,9 +57,11 @@ export function useSwipeNavigation(onTab: (step: 1 | -1) => boolean) {
     let mode: 'back' | 'tab' | 'none' | null = null
     let el: HTMLElement | null = null
     let backdrop: HTMLElement | null = null
+    /** The page a back swipe lands on inside the same sheet, drawn under it. */
+    let under: HTMLElement | null = null
     let dx = 0
 
-    const reset = () => ((start = null), (mode = null), (el = null), (backdrop = null), (dx = 0))
+    const reset = () => ((start = null), (mode = null), (el = null), (backdrop = null), (under = null), (dx = 0))
 
     const onStart = (e: TouchEvent) => {
       reset()
@@ -69,7 +72,10 @@ export function useSwipeNavigation(onTab: (step: 1 | -1) => boolean) {
       if (!el || claimed(e.target, document.body)) return void (el = null)
       // A sheet inside a sheet: its parent is under it, not part of it.
       if (sheet && !sheet.contains(e.target as Node)) return void (el = null)
-      backdrop = sheet?.previousElementSibling?.classList.contains('sheet-backdrop') ? (sheet.previousElementSibling as HTMLElement) : null
+      const prev = sheet?.previousElementSibling as HTMLElement | null | undefined
+      under = prev?.classList.contains('sheet-under') ? prev : null
+      // With a page underneath, the backdrop stays: the screen under the sheet isn't where you land.
+      backdrop = !under && prev?.classList.contains('sheet-backdrop') ? prev : null
       const p = e.touches[0]
       start = { x: p.clientX, y: p.clientY, t: e.timeStamp }
     }
@@ -87,6 +93,7 @@ export function useSwipeNavigation(onTab: (step: 1 | -1) => boolean) {
         if (mode === 'back' && dx < 0) return void (mode = 'none')
         el.style.transition = 'none'
         if (backdrop) backdrop.style.transition = 'none'
+        under?.classList.add('shown')
       }
       if (e.cancelable) e.preventDefault()
       const w = window.innerWidth
@@ -117,6 +124,7 @@ export function useSwipeNavigation(onTab: (step: 1 | -1) => boolean) {
     const onEnd = (e: TouchEvent) => {
       const target = el
       const back = backdrop
+      const below = under
       if (!start || !target || (mode !== 'back' && mode !== 'tab')) return reset()
       const w = window.innerWidth
       const fast = Math.abs(dx) / Math.max(1, e.timeStamp - start.t) > 0.5 && Math.abs(dx) > 40
@@ -126,20 +134,22 @@ export function useSwipeNavigation(onTab: (step: 1 | -1) => boolean) {
           settle(target, 'translateX(100%)')
           if (back) settle(back, '', '0')
           setTimeout(() => {
-            close()
-            // Went back inside the same screen (e.g. a chapter → contents): it slides back in.
-            requestAnimationFrame(() => {
-              if (!target.isConnected) return
+            // Rendered at once, so a sheet that stays (a chapter → the contents) already shows the
+            // page that was underneath when it snaps back into place: no flash of the old one.
+            flushSync(close)
+            if (target.isConnected) {
               target.style.transition = 'none'
-              target.style.transform = 'translateX(-25%)'
-              target.style.opacity = '0'
-              requestAnimationFrame(() => settle(target))
-              if (back) back.style.opacity = ''
-            })
+              target.style.transform = ''
+              target.style.boxShadow = ''
+              // The page underneath was drawn from its top.
+              if (below) target.scrollTop = 0
+            }
+            below?.classList.remove('shown')
           }, 200)
         } else {
           settle(target)
           if (back) settle(back)
+          if (below) setTimeout(() => below.classList.remove('shown'), 230)
         }
       } else {
         const step = dx < 0 ? 1 : -1

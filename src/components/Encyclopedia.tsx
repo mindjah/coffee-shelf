@@ -188,11 +188,65 @@ export function Encyclopedia({ onClose }: { onClose: () => void }) {
   const mine = chapter?.id === BREW_CHAPTER ? recipes?.length ?? 0 : 0
   const cardProps = { onBrew: setBrewing, onEdit: setEditing }
 
+  // The contents page; also drawn under a chapter, so swiping back shows where you'll land.
+  const contents = full && (
+    <>
+      <div className="book-search">
+        <input
+          className="input"
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t.book.search}
+          aria-label={t.book.search}
+        />
+        {query && (
+          <button type="button" className="book-search-clear" onClick={() => setQuery('')} aria-label={t.common.cancel}>
+            <ClearIcon />
+          </button>
+        )}
+      </div>
+      {query.trim() ? (
+        hits.length ? (
+          hits.map((h) => <ArticleCard key={`${h.chapter.id}/${h.article.title}`} article={h.article} chapter={h.chapter.title} snippet={h.snippet} {...cardProps} />)
+        ) : (
+          <p className="muted" style={{ textAlign: 'center', margin: '32px 0' }}>{t.book.noResults}</p>
+        )
+      ) : (
+        <>
+          {full.filter((c) => c.id === BREW_CHAPTER).map((c) => (
+            <button type="button" key={c.id} className="card book-brew" onClick={() => setChapterId(c.id)}>
+              <KettleIcon />
+              <span className="book-toc-text">
+                <b>{c.title}</b>
+                <span>{t.book.brewHint}</span>
+              </span>
+              <ChevronIcon />
+            </button>
+          ))}
+        <div className="card book-toc">
+          {full.filter((c) => c.id !== BREW_CHAPTER).map((c, i) => (
+            <button type="button" key={c.id} className="book-toc-row" onClick={() => setChapterId(c.id)}>
+              <span className="book-toc-num">{i + 1}</span>
+              <span className="book-toc-text">
+                <b>{c.title}</b>
+                <span>{c.summary}</span>
+              </span>
+              <ChevronIcon />
+            </button>
+          ))}
+        </div>
+        </>
+      )}
+    </>
+  )
+
   return (
     <Sheet
       title={t.book.title}
       onClose={chapter ? () => setChapterId(null) : onClose}
       closeLabel={`‹ ${t.book.back}`}
+      under={chapter ? contents : undefined}
     >
       <div ref={top} />
       {!full ? null : chapter ? (
@@ -215,55 +269,7 @@ export function Encyclopedia({ onClose }: { onClose: () => void }) {
           ))}
         </>
       ) : (
-        <>
-          <div className="book-search">
-            <input
-              className="input"
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t.book.search}
-              aria-label={t.book.search}
-            />
-            {query && (
-              <button type="button" className="book-search-clear" onClick={() => setQuery('')} aria-label={t.common.cancel}>
-                <ClearIcon />
-              </button>
-            )}
-          </div>
-          {query.trim() ? (
-            hits.length ? (
-              hits.map((h) => <ArticleCard key={`${h.chapter.id}/${h.article.title}`} article={h.article} chapter={h.chapter.title} snippet={h.snippet} {...cardProps} />)
-            ) : (
-              <p className="muted" style={{ textAlign: 'center', margin: '32px 0' }}>{t.book.noResults}</p>
-            )
-          ) : (
-            <>
-              {full.filter((c) => c.id === BREW_CHAPTER).map((c) => (
-                <button type="button" key={c.id} className="card book-brew" onClick={() => setChapterId(c.id)}>
-                  <KettleIcon />
-                  <span className="book-toc-text">
-                    <b>{c.title}</b>
-                    <span>{t.book.brewHint}</span>
-                  </span>
-                  <ChevronIcon />
-                </button>
-              ))}
-            <div className="card book-toc">
-              {full.filter((c) => c.id !== BREW_CHAPTER).map((c, i) => (
-                <button type="button" key={c.id} className="book-toc-row" onClick={() => setChapterId(c.id)}>
-                  <span className="book-toc-num">{i + 1}</span>
-                  <span className="book-toc-text">
-                    <b>{c.title}</b>
-                    <span>{c.summary}</span>
-                  </span>
-                  <ChevronIcon />
-                </button>
-              ))}
-            </div>
-            </>
-          )}
-        </>
+        contents
       )}
       {brewing && <BrewTimer article={brewing} onClose={() => setBrewing(null)} />}
       {editing != null && (
