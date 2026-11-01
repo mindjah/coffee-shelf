@@ -26,6 +26,7 @@ const clock = (ms: number) => {
 function chime(ctx: AudioContext | null) {
   navigator.vibrate?.(200)
   if (!ctx) return
+  if (ctx.state !== 'running') ctx.resume().catch(() => {})
   const t = ctx.currentTime
   for (const [i, f] of [880, 1320].entries()) {
     const o = ctx.createOscillator()
@@ -102,9 +103,18 @@ export function BrewTimer({ article, onClose }: { article: Article; onClose: () 
   }, [run.index, run.status])
 
   const start = () => {
+    // A fresh context for every brew, unlocked by this tap: iOS can leave the last one suspended or
+    // interrupted after a brew, and then the chimes stay silent.
+    void audio.current?.close().catch(() => {})
     try {
-      audio.current ??= new AudioContext()
-      audio.current.resume().catch(() => {})
+      const ctx = new AudioContext()
+      ctx.resume().catch(() => {})
+      // Playing something inside the tap is what unlocks audio on iOS.
+      const src = ctx.createBufferSource()
+      src.buffer = ctx.createBuffer(1, 1, 22050)
+      src.connect(ctx.destination)
+      src.start()
+      audio.current = ctx
     } catch {
       audio.current = null
     }
@@ -143,7 +153,7 @@ export function BrewTimer({ article, onClose }: { article: Article; onClose: () 
           <div className="brew-clock">{run.clockStart == null ? '✓' : clock(elapsed)}</div>
           <h2>{t.brewing.done}</h2>
           {run.clockStart != null && <p className="muted">{t.brewing.brewedIn(clock(elapsed))}</p>}
-          <button className="btn block" onClick={start}>{t.brewing.again}</button>
+          <button className="btn block" onClick={() => setRun(fresh)}>{t.brewing.again}</button>
           <button className="btn plain block" onClick={onClose}>{t.book.back}</button>
         </div>
       ) : (
