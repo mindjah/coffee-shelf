@@ -724,3 +724,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 /* The page a back swipe lands on, under a sheet that stays (encyclopedia chapter → contents) */
 .sheet.sheet-under { visibility: hidden; animation: none; overflow: hidden; }
 .sheet.sheet-under.shown { visibility: visible; }
+.brew-sound {
+  display: block; margin: 10px auto 0; padding: 8px 14px; border: 0; border-radius: 999px;
+  background: var(--accent-soft); color: var(--text); font-size: 14px; font-weight: 600;
+}

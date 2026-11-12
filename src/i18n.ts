@@ -363,6 +363,7 @@ const en = {
     done: 'Enjoy your coffee',
     brewedIn: (time: string) => `Brewed in ${time}`,
     again: 'Brew again',
+    soundOff: 'Sound is paused — tap to turn it back on',
   },
   settings: {
     title: 'Settings',
@@ -843,6 +844,7 @@ const ru: Dict = {
     done: 'Приятного кофе',
     brewedIn: (time: string) => `Заварено за ${time}`,
     again: 'Заварить ещё раз',
+    soundOff: 'Звук на паузе — нажмите, чтобы включить',
   },
   settings: {
     title: 'Настройки',
@@ -1317,6 +1319,7 @@ const es: Dict = {
     done: 'Disfruta tu café',
     brewedIn: (time: string) => `Preparado en ${time}`,
     again: 'Preparar otra vez',
+    soundOff: 'Sonido en pausa — toca para reactivarlo',
   },
   settings: {
     title: 'Ajustes',

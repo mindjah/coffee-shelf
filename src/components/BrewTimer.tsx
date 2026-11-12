@@ -80,6 +80,55 @@ export function BrewTimer({ article, onClose }: { article: Article; onClose: () 
 
   useEffect(() => () => void audio.current?.close().catch(() => {}), [])
 
+  /**
+   * Audio that plays, set up inside a tap (iOS only allows that). `fresh` replaces the context:
+   * every brew starts with a new one, and after the app was in the background iOS can keep the old
+   * one suspended or silent even when it says it's running.
+   */
+  const unlock = (fresh = false) => {
+    const old = audio.current
+    if (!fresh && old && old.state === 'running') return
+    void old?.close().catch(() => {})
+    try {
+      const ctx = new AudioContext()
+      ctx.resume().catch(() => {})
+      // Playing something inside the tap is what unlocks audio on iOS.
+      const src = ctx.createBufferSource()
+      src.buffer = ctx.createBuffer(1, 1, 22050)
+      src.connect(ctx.destination)
+      src.start()
+      audio.current = ctx
+    } catch {
+      audio.current = null
+    }
+    setMuted(false)
+  }
+
+  // Back from the background mid-brew: try to wake the sound at once; if iOS won't, say so, and the
+  // next tap anywhere brings it back.
+  const [muted, setMuted] = useState(false)
+  const stale = useRef(false)
+  useEffect(() => {
+    if (!active) return
+    const onShow = () => {
+      if (document.visibilityState !== 'visible') return void (stale.current = true)
+      const ctx = audio.current
+      ctx?.resume().catch(() => {})
+      setTimeout(() => ctx && audio.current === ctx && ctx.state !== 'running' && setMuted(true), 400)
+    }
+    const onTap = () => {
+      if (!stale.current && audio.current?.state === 'running') return
+      stale.current = false
+      unlock(true)
+    }
+    document.addEventListener('visibilitychange', onShow)
+    document.addEventListener('pointerdown', onTap, true)
+    return () => {
+      document.removeEventListener('visibilitychange', onShow)
+      document.removeEventListener('pointerdown', onTap, true)
+    }
+  }, [active])
+
   /** Moves to step `i`, which began at `at` (a timed step ends exactly on time, not at the tick). */
   const goTo = (r: Run, i: number, at: number): Run => {
     if (i >= steps.length) return { ...r, status: 'done', endedAt: at }
@@ -93,7 +142,8 @@ export function BrewTimer({ article, onClose }: { article: Article; onClose: () 
     const end = run.stepStart + dur * 1000
     if (now >= end) {
       setRun((r) => goTo(r, r.index + 1, end))
-      chime(audio.current)
+      // Several steps that ran out while the app was away chime once, not all at the same moment.
+      if (Date.now() - end < 2000) chime(audio.current)
     }
   }, [now, run, dur])
 
@@ -103,21 +153,7 @@ export function BrewTimer({ article, onClose }: { article: Article; onClose: () 
   }, [run.index, run.status])
 
   const start = () => {
-    // A fresh context for every brew, unlocked by this tap: iOS can leave the last one suspended or
-    // interrupted after a brew, and then the chimes stay silent.
-    void audio.current?.close().catch(() => {})
-    try {
-      const ctx = new AudioContext()
-      ctx.resume().catch(() => {})
-      // Playing something inside the tap is what unlocks audio on iOS.
-      const src = ctx.createBufferSource()
-      src.buffer = ctx.createBuffer(1, 1, 22050)
-      src.connect(ctx.destination)
-      src.start()
-      audio.current = ctx
-    } catch {
-      audio.current = null
-    }
+    unlock(true)
     const at = Date.now()
     setNow(at)
     setRun(goTo(fresh, 0, at))
@@ -173,6 +209,9 @@ export function BrewTimer({ article, onClose }: { article: Article; onClose: () 
             </div>
             {run.status !== 'ready' && dur != null && (
               <div className="brew-bar"><span style={{ width: `${Math.min(100, (1 - left / (dur * 1000)) * 100)}%` }} /></div>
+            )}
+            {muted && active && (
+              <button type="button" className="brew-sound" onClick={() => unlock(true)}>{t.brewing.soundOff}</button>
             )}
           </div>
           <ol className="brew-steps" ref={list}>
