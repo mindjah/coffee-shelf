@@ -70,8 +70,9 @@ export async function readBag(images: Blob[], signal?: AbortSignal, override?: s
  * Finds a coffee online with Claude's web search and fetch tools. Structured output can't be
  * combined with the citations web search returns, so the answer comes as JSON text.
  */
-export async function lookup(request: string, signal?: AbortSignal): Promise<Lookup> {
-  const { apiKey, model } = getSettings()
+export async function lookup(request: string, signal?: AbortSignal, override?: string): Promise<Lookup> {
+  const { apiKey, model: picked } = getSettings()
+  const model = override ?? picked
   if (!apiKey) throw new ScanError('noKey')
   const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true })
   // Haiku 4.5 has only the basic tools; the newer models filter pages before reading them.

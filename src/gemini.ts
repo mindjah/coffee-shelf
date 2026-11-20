@@ -108,8 +108,9 @@ export async function placeFromLink(link: string, model?: string, signal?: Abort
 }
 
 /** Finds a coffee online with Google Search and URL context; the answer comes as JSON text. */
-export async function lookup(request: string, signal?: AbortSignal): Promise<Lookup> {
-  const { geminiKey, geminiModel } = getSettings()
+export async function lookup(request: string, signal?: AbortSignal, model?: string): Promise<Lookup> {
+  const { geminiKey, geminiModel: picked } = getSettings()
+  const geminiModel = model ?? picked
   if (!geminiKey) throw new ScanError('noKey')
   let response
   try {

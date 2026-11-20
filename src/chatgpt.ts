@@ -78,8 +78,9 @@ export async function readBag(images: Blob[], signal?: AbortSignal, model?: stri
 }
 
 /** Finds a coffee online with OpenAI's web search tool. */
-export async function lookup(request: string, signal?: AbortSignal): Promise<Lookup> {
-  const { openaiKey, openaiModel } = getSettings()
+export async function lookup(request: string, signal?: AbortSignal, model?: string): Promise<Lookup> {
+  const { openaiKey, openaiModel: picked } = getSettings()
+  const openaiModel = model ?? picked
   if (!openaiKey) throw new ScanError('noKey')
   let response
   try {

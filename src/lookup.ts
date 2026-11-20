@@ -6,6 +6,7 @@ import { BagSchema, SYSTEM, toDraft } from './extract'
 import { ScanError } from './errors'
 import { lookupProvider } from './settings'
 import type { CoffeeDraft } from './types'
+import type { ReadStatus } from './scan'
 
 export const LookupSchema = BagSchema.extend({
   found: z.boolean().describe('True only if a page about this exact coffee (same roaster, same lot or blend) was found'),
@@ -85,14 +86,28 @@ export function fillGaps<T extends CoffeeDraft>(old: T, web: CoffeeDraft): { nex
 export interface LookupResult {
   draft: CoffeeDraft | null
   source: string
+  /** Found by a stand-in model because the usual one was busy or out of searches. */
+  via?: string
 }
 
-/** Searches the web for the coffee with the AI provider picked in Settings. */
-export async function lookupCoffee(c: CoffeeDraft, signal?: AbortSignal): Promise<LookupResult> {
-  const provider = lookupProvider()
-  if (!provider) throw new ScanError('noKey')
-  const mod = await (provider === 'claude' ? import('./claude') : provider === 'openai' ? import('./chatgpt') : import('./gemini'))
-  const found = await mod.lookup(lookupRequest(c), signal)
-  if (!found.found) return { draft: null, source: '' }
-  return { draft: toDraft(found), source: /^https?:\/\//.test(found.source_url) ? found.source_url : '' }
+/** A search runs longer than a label read: several pages may be opened. */
+const LOOKUP_ATTEMPT_MS = 60_000
+
+/**
+ * Searches the web for the coffee like the scanner reads a label (see withFallback in scan.ts):
+ * retries when the model is busy or out of searches, then a lighter model, then the other
+ * providers you have a key for. An answer that can't be read is also worth another model's try.
+ */
+export async function lookupCoffee(c: CoffeeDraft, signal: AbortSignal, onStatus?: (s: ReadStatus) => void): Promise<LookupResult> {
+  if (!lookupProvider()) throw new ScanError('noKey')
+  const { withFallback } = await import('./scan')
+  const request = lookupRequest(c)
+  const { result: found, via } = await withFallback((mod, model, sig) => mod.lookup(request, sig, model), signal, {
+    onStatus,
+    attemptMs: LOOKUP_ATTEMPT_MS,
+    keyedOnly: true,
+    nextOn: (e) => e instanceof ScanError && ['unreadable', 'truncated', 'refusal', 'api'].includes(e.code),
+  })
+  if (!found.found) return { draft: null, source: '', via }
+  return { draft: toDraft(found), source: /^https?:\/\//.test(found.source_url) ? found.source_url : '', via }
 }

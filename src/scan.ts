@@ -70,25 +70,39 @@ const sleep = (ms: number, signal: AbortSignal) =>
     signal.addEventListener('abort', () => (clearTimeout(timer), reject(signal.reason)), { once: true })
   })
 
+type ProviderModule = Awaited<ReturnType<typeof load>>
+
 /**
- * Reads a bag with AI, riding out busy servers: each model gets 30 seconds and two quick retries
+ * Runs an AI request, riding out busy servers: each model gets `attemptMs` and two quick retries
  * when it says it's busy, then the next model in targets() takes over. Setup problems (a bad key)
- * and answers about the photo (not a coffee bag, unreadable) end the attempt at once.
+ * end it at once; so does any other answer, unless `nextOn` says another model may do better.
+ * `keyedOnly` skips providers without a key from the start, even the one picked in Settings.
  */
-export async function readBag(images: Blob[], signal: AbortSignal, onStatus?: (s: ReadStatus) => void): Promise<{ draft: CoffeeDraft; via?: string }> {
-  const list = targets(getSettings())
+export async function withFallback<T>(
+  run: (mod: ProviderModule, model: string, signal: AbortSignal) => Promise<T>,
+  signal: AbortSignal,
+  { onStatus, attemptMs = ATTEMPT_TIMEOUT_MS, keyedOnly = false, nextOn }: {
+    onStatus?: (s: ReadStatus) => void
+    attemptMs?: number
+    keyedOnly?: boolean
+    nextOn?: (e: unknown) => boolean
+  } = {},
+): Promise<{ result: T; via?: string }> {
+  const s = getSettings()
+  const list = targets(s).filter((t) => !keyedOnly || s[AI_FIELDS[t.provider].key])
+  if (!list.length) throw new ScanError('noKey')
   let lastError: unknown
   for (const [i, target] of list.entries()) {
     if (i > 0) onStatus?.({ kind: 'fallback', from: modelLabel(list[i - 1]), to: modelLabel(target) })
-    const { readBag: read } = await load(target.provider)
+    const mod = await load(target.provider)
     for (let attempt = 0; ; attempt++) {
       const ac = new AbortController()
       const stop = () => ac.abort(signal.reason)
       signal.addEventListener('abort', stop, { once: true })
-      const timer = setTimeout(() => ac.abort(new ScanError('timeout')), ATTEMPT_TIMEOUT_MS)
+      const timer = setTimeout(() => ac.abort(new ScanError('timeout')), attemptMs)
       try {
-        const draft = await untilAborted(read(images, ac.signal, target.model), ac.signal)
-        return { draft, via: i > 0 ? modelLabel(target) : undefined }
+        const result = await untilAborted(run(mod, target.model, ac.signal), ac.signal)
+        return { result, via: i > 0 ? modelLabel(target) : undefined }
       } catch (e) {
         if (signal.aborted) throw e // cancelled, or out of time altogether
         const err = ac.signal.aborted ? new ScanError('timeout') : e
@@ -103,8 +117,8 @@ export async function readBag(images: Blob[], signal: AbortSignal, onStatus?: (s
           await sleep(RETRY_DELAYS_MS[attempt], signal)
           continue
         }
-        if (slow || busy(err)) break // next model
-        throw err // about the photo itself; another model won't do better
+        if (slow || busy(err) || nextOn?.(err)) break // next model
+        throw err
       } finally {
         clearTimeout(timer)
         signal.removeEventListener('abort', stop)
@@ -112,6 +126,12 @@ export async function readBag(images: Blob[], signal: AbortSignal, onStatus?: (s
     }
   }
   throw lastError
+}
+
+/** Reads a bag with AI (see withFallback); answers about the photo (not a coffee bag) end it at once. */
+export async function readBag(images: Blob[], signal: AbortSignal, onStatus?: (s: ReadStatus) => void): Promise<{ draft: CoffeeDraft; via?: string }> {
+  const { result, via } = await withFallback((mod, model, sig) => mod.readBag(images, sig, model), signal, { onStatus })
+  return { draft: result, via }
 }
 
 export async function testKey(provider: AIProvider, apiKey: string, model: string): Promise<void> {

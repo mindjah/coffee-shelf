@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ScanError } from '../errors'
 import type { WebField } from '../lookup'
 import { lookupProvider, useSettings } from '../settings'
-import { useT, type Dict } from '../i18n'
+import { statusText, useT, type Dict } from '../i18n'
 import type { CoffeeDraft } from '../types'
 import { GlobeIcon } from './icons'
 import { Linkify } from './Linkify'
@@ -25,25 +25,35 @@ export function LookupButton({ coffee, onFilled }: { coffee: CoffeeDraft; onFill
   const t = useT()
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string>()
+  // What's happening while the usual model is busy: retrying, or another one standing in.
+  const [status, setStatus] = useState<string>()
+  const running = useRef<AbortController>(undefined)
+  useEffect(() => () => running.current?.abort(), [])
   const settings = useSettings()
   if (!lookupProvider(settings)) return <p className="muted small" style={{ margin: '8px 4px 0' }}>{t.editor.lookupNeedsAI}</p>
 
   async function run() {
     setBusy(true)
     setMessage(undefined)
+    setStatus(undefined)
+    const ac = new AbortController()
+    running.current = ac
     try {
       // Loaded on first use: it brings the schema library along.
       const { fillGaps, lookupCoffee } = await import('../lookup')
-      const found = await lookupCoffee(coffee)
-      if (!found.draft) return setMessage(t.editor.lookupNone)
+      const found = await lookupCoffee(coffee, ac.signal, (s) => setStatus(statusText(t, s)))
+      const via = found.via ? ` ${t.editor.lookupVia(found.via)}` : ''
+      if (!found.draft) return setMessage(t.editor.lookupNone + via)
       const { next, fields } = fillGaps(coffee, found.draft)
-      if (!fields.length) return setMessage(t.editor.lookupNothingNew)
+      if (!fields.length) return setMessage(t.editor.lookupNothingNew + via)
       onFilled({ ...next, webFields: [...new Set([...(coffee.webFields ?? []), ...fields])], webSource: found.source || coffee.webSource })
-      setMessage(t.editor.lookupFilled(webFieldNames(t, fields)))
+      setMessage(t.editor.lookupFilled(webFieldNames(t, fields)) + via)
     } catch (e) {
-      setMessage(e instanceof ScanError ? t.errors[e.code] : String(e))
+      if (ac.signal.aborted) return
+      setMessage(e instanceof ScanError ? [t.errors[e.code], e.detail].filter(Boolean).join(' ') : String(e))
     } finally {
       setBusy(false)
+      setStatus(undefined)
     }
   }
 
@@ -52,6 +62,7 @@ export function LookupButton({ coffee, onFilled }: { coffee: CoffeeDraft; onFill
       <button type="button" className="btn ghost block" onClick={run} disabled={busy}>
         <GlobeIcon /> {busy ? t.editor.lookingUp : t.editor.lookup}
       </button>
+      {busy && status && <p className="muted small" style={{ margin: '8px 4px 0' }}>{status}</p>}
       {message && <p className="muted small" style={{ margin: '8px 4px 0' }}><Linkify text={message} /></p>}
     </div>
   )
