@@ -46,7 +46,8 @@ function chime(ctx: AudioContext | null) {
  * themselves (with a chime), so pours land on time; the rest wait for Next step. Times come from
  * Date.now(), so the clock stays right even when the browser throttles timers.
  */
-export function BrewTimer({ article, onClose }: { article: Article; onClose: () => void }) {
+/** `onDone`: brewing for a coffee from the shelf; after brewing, its button goes back to that coffee. */
+export function BrewTimer({ article, onClose, onDone }: { article: Article; onClose: () => void; onDone?: { label: string; go: () => void } }) {
   const t = useT()
   const steps = article.steps ?? []
   const timer = article.timer ?? []
@@ -190,7 +191,11 @@ export function BrewTimer({ article, onClose }: { article: Article; onClose: () 
           <h2>{t.brewing.done}</h2>
           {run.clockStart != null && <p className="muted">{t.brewing.brewedIn(clock(elapsed))}</p>}
           <button className="btn block" onClick={() => setRun(fresh)}>{t.brewing.again}</button>
-          <button className="btn plain block" onClick={onClose}>{t.book.back}</button>
+          {onDone ? (
+            <button className="btn plain block" onClick={onDone.go}>{onDone.label}</button>
+          ) : (
+            <button className="btn plain block" onClick={onClose}>{t.book.back}</button>
+          )}
         </div>
       ) : (
         <>

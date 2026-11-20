@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { addShelfToCompare, db, MAX_COMPARE, type CompareItem } from '../db'
 import { bagFacts, predict, type Model } from '../recommend'
 import type { Coffee } from '../types'
@@ -15,11 +15,16 @@ import { BrewPicker } from '../components/BrewPicker'
 import { NoteField } from '../components/NoteField'
 import { LookupButton } from '../components/LookupButton'
 import { TastedPicker } from '../components/TastedPicker'
+import { KettleIcon } from '../components/icons'
+import { brewOfRecipe } from '../brew'
+
+const Encyclopedia = lazy(() => import('../components/Encyclopedia').then((m) => ({ default: m.Encyclopedia })))
 
 export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model: Model; onClose: () => void }) {
   const t = useT()
   const lang = useLang()
   const [editing, setEditing] = useState(false)
+  const [brewing, setBrewing] = useState(false)
   const [compareNote, setCompareNote] = useState<string>()
 
   async function addToCompare() {
@@ -103,6 +108,10 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
           )}
         </div>
         <CoffeeSummary coffee={coffee} />
+        {/* The encyclopedia's recipes with timers; brewing with V60 or AeroPress picks that method above. */}
+        <button className="btn ghost block" onClick={() => setBrewing(true)}>
+          <KettleIcon /> {t.coffee.brewThis}
+        </button>
         {coffee.rating == null && !archived && (
           <PredictionCard prediction={prediction} ratedCount={model.count} pick={pick}
             lookup={bagFacts(coffee) < 4 ? <LookupButton coffee={coffee} onFilled={(next) => update(next)} /> : undefined} />
@@ -129,6 +138,20 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
             if (item.coffeeId !== coffee.id) setPicked(left)
           }}
         />
+      )}
+      {brewing && (
+        <Suspense fallback={null}>
+          <Encyclopedia
+            onClose={() => setBrewing(false)}
+            forCoffee={{
+              name: coffee.name || coffee.roaster || t.coffee.fallbackTitle,
+              onBrewed: (recipe) => {
+                const method = brewOfRecipe(recipe.title)
+                if (method && method !== selected) pickMethod(method)
+              },
+            }}
+          />
+        </Suspense>
       )}
       {editing && (
         <CoffeeEditor coffee={coffee} onClose={() => setEditing(false)} onSave={async (c) => (await update(c), setEditing(false))} />

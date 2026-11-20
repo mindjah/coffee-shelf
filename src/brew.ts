@@ -1,7 +1,7 @@
 // When the bag doesn't say what it's roasted for, estimate it from the rest of the label. Roast
 // level is the strongest sign; origin, process, variety, score and the tasting notes tip it.
 import { normalize } from './lexicon'
-import type { CoffeeDraft, Roast } from './types'
+import type { Brew, CoffeeDraft, Roast } from './types'
 
 export type BrewMethod = 'filter' | 'espresso' | 'omni'
 type Side = 'filter' | 'espresso'
@@ -70,4 +70,14 @@ export function guessBrewMethod(c: CoffeeDraft): BrewGuess | null {
 /** The brew method to show: the stated one, else a guess. */
 export function brewMethod(c: CoffeeDraft): BrewGuess | null {
   return c.roastFor !== 'unknown' ? { method: c.roastFor, clues: [], stated: true } : guessBrewMethod(c)
+}
+
+/**
+ * The brew method a rating goes under, from a recipe's name: "V60 — 4:6 method" is V60,
+ * "AeroPress — inverted" is AeroPress. Other methods (Chemex, French press…) have no rating of their own.
+ */
+export function brewOfRecipe(title: string): Brew | null {
+  if (/\bv\s?60\b/i.test(title)) return 'v60'
+  if (/aero\s?press|аэропресс/i.test(title)) return 'aeropress'
+  return null
 }

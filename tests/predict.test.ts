@@ -156,3 +156,12 @@ test('a web answer missing some fields still counts', () => {
   assert.deepEqual(parsed.country_codes, ['CO'])
   assert.equal(parsed.process, 'unknown')
 })
+
+test('a recipe counts as its brew method, not the recipe', async () => {
+  const { brewOfRecipe } = await import('../src/brew')
+  assert.equal(brewOfRecipe('V60 — Tetsu Kasuya’s 4:6 method'), 'v60')
+  assert.equal(brewOfRecipe('V60: la receta clásica'), 'v60')
+  assert.equal(brewOfRecipe('AeroPress — перевёрнутый способ'), 'aeropress')
+  assert.equal(brewOfRecipe('Мой утренний Аэропресс'), 'aeropress')
+  assert.equal(brewOfRecipe('Chemex'), null)
+})

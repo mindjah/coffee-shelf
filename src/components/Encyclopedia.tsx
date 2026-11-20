@@ -156,11 +156,15 @@ function ArticleCard({ article, chapter, snippet, onBrew, onEdit }: CardProps) {
   )
 }
 
-export function Encyclopedia({ onClose }: { onClose: () => void }) {
+/**
+ * `forCoffee`: opened from a coffee to brew it, straight at the brew methods. Back leaves the book;
+ * after brewing, the timer returns to the coffee with the recipe it used.
+ */
+export function Encyclopedia({ onClose, forCoffee }: { onClose: () => void; forCoffee?: { name: string; onBrewed: (recipe: Article) => void } }) {
   const t = useT()
   const lang = useLang()
   const [book, setBook] = useState<Book | null>(null)
-  const [chapterId, setChapterId] = useState<string | null>(null)
+  const [chapterId, setChapterId] = useState<string | null>(forCoffee ? BREW_CHAPTER : null)
   const [query, setQuery] = useState('')
   const [brewing, setBrewing] = useState<Article | null>(null)
   /** The recipe being written: 'new', or the id of one being edited. */
@@ -244,9 +248,9 @@ export function Encyclopedia({ onClose }: { onClose: () => void }) {
   return (
     <Sheet
       title={t.book.title}
-      onClose={chapter ? () => setChapterId(null) : onClose}
+      onClose={chapter && !forCoffee ? () => setChapterId(null) : onClose}
       closeLabel={`‹ ${t.book.back}`}
-      under={chapter ? contents : undefined}
+      under={chapter && !forCoffee ? contents : undefined}
     >
       <div ref={top} />
       {!full ? null : chapter ? (
@@ -271,7 +275,10 @@ export function Encyclopedia({ onClose }: { onClose: () => void }) {
       ) : (
         contents
       )}
-      {brewing && <BrewTimer article={brewing} onClose={() => setBrewing(null)} />}
+      {brewing && (
+        <BrewTimer article={brewing} onClose={() => setBrewing(null)}
+          onDone={forCoffee && { label: t.brewing.backToCoffee(forCoffee.name), go: () => (forCoffee.onBrewed(brewing), onClose()) }} />
+      )}
       {editing != null && (
         <RecipeEditor recipe={editing === 'new' ? undefined : recipes?.find((r) => r.id === editing)} onClose={() => setEditing(null)} />
       )}

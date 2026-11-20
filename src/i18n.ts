@@ -223,6 +223,7 @@ const en = {
     onBag: 'On the bag',
     scanned: 'Scanned',
     rateAfter: 'Rate after tasting',
+    brewThis: 'Brew this coffee',
     tastedTitle: 'What did you taste?',
     tastedHint: 'Teaches the app your taste, even when the bag lists no notes. Dotted ones are in your note: tap to confirm.',
     yourRating: 'Your rating',
@@ -386,6 +387,7 @@ const en = {
     done: 'Enjoy your coffee',
     brewedIn: (time: string) => `Brewed in ${time}`,
     again: 'Brew again',
+    backToCoffee: (name: string) => `Back to ${name}`,
     soundOff: 'Sound is paused — tap to turn it back on',
   },
   settings: {
@@ -735,6 +737,7 @@ const ru: Dict = {
     onBag: 'На пачке',
     scanned: 'Отсканировано',
     rateAfter: 'Оцените после дегустации',
+    brewThis: 'Заварить этот кофе',
     tastedTitle: 'Что почувствовали?',
     tastedHint: 'Так приложение узнаёт ваш вкус, даже если на пачке нет нот. Пунктирные — из вашей заметки: нажмите, чтобы подтвердить.',
     yourRating: 'Ваша оценка',
@@ -898,6 +901,7 @@ const ru: Dict = {
     done: 'Приятного кофе',
     brewedIn: (time: string) => `Заварено за ${time}`,
     again: 'Заварить ещё раз',
+    backToCoffee: (name) => `Вернуться к «${name}»`,
     soundOff: 'Звук на паузе — нажмите, чтобы включить',
   },
   settings: {
@@ -1234,6 +1238,7 @@ const es: Dict = {
     onBag: 'En la bolsa',
     scanned: 'Escaneado',
     rateAfter: 'Valóralo después de probarlo',
+    brewThis: 'Preparar este café',
     tastedTitle: '¿Qué notaste?',
     tastedHint: 'Enseña a la app tu gusto, aunque la bolsa no tenga notas. Las punteadas salen de tu nota: tócalas para confirmar.',
     yourRating: 'Tu valoración',
@@ -1397,6 +1402,7 @@ const es: Dict = {
     done: 'Disfruta tu café',
     brewedIn: (time: string) => `Preparado en ${time}`,
     again: 'Preparar otra vez',
+    backToCoffee: (name) => `Volver a «${name}»`,
     soundOff: 'Sonido en pausa — toca para reactivarlo',
   },
   settings: {
