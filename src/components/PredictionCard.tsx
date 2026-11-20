@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Prediction } from '../recommend'
 import { MIN_RATINGS, toneFor } from '../recommend'
 import { countryName, reasonText, useLang, useT } from '../i18n'
@@ -15,7 +16,8 @@ export interface ClosestPick {
  * `rated`: your own rating of this coffee from before, shown instead of a guess. `pick` makes the
  * "Closest to" coffees selectable, with a button to compare the bag with the ones picked.
  */
-export function PredictionCard({ prediction, ratedCount, rated, pick }: { prediction: Prediction | null; ratedCount: number; rated?: number | null; pick?: ClosestPick }) {
+/** `lookup`: a "find it online" button, shown when the bag says little about the taste. */
+export function PredictionCard({ prediction, ratedCount, rated, pick, lookup }: { prediction: Prediction | null; ratedCount: number; rated?: number | null; pick?: ClosestPick; lookup?: ReactNode }) {
   const t = useT()
   const lang = useLang()
   if (rated != null) {
@@ -39,6 +41,7 @@ export function PredictionCard({ prediction, ratedCount, rated, pick }: { predic
       <div className="card">
         <div className="verdict">{t.prediction.tooLittle}</div>
         <div className="muted small">{t.prediction.tooLittleHint}</div>
+        {lookup && <div style={{ marginTop: 12 }}>{lookup}</div>}
       </div>
     )
   }
@@ -61,6 +64,7 @@ export function PredictionCard({ prediction, ratedCount, rated, pick }: { predic
         <div>
           <div className="verdict">{t.prediction.verdict[p.tone]}</div>
           <div className="muted small">{t.prediction.subtitle(t.prediction.confidence[p.confidence])}</div>
+          {p.range && <div className="muted small">{t.prediction.range(p.range[0].toFixed(1), p.range[1].toFixed(1))}</div>}
         </div>
       </div>
       {p.byBrew && (
@@ -84,6 +88,7 @@ export function PredictionCard({ prediction, ratedCount, rated, pick }: { predic
         </ul>
       )}
       <ClosestList similar={p.similar} pick={pick} />
+      {lookup && <div style={{ marginTop: 12 }}>{lookup}</div>}
     </div>
   )
 }

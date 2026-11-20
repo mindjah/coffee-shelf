@@ -39,6 +39,8 @@ export interface Coffee {
   /** Which picture stands for the bag on the shelf and in lists; the cover one when there is one, unless 'label'. */
   coverFrom?: 'label' | 'cover'
   roaster: string
+  /** Product line shared by several of the roaster's coffees ("Unholy Water"); empty if none. */
+  series?: string
   name: string
   country: string
   /** ISO 3166-1 alpha-2, so country names can be shown in the app language. Missing on early scans. */
@@ -60,6 +62,13 @@ export interface Coffee {
   flavorsEstimated: boolean
   structure: Structure
   scaScore: number | null
+  /** Roast date, as printed or entered (midnight local time). */
+  roastedAt?: number | null
+  /** Details filled from the web (see lookup.ts), and the page they came from. */
+  webFields?: string[]
+  webSource?: string
+  /** A fresh scan only: some of the label looked hidden or cut off. Not saved. */
+  labelCutOff?: boolean
   /** Net weight of the bag in grams, when printed or entered. */
   weight?: number | null
   /** What you paid for the bag, in `currency` (ISO 4217, e.g. "EUR"). */
@@ -72,6 +81,8 @@ export interface Coffee {
   ratings?: Partial<Record<Brew, number>>
   /** Method of the latest rating; on old single ratings, the method they were given with (if set). */
   brewedWith?: Brew | null
+  /** Flavor groups you noticed when tasting it; they stand in for a bag that listed no notes. */
+  tasted?: Flavor[]
   /** Set when moved to the archive: kept, but off the shelf and out of the taste profile. */
   archivedAt?: number | null
 }

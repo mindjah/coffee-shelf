@@ -728,3 +728,9 @@ textarea.input { min-height: 84px; resize: vertical; }
   display: block; margin: 10px auto 0; padding: 8px 14px; border: 0; border-radius: 999px;
   background: var(--accent-soft); color: var(--text); font-size: 14px; font-weight: 600;
 }
+.roaster .series { text-transform: none; letter-spacing: 0; font-weight: 600; opacity: 0.8; }
+
+/* What you tasted: flavor chips under the stars */
+.chip.pickable { border: 1px solid transparent; color: var(--text); font: inherit; font-size: 13px; }
+.chip.pickable.on { background: var(--accent); color: var(--on-accent); }
+.chip.pickable.suggested { border: 1px dashed var(--accent); }

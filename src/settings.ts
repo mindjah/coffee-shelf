@@ -74,6 +74,15 @@ export function activeKey(s: Settings): string {
   return usesAI(s.provider) ? s[AI_FIELDS[s.provider].key] : ''
 }
 
+/**
+ * The AI that searches the web for a coffee (see lookup.ts): the one picked, or, when labels are
+ * read on the device, any AI with a key. The on-device reader can't search.
+ */
+export function lookupProvider(s: Settings = current): AIProvider | null {
+  if (usesAI(s.provider) && s[AI_FIELDS[s.provider].key]) return s.provider
+  return PROVIDERS.find((p): p is AIProvider => usesAI(p) && !!s[AI_FIELDS[p].key]) ?? null
+}
+
 /** True when the chosen way of adding coffee can't work until a key is entered. */
 export const needsKey = (s: Settings) => usesAI(s.provider) && !activeKey(s)
 const listeners = new Set<() => void>()

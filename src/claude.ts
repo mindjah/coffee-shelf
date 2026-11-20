@@ -5,6 +5,7 @@ import { blobToBase64 } from './image'
 import { getSettings } from './settings'
 import { ScanError } from './errors'
 import { BagSchema, SYSTEM, USER_PROMPT, toDraft } from './extract'
+import { LOOKUP_SYSTEM, lookupJsonSchema, parseLookup, type Lookup } from './lookup'
 
 
 function toScanError(e: unknown): unknown {
@@ -63,4 +64,48 @@ export async function readBag(images: Blob[], signal?: AbortSignal, override?: s
   const bag = response.parsed_output
   if (!bag) throw new ScanError('unreadable')
   return toDraft(bag)
+}
+
+/**
+ * Finds a coffee online with Claude's web search and fetch tools. Structured output can't be
+ * combined with the citations web search returns, so the answer comes as JSON text.
+ */
+export async function lookup(request: string, signal?: AbortSignal): Promise<Lookup> {
+  const { apiKey, model } = getSettings()
+  if (!apiKey) throw new ScanError('noKey')
+  const client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true })
+  // Haiku 4.5 has only the basic tools; the newer models filter pages before reading them.
+  const basic = model.startsWith('claude-haiku-4')
+  const tools: Anthropic.Beta.BetaToolUnion[] = basic
+    ? [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }, { type: 'web_fetch_20250910', name: 'web_fetch', max_uses: 4 }]
+    : [{ type: 'web_search_20260209', name: 'web_search', max_uses: 5 }, { type: 'web_fetch_20260209', name: 'web_fetch', max_uses: 4 }]
+  const messages: Anthropic.Beta.BetaMessageParam[] = [{
+    role: 'user',
+    content: `${request}\n\nAnswer with one JSON object matching this JSON Schema, in a \`\`\`json block:\n${lookupJsonSchema()}`,
+  }]
+  // A long search can pause; sending the turn back lets the server carry on where it stopped.
+  for (let turn = 0; turn < 4; turn++) {
+    let response
+    try {
+      response = await client.beta.messages.create({
+        model,
+        max_tokens: 16000,
+        system: LOOKUP_SYSTEM,
+        messages,
+        tools,
+        ...(basic ? {} : { output_config: { effort: 'low' as const } }),
+        ...(model === 'claude-opus-5' ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' as const } : {}),
+      }, { signal })
+    } catch (e) {
+      throw toScanError(e)
+    }
+    if (response.stop_reason === 'pause_turn') {
+      messages.push({ role: 'assistant', content: response.content })
+      continue
+    }
+    if (response.stop_reason === 'refusal') throw new ScanError('refusal')
+    if (response.stop_reason === 'max_tokens') throw new ScanError('truncated')
+    return parseLookup(response.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join(''))
+  }
+  throw new ScanError('truncated')
 }

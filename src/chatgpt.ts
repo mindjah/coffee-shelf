@@ -5,6 +5,7 @@ import { blobToBase64 } from './image'
 import { getSettings } from './settings'
 import { ScanError } from './errors'
 import { BagSchema, SYSTEM, USER_PROMPT, toDraft } from './extract'
+import { LOOKUP_SYSTEM, LookupSchema, type Lookup } from './lookup'
 
 function toScanError(e: unknown): unknown {
   if (e instanceof OpenAI.APIUserAbortError) return e // cancelled by the user; the screen handles it
@@ -74,4 +75,29 @@ export async function readBag(images: Blob[], signal?: AbortSignal, model?: stri
   const bag = response.output_parsed
   if (!bag) throw new ScanError('unreadable')
   return toDraft(bag)
+}
+
+/** Finds a coffee online with OpenAI's web search tool. */
+export async function lookup(request: string, signal?: AbortSignal): Promise<Lookup> {
+  const { openaiKey, openaiModel } = getSettings()
+  if (!openaiKey) throw new ScanError('noKey')
+  let response
+  try {
+    response = await client(openaiKey).responses.parse(
+      {
+        model: openaiModel,
+        instructions: LOOKUP_SYSTEM,
+        input: [{ role: 'user', content: request }],
+        tools: [{ type: 'web_search' }],
+        text: { format: zodTextFormat(LookupSchema, 'coffee_lookup') },
+        max_output_tokens: 16000,
+      },
+      { signal },
+    )
+  } catch (e) {
+    throw toScanError(e)
+  }
+  if (response.incomplete_details?.reason === 'max_output_tokens') throw new ScanError('truncated')
+  if (!response.output_parsed) throw new ScanError('unreadable')
+  return response.output_parsed
 }

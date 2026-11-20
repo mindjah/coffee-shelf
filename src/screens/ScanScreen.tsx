@@ -4,8 +4,8 @@ import { clearPendingScan, db, loadPendingScan, MAX_COMPARE, savePendingScan, ty
 import { CompareSheet } from './CompareSheet'
 import { ScanError } from '../errors'
 import { PHOTO_SIDE, resizeImage } from '../image'
-import { MIN_RATINGS, predict, type Model } from '../recommend'
-import { needsKey, useSettings } from '../settings'
+import { bagFacts, MIN_RATINGS, predict, type Model } from '../recommend'
+import { needsKey, saveSettings, useSettings } from '../settings'
 import { emptyDraft, isBlankDraft } from '../parse'
 import type { OcrProgress } from '../ocr'
 import type { ReadStatus } from '../scan'
@@ -25,6 +25,9 @@ import { shelfHistory } from '../history'
 import { brewMethod } from '../brew'
 import { BrewPicker } from '../components/BrewPicker'
 import { NoteField } from '../components/NoteField'
+import { PriceField, parsePrice } from '../components/PriceField'
+import { LookupButton } from '../components/LookupButton'
+import { TastedPicker } from '../components/TastedPicker'
 import { useMethodRating, type Rated } from '../useMethodRating'
 
 interface Props {
@@ -83,6 +86,10 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   const [rated, setRated] = useState<Rated>({ rating: null })
   const rating = useMethodRating(rated, (patch) => setRated((r) => ({ ...r, ...patch })))
   const [comment, setComment] = useState('')
+  // The price as typed; the draft keeps the number.
+  const [priceText, setPriceText] = useState('')
+  // Follows a price set elsewhere (the editor, a restored scan) without fighting the typing.
+  useEffect(() => setPriceText((text) => (parsePrice(text) === (draft?.price ?? null) ? text : draft?.price ? String(draft.price) : '')), [draft?.price])
   const [ocr, setOcr] = useState<OcrProgress>()
   const [ocrText, setOcrText] = useState('')
   // When the usual model is busy: what's happening while reading, then which model stood in.
@@ -240,15 +247,17 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
   async function addToCompare() {
     if (!draft) return
     if (compareItems.length >= MAX_COMPARE) return setNotice(t.compare.full(MAX_COMPARE))
-    await db.compare.add({ addedAt: Date.now(), draft })
+    const { labelCutOff: _, ...bag } = draft
+    await db.compare.add({ addedAt: Date.now(), draft: bag })
     reset()
     setNotice(t.compare.added)
   }
 
   async function save(withRating: boolean) {
     if (!draft) return
+    const { labelCutOff: _, ...bag } = draft
     const id = await db.coffees.add({
-      ...draft,
+      ...bag,
       createdAt: Date.now(),
       ...(withRating && rated.rating != null
         ? { rating: rated.rating, ratings: rated.ratings, brewedWith: rated.brewedWith ?? null, ratedAt: Date.now() }
@@ -276,6 +285,10 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
       ...(note && note !== existing.comment.trim() && { comment: existing.comment.trim() ? `${existing.comment.trim()}\n\n${note}` : note }),
       ...(draft.photo && { photo: draft.photo }),
       ...(draft.cover && { cover: draft.cover, coverFrom: draft.coverFrom }),
+      // This bag's roast date and price, if known.
+      ...(draft.roastedAt && { roastedAt: draft.roastedAt }),
+      ...(draft.tasted?.length && { tasted: draft.tasted }),
+      ...(draft.price && { price: draft.price, currency: draft.currency }),
       // Bought again, so it's back on the shelf.
       archivedAt: null,
     })
@@ -300,6 +313,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
         </div>
         <p className="screen-sub">{ocrText ? t.scan.reviewHint : t.scan.newBagHint}</p>
         {readVia && <p className="muted small" style={{ margin: '-8px 4px 12px' }}>{t.scan.readVia(readVia)}</p>}
+        {draft.labelCutOff && <div className="notice" style={{ margin: '0 0 12px' }}>{t.scan.cutOff}</div>}
         <div className="stack">
           {((history && (history.tried.length > 0 || history.roaster)) || brew) && (
             // First thing after a scan: this coffee and its roaster on your shelf, and what it's
@@ -333,6 +347,8 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             prediction={prediction}
             ratedCount={model.count}
             rated={history?.rating}
+            // No tasting notes on the bag: the roaster's page often has them.
+            lookup={bagFacts(draft) < 4 ? <LookupButton coffee={draft} onFilled={setDraft} /> : undefined}
             pick={{
               selected: closestPicked,
               onToggle: (id) => setClosestPicked((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])),
@@ -340,6 +356,21 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             }}
           />
           <CoffeeSummary coffee={draft} showBrewWhy={false} />
+          {/* Paid and weighed: entered here, without opening the editor. The weight may come from the label. */}
+          <div className="card">
+            <div className="grid-2">
+              <PriceField
+                text={priceText}
+                currency={draft.currency ?? settings.currency}
+                onText={(text) => (setPriceText(text), setDraft((d) => d && { ...d, price: parsePrice(text), currency: d.currency ?? settings.currency }))}
+                onCurrency={(code) => (saveSettings({ currency: code }), setDraft((d) => d && { ...d, currency: code }))}
+              />
+              <label className="field">
+                <span>{t.editor.weight}</span>
+                <input className="input" inputMode="numeric" placeholder="250" value={draft.weight ?? ''} onChange={(e) => setDraft((d) => d && { ...d, weight: Number(e.target.value.replace(/\D/g, '')) || null })} />
+              </label>
+            </div>
+          </div>
           {ocrText && (
             <details className="card small">
               <summary style={{ fontWeight: 600 }}>{t.scan.recognizedText}</summary>
@@ -361,6 +392,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             </div>
             <div style={{ margin: '0 0 12px' }}><Stars value={rating.shown} onChange={rating.rate} /></div>
             <NoteField value={comment} placeholder={t.common.commentPlaceholder} onChange={setComment} />
+            {rated.rating != null && <TastedPicker value={draft.tasted} note={comment} onChange={(tasted) => setDraft((d) => d && { ...d, tasted })} />}
           </div>
           {history?.tried.length ? (
             // Already on the shelf: update that entry, or keep this bag as a separate one.

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { addShelfToCompare, db, MAX_COMPARE, type CompareItem } from '../db'
-import { predict, type Model } from '../recommend'
+import { bagFacts, predict, type Model } from '../recommend'
 import type { Coffee } from '../types'
 import { useMethodRating } from '../useMethodRating'
 import { CoffeeSummary } from '../components/CoffeeSummary'
@@ -13,6 +13,8 @@ import { useLang, useT } from '../i18n'
 import { useSettings } from '../settings'
 import { BrewPicker } from '../components/BrewPicker'
 import { NoteField } from '../components/NoteField'
+import { LookupButton } from '../components/LookupButton'
+import { TastedPicker } from '../components/TastedPicker'
 
 export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model: Model; onClose: () => void }) {
   const t = useT()
@@ -95,12 +97,16 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
             <Stars value={shown} onChange={rate} />
           </div>
           <NoteField value={comment} placeholder={t.common.commentPlaceholder} onChange={setComment} onDone={(text) => text !== coffee.comment && update({ comment: text })} />
+          {coffee.rating != null && <TastedPicker value={coffee.tasted} note={comment} onChange={(tasted) => update({ tasted })} />}
           {shown != null && (
             <button className="btn plain" style={{ marginTop: 6, paddingLeft: 0 }} onClick={clearRating}>{t.coffee.clearRating}</button>
           )}
         </div>
         <CoffeeSummary coffee={coffee} />
-        {coffee.rating == null && !archived && <PredictionCard prediction={prediction} ratedCount={model.count} pick={pick} />}
+        {coffee.rating == null && !archived && (
+          <PredictionCard prediction={prediction} ratedCount={model.count} pick={pick}
+            lookup={bagFacts(coffee) < 4 ? <LookupButton coffee={coffee} onFilled={(next) => update(next)} /> : undefined} />
+        )}
         {coffee.rating != null && !archived && prediction && prediction.similar.length > 0 && (
           <div className="card"><ClosestList similar={prediction.similar} pick={pick} /></div>
         )}

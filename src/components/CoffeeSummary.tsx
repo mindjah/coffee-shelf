@@ -3,6 +3,7 @@ import { FLAVORS, type CoffeeDraft, type Lang } from '../types'
 import { countryName, formatPrice, localized, pricePer100g, useLang, useT, type Dict } from '../i18n'
 import { BagThumb } from './CoffeeThumb'
 import { hasProfile } from '../recommend'
+import { webFieldNames } from './LookupButton'
 import { brewMethod, type BrewGuess } from '../brew'
 
 export function usePhotoUrl(photo?: Blob | ArrayBuffer) {
@@ -49,6 +50,10 @@ export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }
     coffee.producer,
     coffee.scaScore && `SCA ${coffee.scaScore}`,
     coffee.weight && t.coffee.grams(coffee.weight),
+    coffee.roastedAt && t.coffee.roasted(
+      new Date(coffee.roastedAt).toLocaleDateString(lang, { day: 'numeric', month: 'short', ...(new Date(coffee.roastedAt).getFullYear() !== new Date().getFullYear() && { year: 'numeric' }) }),
+      Math.floor((Date.now() - coffee.roastedAt) / 864e5),
+    ),
     // What you paid, and per 100 g so bags of different sizes compare.
     formatPrice(coffee, lang) && [formatPrice(coffee, lang), pricePer100g(coffee, lang) && coffee.weight !== 100 && t.coffee.per100g(pricePer100g(coffee, lang))].filter(Boolean).join(' · '),
   ].filter(Boolean) as string[]
@@ -59,7 +64,7 @@ export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }
       <div className="coffee-head">
         <BagThumb coffee={coffee} />
         <div>
-          <div className="roaster">{coffee.roaster || t.common.unknownRoaster}</div>
+          <div className="roaster">{coffee.roaster || t.common.unknownRoaster}{coffee.series && <span className="series"> · {coffee.series}</span>}</div>
           <div className="coffee-name">{coffee.name || t.common.untitled}</div>
           <div className="muted small">{originLine(coffee, t, lang)}</div>
         </div>
@@ -73,6 +78,12 @@ export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }
       {brew && showBrewWhy && (
         <div className="muted small" style={{ marginTop: 8 }}>
           {brewTitle(brew, t)}: {brewWhy(brew, t)}.
+        </div>
+      )}
+      {!!coffee.webFields?.length && (
+        <div className="muted small" style={{ marginTop: 8 }}>
+          {t.editor.fromWeb(webFieldNames(t, coffee.webFields))}
+          {coffee.webSource && <> · <a className="hint-link" href={coffee.webSource} target="_blank" rel="noopener noreferrer">{t.editor.webSource}</a></>}
         </div>
       )}
       {translated && (

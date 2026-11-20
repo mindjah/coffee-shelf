@@ -123,3 +123,7 @@ export const EmptyTasteArt = () => (
     </g>
   </svg>
 )
+/** A globe: looking something up on the web. */
+export const GlobeIcon = () => (
+  <svg {...base}><circle cx="12" cy="12" r="8.5" /><path d="M3.5 12h17M12 3.5c2.4 2.4 3.6 5.2 3.6 8.5s-1.2 6.1-3.6 8.5c-2.4-2.4-3.6-5.2-3.6-8.5S9.6 5.9 12 3.5z" /></svg>
+)

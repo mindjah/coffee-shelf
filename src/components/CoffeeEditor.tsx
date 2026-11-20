@@ -1,17 +1,27 @@
 import { useRef, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db } from '../db'
 import { PHOTO_SIDE, resizeImage } from '../image'
 import { CoffeeThumb, photosOf } from './CoffeeThumb'
 import { CameraIcon, PlusIcon } from './icons'
 import { FLAVORS, PROCESSES, REGIONS, ROASTS, ROAST_FOR, type CoffeeDraft, type Flavor, type Structure } from '../types'
 import { estimateFlavors, findNotes, flavorsFromNotes, lookupCountry } from '../parse'
 import { countryName, localized, useLang, useT } from '../i18n'
-import { CURRENCIES, getSettings, saveSettings } from '../settings'
+import { getSettings, saveSettings } from '../settings'
 import { Sheet } from './Sheet'
 import { RescanSheet } from './RescanSheet'
+import { PriceField, parsePrice } from './PriceField'
+import { LookupButton } from './LookupButton'
 
 type PhotoSlot = 'photo' | 'cover'
 /** The label photo (read for the details) and a cover photo, just for looks. */
 const SLOTS: PhotoSlot[] = ['photo', 'cover']
+
+/** A day as the date input wants it, in local time: "2026-10-23". */
+const dayInput = (ms: number) => {
+  const d = new Date(ms)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 const list = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean)
 
@@ -52,6 +62,8 @@ function mergeScan<T extends CoffeeDraft>(old: T, scan: CoffeeDraft): T {
     },
     scaScore: scan.scaScore ?? old.scaScore,
     weight: scan.weight ?? old.weight,
+    series: pick(scan.series ?? '', old.series ?? '', noText),
+    roastedAt: scan.roastedAt ?? old.roastedAt,
   }
 }
 const blankProfile = (f: Record<Flavor, number>) => FLAVORS.every((k) => !f[k])
@@ -90,11 +102,19 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   const [picking, setPicking] = useState<PhotoSlot>('photo')
   const [rescanning, setRescanning] = useState(false)
   const [rescanned, setRescanned] = useState(false)
+  // From the roaster index: no bag photos are loaded for this.
+  const roasters = useLiveQuery(async () => (await db.coffees.orderBy('roaster').uniqueKeys()).map(String).filter((r) => r.trim()), [])
 
   /** Fills the editor from a new scan; the current photo stays unless the coffee had none. */
   async function applyRescan(scan: CoffeeDraft, firstShot: Blob) {
     const photo = c.photo ?? (await (await resizeImage(firstShot, PHOTO_SIDE, 0.82)).arrayBuffer())
-    const next = { ...mergeScan(c, scan), photo }
+    refill({ ...mergeScan(c, scan), photo })
+    setRescanning(false)
+    setRescanned(true)
+  }
+
+  /** Puts a coffee filled from elsewhere (a re-scan, the web) into every field, for review. */
+  function refill(next: CoffeeDraft) {
     const text = localized(next, lang)
     setBase(next)
     setC(next)
@@ -104,8 +124,6 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
     setVarieties(next.varieties.join(', '))
     setSca(next.scaScore?.toString() ?? '')
     setFillNote(undefined)
-    setRescanning(false)
-    setRescanned(true)
   }
 
   /** Bag picture from Photos or Files, e.g. one saved from the roaster's website. */
@@ -123,7 +141,7 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
   const text = (k: 'roaster' | 'name' | 'area' | 'producer', label: string, placeholder?: string) => (
     <label className="field">
       <span>{label}</span>
-      <input className="input" value={c[k]} placeholder={placeholder} onChange={(e) => set(k, e.target.value)} />
+      <input className="input" value={c[k]} placeholder={placeholder} list={k === 'roaster' ? 'known-roasters' : undefined} onChange={(e) => set(k, e.target.value)} />
     </label>
   )
 
@@ -142,9 +160,9 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
     // SCA scores live between 0 and 100 (specialty is 80+); anything else is treated as not entered.
     const score = Number(sca.replace(',', '.'))
     const next: CoffeeDraft = { ...c, varieties: list(varieties), scaScore: sca.trim() && score > 0 && score <= 100 ? score : null }
-    const paid = Number(price.replace(',', '.'))
-    Object.assign(next, price.trim() && paid > 0 ? { price: paid, currency } : { price: null })
-    if (price.trim() && paid > 0) saveSettings({ currency })
+    const paid = parsePrice(price)
+    Object.assign(next, paid ? { price: paid, currency } : { price: null })
+    if (paid) saveSettings({ currency })
     // A typed country is matched to ISO codes (for translated names) and an origin group.
     if (country !== countryName(base, lang)) {
       const match = lookupCountry(country)
@@ -215,11 +233,18 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
       <button type="button" className="btn ghost block" style={{ marginBottom: 12 }} onClick={() => setRescanning(true)}>
         <CameraIcon /> {t.editor.rescan}
       </button>
+      <div style={{ marginBottom: 12 }}><LookupButton coffee={c} onFilled={refill} /></div>
       {rescanned && <div className="notice" style={{ margin: '0 0 12px' }}>{t.editor.rescanned}</div>}
       {rescanning && <RescanSheet photo={c.photo} onResult={applyRescan} onClose={() => setRescanning(false)} />}
       <div className="card">
         {text('roaster', t.editor.roaster, t.editor.roasterPlaceholder)}
+        {/* Roasters already on your shelf, so one roaster isn't spelled three ways. */}
+        <datalist id="known-roasters">{roasters?.map((r) => <option key={r} value={r} />)}</datalist>
         {text('name', t.editor.name, t.editor.namePlaceholder)}
+        <label className="field">
+          <span>{t.editor.series}</span>
+          <input className="input" value={c.series ?? ''} placeholder={t.editor.seriesPlaceholder} onChange={(e) => set('series', e.target.value)} />
+        </label>
         <div className="grid-2" style={{ marginTop: 12 }}>
           <label className="field">
             <span>{t.editor.country}</span>
@@ -276,20 +301,17 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
         </div>
         <p className="muted small" style={{ margin: '6px 4px 14px' }}>{t.editor.scaHint}</p>
         <div className="grid-2" style={{ marginBottom: 14 }}>
-          <label className="field">
-            <span>{t.editor.price}</span>
-            <div className="price-input">
-              <input className="input" inputMode="decimal" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value.replace(/[^\d.,]/g, ''))} />
-              <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)} aria-label={t.editor.currency}>
-                {[...new Set([...CURRENCIES, currency])].map((code) => <option key={code} value={code}>{code}</option>)}
-              </select>
-            </div>
-          </label>
+          <PriceField text={price} currency={currency} onText={setPrice} onCurrency={setCurrency} />
           <label className="field">
             <span>{t.editor.weight}</span>
             <input className="input" inputMode="numeric" placeholder="250" value={c.weight ?? ''} onChange={(e) => set('weight', e.target.value ? Number(e.target.value.replace(/\D/g, '')) || null : null)} />
           </label>
         </div>
+        <label className="field" style={{ marginBottom: 14 }}>
+          <span>{t.editor.roastedAt}</span>
+          <input className="input" type="date" max={dayInput(Date.now())} value={c.roastedAt ? dayInput(c.roastedAt) : ''}
+            onChange={(e) => set('roastedAt', e.target.value ? new Date(`${e.target.value}T00:00`).getTime() : null)} />
+        </label>
         <label className="field">
           <span>{t.editor.notes}</span>
           <input className="input" value={notes} onChange={(e) => setNotes(e.target.value)} />

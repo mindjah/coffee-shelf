@@ -38,6 +38,8 @@ export const BagSchema = z.object({
   sweetness: scale,
   sca_score: z.number().nullable(),
   weight_g: z.number().nullable().describe('Net weight in grams if printed (250 g → 250, 1 kg → 1000); null if not shown'),
+  roast_date: z.string().describe('Roast date as YYYY-MM-DD; when no year is printed, as --MM-DD; empty if none. Mind the order: Europe writes day first, the US month first, Japan and China month.day or year.month.day'),
+  label_cut_off: z.boolean().describe('True if text that may name the coffee, its origin, process or tasting notes is hidden by a fold, cut off at the edge, covered or too blurry to read'),
 })
 
 export const SYSTEM = `You read photos of specialty coffee packaging (front and/or back) and extract structured data for a personal tasting journal.
@@ -100,6 +102,7 @@ export function toDraft(bag: Bag): CoffeeDraft {
   if (!bag.is_coffee_bag) throw new ScanError('notCoffee')
   const name = text(bag.name)
   const area = text(bag.area)
+  const series = text(bag.series)
   const clamp = (n: number | null, lo: number, hi: number) => (n == null ? null : Math.min(hi, Math.max(lo, n)))
   return {
     roaster: text(bag.roaster),
@@ -132,5 +135,26 @@ export function toDraft(bag: Bag): CoffeeDraft {
     },
     scaScore: bag.sca_score,
     weight: bag.weight_g && bag.weight_g > 0 ? Math.round(bag.weight_g) : null,
+    series: series.toLowerCase() === name.toLowerCase() ? '' : series,
+    roastedAt: roastDate(bag.roast_date),
+    labelCutOff: bag.label_cut_off || undefined,
   }
+}
+
+/**
+ * "2026-10-23" or, without a year, "--10-23" → that day; a date without a year is the latest one
+ * not in the future. Anything unreadable, or more than two years old, is dropped.
+ */
+export function roastDate(s: string, now = new Date()): number | null {
+  // "--10-23": the first dash stands in for the year, the second separates it from the month.
+  const m = s.trim().match(/^(\d{4}|-)-(\d{1,2})-(\d{1,2})$/)
+  if (!m) return null
+  const month = Number(m[2]) - 1
+  const day = Number(m[3])
+  if (month < 0 || month > 11 || day < 1 || day > 31) return null
+  let year = m[1] === '-' ? now.getFullYear() : Number(m[1])
+  let date = new Date(year, month, day)
+  if (m[1] === '-' && date > now) date = new Date(--year, month, day)
+  if (date.getMonth() !== month || date > now || now.getTime() - date.getTime() > 2 * 365 * 864e5) return null
+  return date.getTime()
 }

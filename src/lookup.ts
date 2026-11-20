@@ -1,0 +1,98 @@
+// Looking a coffee up online when its bag says little: the roaster's shop page usually lists the
+// origin, process and tasting notes. Each provider searches the web its own way (claude.ts,
+// gemini.ts, chatgpt.ts); what to ask and how the answer fills the coffee is here.
+import { z } from 'zod'
+import { BagSchema, SYSTEM, toDraft } from './extract'
+import { ScanError } from './errors'
+import { lookupProvider } from './settings'
+import type { CoffeeDraft } from './types'
+
+export const LookupSchema = BagSchema.extend({
+  found: z.boolean().describe('True only if a page about this exact coffee (same roaster, same lot or blend) was found'),
+  source_url: z.string().describe('Address of the page the details came from; empty if none'),
+})
+export type Lookup = z.infer<typeof LookupSchema>
+
+export const LOOKUP_SYSTEM = `${SYSTEM}
+
+This time there is no photo: you are finding this coffee online, on the roaster's own website or shop first, then on shops that sell it. Search the web, open the most relevant pages and fill the same fields from what they say.
+
+Report only what a page about this exact coffee states (same roaster, same lot, farm or blend). A page about a different coffee from the same roaster, or general knowledge of the origin, does not count: then set found to false and leave the fields empty. Never invent tasting notes. Set is_coffee_bag to true and label_cut_off to false. Put the address of the page you used in source_url.`
+
+/** What the bag already says, for the search to start from. */
+export function lookupRequest(c: CoffeeDraft): string {
+  const known = Object.fromEntries(Object.entries({
+    roaster: c.roaster,
+    series: c.series,
+    name: c.name,
+    country: c.country,
+    area: c.area,
+    producer: c.producer,
+    process: c.process === 'unknown' ? '' : c.process,
+    notes: c.notes.join(', '),
+  }).filter(([, v]) => v))
+  return `Find this coffee online and fill in its details:\n${JSON.stringify(known, null, 2)}`
+}
+
+/** The answer as JSON text (a model that can't search and use a schema at once writes it out). */
+export function parseLookup(text: string): Lookup {
+  const json = text.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1] ?? text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)
+  let parsed
+  try {
+    parsed = LookupSchema.safeParse(JSON.parse(json))
+  } catch {
+    throw new ScanError('unreadable')
+  }
+  if (!parsed.success) throw new ScanError('unreadable')
+  return parsed.data
+}
+
+/** The schema as JSON Schema text, for prompts that ask for JSON in plain text. */
+export const lookupJsonSchema = () => {
+  const { $schema: _, ...schema } = z.toJSONSchema(LookupSchema) as Record<string, unknown>
+  return JSON.stringify(schema)
+}
+
+/** Fields the web can fill, by the key the editor labels them with. */
+export type WebField = 'country' | 'area' | 'producer' | 'varieties' | 'process' | 'altitude' | 'roast' | 'notes' | 'sca' | 'series'
+
+/**
+ * Fills what the coffee doesn't say yet; nothing the bag or you stated is replaced. Tasting notes
+ * from the web replace only a guessed profile.
+ */
+export function fillGaps<T extends CoffeeDraft>(old: T, web: CoffeeDraft): { next: T; fields: WebField[] } {
+  const next = { ...old }
+  const fields: WebField[] = []
+  const take = <K extends keyof CoffeeDraft>(field: WebField, keys: K[], empty: boolean, has: boolean) => {
+    if (!empty || !has) return
+    for (const k of keys) (next as CoffeeDraft)[k] = web[k]
+    fields.push(field)
+  }
+  take('country', ['country', 'countryCodes', 'region'], !old.countryCodes?.length && !old.country.trim(), !!web.countryCodes?.length || !!web.country)
+  take('area', ['area'], !old.area.trim(), !!web.area)
+  take('producer', ['producer'], !old.producer.trim(), !!web.producer)
+  take('varieties', ['varieties'], !old.varieties.length, web.varieties.length > 0)
+  take('process', ['process', 'processDetail'], old.process === 'unknown', web.process !== 'unknown')
+  take('altitude', ['altitude'], old.altitude == null, web.altitude != null)
+  take('roast', ['roast'], old.roast === 'unknown', web.roast !== 'unknown')
+  take('sca', ['scaScore'], old.scaScore == null, web.scaScore != null)
+  take('series', ['series'], !old.series?.trim(), !!web.series)
+  take('notes', ['notes', 'translations', 'flavors', 'flavorsEstimated', 'structure'], old.flavorsEstimated || !old.notes.length, web.notes.length > 0 && !web.flavorsEstimated)
+  if (old.roastFor === 'unknown' && web.roastFor !== 'unknown') next.roastFor = web.roastFor
+  return { next, fields }
+}
+
+export interface LookupResult {
+  draft: CoffeeDraft | null
+  source: string
+}
+
+/** Searches the web for the coffee with the AI provider picked in Settings. */
+export async function lookupCoffee(c: CoffeeDraft, signal?: AbortSignal): Promise<LookupResult> {
+  const provider = lookupProvider()
+  if (!provider) throw new ScanError('noKey')
+  const mod = await (provider === 'claude' ? import('./claude') : provider === 'openai' ? import('./chatgpt') : import('./gemini'))
+  const found = await mod.lookup(lookupRequest(c), signal)
+  if (!found.found) return { draft: null, source: '' }
+  return { draft: toDraft(found), source: /^https?:\/\//.test(found.source_url) ? found.source_url : '' }
+}

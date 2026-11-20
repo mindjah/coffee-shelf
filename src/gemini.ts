@@ -6,6 +6,7 @@ import { getSettings } from './settings'
 import { ScanError } from './errors'
 import { BagSchema, SYSTEM, USER_PROMPT, toDraft } from './extract'
 import { linkInfo } from './links'
+import { LOOKUP_SYSTEM, lookupJsonSchema, parseLookup, type Lookup } from './lookup'
 
 // Gemini takes plain JSON Schema; drop the $schema marker it doesn't accept.
 const { $schema: _, ...responseJsonSchema } = z.toJSONSchema(BagSchema) as Record<string, unknown>
@@ -104,4 +105,23 @@ export async function placeFromLink(link: string, model?: string, signal?: Abort
   }
   if (!name || /^none$/i.test(name) || name.length > 80) return { reason: `no place on the page (${(response.text ?? '').slice(0, 60)})` }
   return { name }
+}
+
+/** Finds a coffee online with Google Search and URL context; the answer comes as JSON text. */
+export async function lookup(request: string, signal?: AbortSignal): Promise<Lookup> {
+  const { geminiKey, geminiModel } = getSettings()
+  if (!geminiKey) throw new ScanError('noKey')
+  let response
+  try {
+    response = await new GoogleGenAI({ apiKey: geminiKey }).models.generateContent({
+      model: geminiModel,
+      contents: [{ role: 'user', parts: [{ text: `${request}\n\nAnswer with one JSON object matching this JSON Schema, in a \`\`\`json block:\n${lookupJsonSchema()}` }] }],
+      config: { systemInstruction: LOOKUP_SYSTEM, tools: [{ googleSearch: {} }, { urlContext: {} }], maxOutputTokens: 16000, abortSignal: signal },
+    })
+  } catch (e) {
+    throw toScanError(e)
+  }
+  if (response.promptFeedback?.blockReason) throw new ScanError('refusal')
+  if (response.candidates?.[0]?.finishReason === FinishReason.MAX_TOKENS) throw new ScanError('truncated')
+  return parseLookup(response.text ?? '')
 }

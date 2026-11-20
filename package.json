@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "icons": "node scripts/icons.mjs"
+    "icons": "node scripts/icons.mjs",
+    "test": "rolldown ./tests/predict.test.ts --format esm --platform node --dir .test-build --entry-file-names '[name].mjs' --log-level warn && node --test .test-build/predict.test.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

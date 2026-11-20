@@ -1,4 +1,4 @@
-import { FLAVORS, type Brew, type Coffee, type CoffeeDraft, type Region } from './types'
+import { FLAVORS, type Brew, type Coffee, type CoffeeDraft, type Flavor, type Region } from './types'
 import { brewMethod } from './brew'
 import { sameRoaster } from './roaster'
 import { normalize } from './lexicon'
@@ -206,7 +206,8 @@ function distance(flavor: boolean[], a: number[], aGuess: boolean, b: number[], 
 
 /** Words in coffee names that don't tell one coffee from another. */
 const COMMON = new Set(['coffee', 'cafe', 'кофе', 'lot', 'лот', 'blend', 'бленд', 'mezcla', 'espresso', 'эспрессо', 'filter', 'фильтр', 'filtro', 'drip', 'micro', 'microlot',
-  'washed', 'natural', 'honey', 'anaerobic', 'мытый', 'мытая', 'натуральный', 'натуральная', 'лавадо', 'lavado', 'grade', 'single', 'origin', 'decaf'])
+  'washed', 'natural', 'honey', 'anaerobic', 'мытый', 'мытая', 'натуральный', 'натуральная', 'лавадо', 'lavado', 'grade', 'single', 'origin', 'decaf',
+  'selection', 'collection', 'series', 'серия', 'classic', 'house', 'signature', 'seasonal', 'limited', 'special'])
 const countryWords = new Map<string, string[]>()
 
 /** Words that name this coffee in particular: not the roaster's, its country's, a process or a grade. */
@@ -227,19 +228,28 @@ function nameWords(c: CoffeeDraft) {
 }
 
 /**
- * Another lot of the same coffee, as far as the bags tell: same roaster and origin country, no
- * conflicting process, and a word of the name in common (Worka Smoky BBQ and Wicho BBQ). Same
+ * Another lot of the same coffee, as far as the bags tell: same roaster, no conflicting process, and
+ * either the same named series, or the same origin country and a word of the name in common
+ * (Worka Smoky BBQ and Wicho BBQ). Same
  * roaster and country alone isn't enough: two Ethiopian stations from one roaster can taste, and
  * be rated, nothing alike.
  */
 export function kin(a: CoffeeDraft, b: CoffeeDraft) {
+  if (!sameRoaster(a.roaster, b.roaster)) return false
+  if (a.process !== b.process && a.process !== 'unknown' && b.process !== 'unknown') return false
   const ca = a.countryCodes ?? []
   const cb = b.countryCodes ?? []
-  if (!sameRoaster(a.roaster, b.roaster) || !ca.some((code) => cb.includes(code))) return false
-  if (a.process !== b.process && a.process !== 'unknown' && b.process !== 'unknown') return false
+  const shared = ca.some((code) => cb.includes(code))
+  // The same named series ("Unholy Water"), unless the bags name different countries.
+  const sa = seriesKey(a)
+  if (sa && sa === seriesKey(b) && (shared || !ca.length || !cb.length)) return true
+  if (!shared) return false
   const wa = nameWords(a)
   return [...nameWords(b)].some((w) => wa.has(w))
 }
+
+/** A series' telling words, so "Drip Coffee" or "Filter Selection" don't make every bag kin. */
+const seriesKey = (c: CoffeeDraft) => [...nameWords({ ...c, name: c.series ?? '' })].sort().join(' ')
 
 /** How much closer kin are than their traits alone make them, and how much more a rated one counts. */
 const KIN_PULL = 0.35
@@ -336,8 +346,22 @@ const rowWeight = (c: CoffeeDraft) => (c.flavorsEstimated ? 0.5 : 1)
 
 /** One training row per rating: a coffee rated in both V60 and AeroPress counts twice, once per method. */
 function rows(features: Feature[], params: Params, fills: number[], rated: Coffee[]) {
-  return rated.flatMap((coffee) =>
+  return rated.map(asTasted).flatMap((coffee) =>
     methodRatings(coffee).map((m) => ({ coffee, brew: m.brew, y: m.rating, w: rowWeight(coffee), guess: coffee.flavorsEstimated, thin: bagIsThin(coffee), x: vec(features, params, fills, { ...coffee, brewedWith: m.brew }) })))
+}
+
+/** The same coffee, though asTasted() may have made a copy of it. */
+const same = (a: CoffeeDraft & { id?: number }, b: CoffeeDraft & { id?: number }) => (a.id != null ? a.id === b.id : a === b)
+
+/**
+ * A rated coffee as you tasted it: the flavors you picked stand in for a profile the bag left to
+ * guesswork, and join the bag's own notes otherwise.
+ */
+export function asTasted<T extends CoffeeDraft>(c: T): T {
+  if (!c.tasted?.length) return c
+  const flavors = { ...(c.flavorsEstimated ? Object.fromEntries(FLAVORS.map((f) => [f, 0])) as Record<Flavor, number> : c.flavors) }
+  for (const f of c.tasted) flavors[f] = Math.max(flavors[f], 2 / 3)
+  return { ...c, flavors, flavorsEstimated: false }
 }
 
 /** Kernel width from the typical distance between your coffees, so it adapts as the library grows. */
@@ -359,7 +383,10 @@ function knn(flavor: boolean[], x: number[], c: CoffeeDraft, pool: Row[], mean: 
   const sims = pool.map((r) => ({ r, ...similarity(flavor, x, c, r, sigma2) })).filter((t) => !t.r.thin || t.kin).map((t) => ({ ...t, s: (t.kin ? KIN_WEIGHT : t.r.w) * t.sim })).sort((a, b) => b.s - a.s).slice(0, 7)
   const wSum = sims.reduce((s, t) => s + t.s, 0)
   const top = Math.max(0, ...sims.map((t) => t.sim))
-  return { score: mean + sims.reduce((s, t) => s + t.s * (t.r.y - mean), 0) / (wSum + 0.5), wSum, top }
+  const score = mean + sims.reduce((s, t) => s + t.s * (t.r.y - mean), 0) / (wSum + 0.5)
+  // How far apart the neighbours' ratings are: wide when similar coffees got very different stars.
+  const spread = wSum ? Math.sqrt(sims.reduce((s, t) => s + t.s * (t.r.y - score) ** 2, 0) / wSum) : 0
+  return { score, wSum, top, spread }
 }
 
 /**
@@ -408,7 +435,7 @@ const RIDGE_FROM = 6
 export function buildModel(all: Coffee[], params: Params = DEFAULT_PARAMS, accuracy?: Accuracy): Model {
   const ratedCoffees = all.filter((c) => c.rating != null)
   const features = [...BASE_FEATURES, ...extraFeatures(ratedCoffees)]
-  const fills = fillsFor(features, ratedCoffees)
+  const fills = fillsFor(features, ratedCoffees.map(asTasted))
   const rated = rows(features, params, fills, ratedCoffees)
   const n = rated.length
   const mean = meanOf(rated)
@@ -442,16 +469,16 @@ export function evaluate(ratedCoffees: Coffee[], params: Params): Omit<Accuracy,
   if (ratedCoffees.length < MIN_RATINGS + 1) return null
   const features = [...BASE_FEATURES, ...extraFeatures(ratedCoffees)]
   const flavor = features.map((f) => f.group === 'flavor')
-  const pool = rows(features, params, fillsFor(features, ratedCoffees), ratedCoffees)
+  const pool = rows(features, params, fillsFor(features, ratedCoffees.map(asTasted)), ratedCoffees)
   const all = sums(pool)
   const sigma2 = kernelWidth(pool.map((r) => r.x))
   let miss = 0
   let close = 0
   let baseline = 0
   // Bags too thin to predict get no prediction in the app, so they aren't tested either.
-  for (const coffee of ratedCoffees.filter((c) => !bagIsThin(c))) {
-    const mine = pool.filter((r) => r.coffee === coffee)
-    const others = pool.filter((r) => r.coffee !== coffee)
+  for (const coffee of ratedCoffees) {
+    const mine = pool.filter((r) => same(r.coffee, coffee) && !r.thin)
+    const others = pool.filter((r) => !same(r.coffee, coffee))
     const mean = meanOf(others)
     // The yardstick: your plain average rating, the same for every row.
     const average = others.reduce((s, r) => s + r.y, 0) / others.length
@@ -526,15 +553,17 @@ export interface Prediction {
   brew: Brew
   /** Scores per method, once you've rated a few coffees with each. */
   byBrew?: Record<Brew, number>
+  /** Where the rating most likely lands: the guess give or take its usual miss. */
+  range?: [number, number]
 }
 
 function scoreFor(model: Model, x: number[], c: CoffeeDraft) {
   const k = knn(model.flavor, x, c, model.rated, model.mean, model.sigma2)
-  if (!model.beta) return { score: k.score, wSum: k.wSum, contrib: null }
+  if (!model.beta) return { score: k.score, wSum: k.wSum, spread: k.spread, contrib: null }
   const contrib = model.features.map((f, j) => ({ f, delta: x[j] - model.featureMean[j], impact: model.beta![j] * (x[j] - model.featureMean[j]) }))
   const r = model.mean + contrib.reduce((s, c) => s + c.impact, 0)
   const share = ridgeShare(model.params.blend, k.top)
-  return { score: (1 - share) * k.score + share * r, wSum: k.wSum, contrib }
+  return { score: (1 - share) * k.score + share * r, wSum: k.wSum, spread: k.spread, contrib }
 }
 
 const clampScore = (s: number) => Math.min(5, Math.max(1, s))
@@ -546,7 +575,7 @@ export function predict(model: Model, c: CoffeeDraft, brew: Brew = 'v60', exclud
   const facts = bagFacts(c)
   if (facts < MIN_FACTS) return null
   const x = vec(model.features, model.params, model.fills, { ...c, brewedWith: brew })
-  const { score, wSum, contrib } = scoreFor(model, x, c)
+  const { score, wSum, spread, contrib } = scoreFor(model, x, c)
 
   const reasons: Reason[] = []
   // A rated lot of the same coffee leads the reasons: it's what the guess rests on most.
@@ -574,7 +603,11 @@ export function predict(model: Model, c: CoffeeDraft, brew: Brew = 'v60', exclud
   // So does a bag that says little: confidence grows with what it states (see bagFacts()).
   const strength = Math.min(1, model.rated.length / 15) * Math.min(1, wSum / 1.2) * (c.flavorsEstimated ? 0.6 : 1) * Math.min(1, facts / FULL_FACTS)
   // Origin and process alone (no notes, no roast) can't make a guess better than low.
-  const confidence = facts < 3 ? 'low' : strength > 0.55 ? 'high' : strength > 0.25 ? 'medium' : 'low'
+  let confidence: Prediction['confidence'] = facts < 3 ? 'low' : strength > 0.55 ? 'high' : strength > 0.25 ? 'medium' : 'low'
+  // Tested on your own ratings and no better than your average rating: it can't claim more.
+  const acc = model.accuracy
+  if (acc && acc.mae >= acc.baseline) confidence = 'low'
+  else if (acc && acc.mae > acc.baseline * 0.9 && confidence === 'high') confidence = 'medium'
   const final = clampScore(score)
 
   let byBrew: Prediction['byBrew']
@@ -584,8 +617,14 @@ export function predict(model: Model, c: CoffeeDraft, brew: Brew = 'v60', exclud
     byBrew = { [brew]: final, [other]: otherScore } as Record<Brew, number>
   }
 
+  // Give or take: how far the neighbours disagree, and no tighter than predictions have missed by
+  // when tested (or half a star before there's a test).
+  const miss = Math.max(acc?.mae ?? 0.5, Math.min(1.25, spread), 0.25)
+  const range: [number, number] = [Math.max(1, Math.round((final - miss) * 2) / 2), Math.min(5, Math.round((final + miss) * 2) / 2)]
+
   return {
     score: final,
+    range,
     confidence,
     tone: toneFor(final),
     reasons,
