@@ -3,8 +3,8 @@ import { useT } from '../i18n'
 import { ratingFor } from '../ratings'
 
 /**
- * Brew method for a rating, as a dropdown: nothing chosen, V60 or AeroPress. With `ratings`, each
- * method shows the rating it already has ("V60 · 4.0").
+ * Brew method for a rating, as a two-way switch: V60 or AeroPress; tapping the chosen one again
+ * clears it. With `ratings`, each method shows the rating it already has ("V60 4.0").
  */
 export function BrewPicker({ value, ratings, onChange }: {
   value: Brew | null | undefined
@@ -13,15 +13,19 @@ export function BrewPicker({ value, ratings, onChange }: {
 }) {
   const t = useT()
   return (
-    <label className="brew-picker">
+    <div className="brew-picker">
       <span className="muted small">{t.coffee.brewedWith}</span>
-      <select className="input" value={value ?? ''} onChange={(e) => onChange((e.target.value || null) as Brew | null)}>
-        <option value="">{t.coffee.noBrew}</option>
+      <div className="segmented brew-seg" role="radiogroup" aria-label={t.coffee.brewedWith}>
         {BREWS.map((b) => {
+          const on = value === b
           const r = ratings && ratingFor(ratings, b)
-          return <option key={b} value={b}>{t.brew[b]}{r != null ? ` · ${r.toFixed(1)}` : ''}</option>
+          return (
+            <button key={b} type="button" role="radio" aria-checked={on} className={on ? 'on' : ''} onClick={() => onChange(on ? null : b)}>
+              {t.brew[b]}{r != null && <span className="seg-rating">{r.toFixed(1)}</span>}
+            </button>
+          )
         })}
-      </select>
-    </label>
+      </div>
+    </div>
   )
 }

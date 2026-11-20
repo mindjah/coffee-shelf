@@ -378,19 +378,14 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             </details>
           )}
           <div className="card">
-            <div className="row">
-              <div style={{ fontWeight: 600 }}>{t.scan.tasted}</div>
-              <span className="spacer" />
-              {rating.byMethod.length > 1
-                ? <span className="muted small">{rating.byMethod.map((m) => `${t.brew[m.brew!]} ${m.rating.toFixed(1)}`).join(' · ')}</span>
-                : rated.rating != null && <span className="muted">{rated.rating.toFixed(1)}</span>}
-            </div>
+            <div style={{ fontWeight: 600 }}>{t.scan.tasted}</div>
             {history?.rating != null && <div className="muted small" style={{ marginTop: 6 }}>{t.scan.alreadyRated}</div>}
             {/* Pick the method, then the stars are its rating; pick the other to rate it too. */}
-            <div style={{ marginTop: 12 }}>
-              <BrewPicker value={rating.selected} ratings={rated} onChange={rating.pick} />
+            <BrewPicker value={rating.selected} ratings={rated} onChange={rating.pick} />
+            <div className="rate-stars">
+              <Stars value={rating.shown} onChange={rating.rate} big />
+              <div className="muted small">{rating.shown != null ? rating.shown.toFixed(1) : t.coffee.rateAfter}</div>
             </div>
-            <div style={{ margin: '0 0 12px' }}><Stars value={rating.shown} onChange={rating.rate} /></div>
             <NoteField value={comment} placeholder={t.common.commentPlaceholder} onChange={setComment} />
             {rated.rating != null && <TastedPicker value={draft.tasted} note={comment} onChange={(tasted) => setDraft((d) => d && { ...d, tasted })} />}
           </div>

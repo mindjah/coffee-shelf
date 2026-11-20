@@ -7,6 +7,7 @@
   --line: #ece4da;
   --accent: #7a5134;
   --accent-soft: #e9dccd;
+  --star-empty: #e4d6c6;
   --on-accent: #fbf8f4;
   --love: #6f4a2f;
   --like: #9a6c46;
@@ -32,6 +33,7 @@
     --line: #2e2722;
     --accent: #c99c73;
     --accent-soft: #3a2d23;
+    --star-empty: #4d3d30;
     --on-accent: #14110f;
     --love: #d7ab80;
     --like: #b88a62;
@@ -544,8 +546,9 @@ textarea.input { min-height: 84px; resize: vertical; }
 }
 
 /* "Brewed with: V60 | AeroPress" under the rating stars. */
-.brew-picker { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-.brew-picker select { flex: 1; min-width: 0; }
+.brew-picker { display: flex; align-items: center; gap: 12px; margin: 14px 0 0; }
+.brew-picker .segmented { flex: 1; margin: 0; }
+.seg-rating { margin-left: 6px; font-weight: 500; opacity: 0.7; }
 .brew-scores { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); gap: 12px; }
 .brew-scores .on { font-weight: 700; }
 
@@ -753,3 +756,10 @@ textarea.input { min-height: 84px; resize: vertical; }
 .coffee-facts dd { margin: 0; font-size: 15px; font-weight: 500; text-align: right; min-width: 0; overflow-wrap: anywhere; }
 .coffee-notes { margin-top: 14px; padding-top: 12px; border-top: 0.5px solid var(--line); display: grid; gap: 6px; }
 .coffee-notes p { margin: 0; }
+
+/* The rating card: big stars in the middle */
+.rate-stars { display: grid; justify-items: center; gap: 6px; margin: 16px 0 16px; }
+.stars.big { gap: 8px; }
+.stars.big .star, .stars.big .star .fill svg { width: 46px; height: 46px; }
+.stars.big .star { color: var(--star-empty); }
+.rate-hint { margin: 8px 4px 0; }

@@ -6,6 +6,8 @@ interface Props {
   value: number | null
   onChange?: (v: number) => void
   small?: boolean
+  /** The rating as the main thing on the card: larger, centred. */
+  big?: boolean
 }
 
 /** The half-star value under a finger at `x`: left half of a star gives x.5, past the ends 0.5 or 5. */
@@ -24,7 +26,7 @@ function valueAt(row: HTMLElement, x: number): number {
  * Half-star rating. Tap a star, or slide a finger along the row: the stars follow the finger and
  * the rating is set when it lifts. Vertical swipes still scroll the page.
  */
-export function Stars({ value, onChange, small }: Props) {
+export function Stars({ value, onChange, small, big }: Props) {
   const t = useT()
   const [sliding, setSliding] = useState<number | null>(null)
   const row = useRef<HTMLDivElement>(null)
@@ -56,7 +58,7 @@ export function Stars({ value, onChange, small }: Props) {
   return (
     <div
       ref={row}
-      className={`stars${small ? ' small' : ''}${onChange ? ' rateable' : ''}`}
+      className={`stars${small ? ' small' : ''}${big ? ' big' : ''}${onChange ? ' rateable' : ''}`}
       role={onChange ? 'slider' : 'img'}
       aria-label={t.common.rating(v)}
       aria-valuenow={v}
