@@ -74,10 +74,8 @@ export function brewMethod(c: CoffeeDraft): BrewGuess | null {
 
 /** Recipe names (any language the encyclopedia has, and your own recipes) → the general method. */
 const RECIPE_METHODS: [RegExp, Brew][] = [
-  [/\bv\s?60\b|iced pour|холодный пуровер|con hielo/i, 'v60'],
-  [/kalita|калита/i, 'kalita'],
-  [/origami|оригами/i, 'origami'],
-  [/chemex|кемекс/i, 'chemex'],
+  [/\bv\s?60\b|iced pour|холодный пуровер|con hielo|pour.?over|пуровер|kalita|калита|origami|оригами|chemex|кемекс/i, 'v60'],
+  [/batch|батч|drip machine|капельн|de goteo/i, 'batchBrew'],
   [/clever|кливер/i, 'clever'],
   [/aero\s?press|аэропресс/i, 'aeropress'],
   [/french press|prensa francesa|френч/i, 'frenchPress'],

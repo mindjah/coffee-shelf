@@ -1,6 +1,7 @@
 import Dexie, { type EntityTable, type Table } from 'dexie'
 import type { Coffee, CoffeeDraft } from './types'
 import { blobToBase64 } from './image'
+import { mergePourOver } from './ratings'
 
 /** The scan not yet saved to the shelf, kept so it survives iOS closing the app. */
 export interface PendingScan {
@@ -55,6 +56,12 @@ export const db = new Dexie('coffee-shelf') as Dexie & {
 
 db.version(3).stores({ coffees: '++id, createdAt, rating, roaster', pending: '', compare: '++id, addedAt' })
 db.version(4).stores({ recipes: '++id, createdAt' })
+// Kalita, Origami and Chemex ratings join pour-over (see mergePourOver).
+db.version(5).stores({}).upgrade((tx) =>
+  tx.table('coffees').toCollection().modify((c: Coffee) => {
+    const merged = mergePourOver(c)
+    if (merged) Object.assign(c, merged)
+  }))
 
 const PENDING_KEY = 'scan'
 export const loadPendingScan = () => db.pending.get(PENDING_KEY)
@@ -97,6 +104,7 @@ async function readBackup(file: Blob): Promise<Coffee[]> {
     data.coffees.map(async ({ id: _id, photo, cover, ...c }: Omit<Coffee, 'photo' | 'cover'> & { photo: string | null; cover?: string }) => ({
       ...c,
       photo: await bytes(photo),
+      ...mergePourOver(c),
       ...(cover && { cover: await bytes(cover) }),
     })),
   )

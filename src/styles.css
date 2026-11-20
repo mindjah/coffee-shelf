@@ -794,3 +794,5 @@ textarea.input { min-height: 84px; resize: vertical; }
   100% { box-shadow: var(--shadow); }
 }
 .btn.key-link { text-decoration: none; }
+.brew-option { display: grid; gap: 1px; padding: 6px 0; }
+.brew-option small { font-size: 12px; font-weight: 400; color: var(--muted); }

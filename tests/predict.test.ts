@@ -163,19 +163,30 @@ test('a recipe counts as its general brew method, not the recipe', async () => {
   assert.equal(brewOfRecipe('V60: la receta clásica'), 'v60')
   assert.equal(brewOfRecipe('AeroPress — перевёрнутый способ'), 'aeropress')
   assert.equal(brewOfRecipe('Мой утренний Аэропресс'), 'aeropress')
-  assert.equal(brewOfRecipe('Chemex'), 'chemex')
+  assert.equal(brewOfRecipe('Chemex'), 'v60')
   assert.equal(brewOfRecipe('Холодный пуровер (по-японски)'), 'v60')
   assert.equal(brewOfRecipe('Френч-пресс'), 'frenchPress')
   assert.equal(brewOfRecipe('Cafetera moka (italiana)'), 'moka')
   assert.equal(brewOfRecipe('Джезва (турка)'), 'cezve')
-  assert.equal(brewOfRecipe('Kalita Wave and flat-bottom drippers'), 'kalita')
+  assert.equal(brewOfRecipe('Kalita Wave and flat-bottom drippers'), 'v60')
+  assert.equal(brewOfRecipe('Origami dripper'), 'v60')
+  assert.equal(brewOfRecipe('Батч-брю в офисе'), 'batchBrew')
   assert.equal(brewOfRecipe('My Sunday recipe'), null)
 })
 
 test('any brew method you rate with enough becomes a factor', () => {
-  const lib = library().map((c, i) => ({ ...c, brewedWith: (i % 2 ? 'chemex' : 'frenchPress') as Coffee['brewedWith'] }))
+  const lib = library().map((c, i) => ({ ...c, brewedWith: (i % 2 ? 'clever' : 'frenchPress') as Coffee['brewedWith'] }))
   const model = buildModel(lib)
-  assert.ok(model.features.some((f) => f.id === 'brew:chemex'))
+  assert.ok(model.features.some((f) => f.id === 'brew:clever'))
   assert.ok(model.features.some((f) => f.id === 'brew:frenchPress'))
-  assert.equal(model.brewCounts.chemex, 5)
+  assert.equal(model.brewCounts.clever, 5)
+})
+
+test('Kalita, Origami and Chemex ratings join pour-over, without overwriting one', async () => {
+  const { mergePourOver } = await import('../src/ratings')
+  const old = { rating: 4, brewedWith: 'chemex', ratings: { chemex: 4, aeropress: 3 } } as unknown as Coffee
+  assert.deepEqual(mergePourOver(old), { ratings: { v60: 4, aeropress: 3 }, brewedWith: 'v60' })
+  const both = { rating: 5, brewedWith: 'v60', ratings: { v60: 5, kalita: 3 } } as unknown as Coffee
+  assert.deepEqual(mergePourOver(both)?.ratings, { v60: 5 })
+  assert.equal(mergePourOver({ rating: 4, brewedWith: 'v60', ratings: { v60: 4 } } as Coffee), null)
 })

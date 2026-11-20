@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import type { Brew, Lang } from './types'
+import { BREWS, type Brew, type Lang } from './types'
 
 export const MODELS = [
   { id: 'claude-opus-5', label: 'Claude Opus 5' },
@@ -92,6 +92,8 @@ function read(): Settings {
     const saved = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) ?? '{}') }
     // "manual" used to be a provider; it now lives on the Scan screen.
     if (!PROVIDERS.includes(saved.provider)) saved.provider = DEFAULTS.provider
+    // Kalita, Origami and Chemex were briefly methods of their own; they're pour-over now.
+    if (!BREWS.includes(saved.brew)) saved.brew = DEFAULTS.brew
     return saved
   } catch {
     return DEFAULTS

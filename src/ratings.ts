@@ -1,6 +1,6 @@
 // A coffee can be rated once per brew method (V60 and AeroPress taste different). `rating` stays
 // the best of them, so lists, sorting, filters and comparisons keep working with one number.
-import { BREWS, type Brew, type Coffee } from './types'
+import { BREWS, POUR_OVER_ALIASES, type Brew, type Coffee } from './types'
 
 type Rated = Pick<Coffee, 'rating' | 'ratings' | 'brewedWith'>
 
@@ -33,4 +33,21 @@ export function withMethodRating(c: Rated, brew: Brew, value: number | null): Pi
   else ratings[brew] = value
   const values = Object.values(ratings)
   return { ratings, rating: values.length ? Math.max(...values) : null, ratedAt: values.length ? Date.now() : null, brewedWith: brew }
+}
+
+/**
+ * Ratings given with Kalita, Origami or Chemex while they were methods of their own, moved to
+ * pour-over ('v60'); an existing pour-over rating stays. Returns the fields to change, or null.
+ */
+export function mergePourOver(c: Rated): Pick<Coffee, 'ratings' | 'brewedWith'> | null {
+  const old = c.ratings as Record<string, number | undefined> | undefined
+  const legacy = POUR_OVER_ALIASES.filter((k) => old?.[k] != null)
+  const brewed = POUR_OVER_ALIASES.includes(c.brewedWith as string)
+  if (!legacy.length && !brewed) return null
+  const ratings = { ...old }
+  for (const k of legacy) {
+    ratings.v60 ??= ratings[k]
+    delete ratings[k]
+  }
+  return { ratings: ratings as Coffee['ratings'], brewedWith: brewed ? 'v60' : c.brewedWith }
 }

@@ -15,8 +15,14 @@ export const ROAST_FOR = ['filter', 'espresso', 'omni', 'unknown'] as const
 export type RoastFor = (typeof ROAST_FOR)[number]
 
 /** How a coffee was brewed when it was rated. */
-/** The encyclopedia's recipes, by general method (the 4:6 recipe is V60, the inverted one AeroPress). */
-export const BREWS = ['v60', 'kalita', 'origami', 'chemex', 'clever', 'aeropress', 'frenchPress', 'moka', 'espresso', 'coldBrew', 'cezve'] as const
+/**
+ * Brew methods, general enough to compare ratings by: 'v60' stands for all paper-filter pour-over
+ * (V60, Kalita, Origami, Chemex: the 4:6 recipe and the iced one too), the inverted recipe is AeroPress.
+ */
+export const BREWS = ['v60', 'clever', 'aeropress', 'frenchPress', 'batchBrew', 'moka', 'espresso', 'coldBrew', 'cezve'] as const
+
+/** Methods once rated on their own, now part of pour-over ('v60'). */
+export const POUR_OVER_ALIASES = ['kalita', 'origami', 'chemex']
 export type Brew = (typeof BREWS)[number]
 
 export const REGIONS = ['east-africa', 'other-africa', 'central-america', 'south-america', 'asia-pacific', 'blend', 'unknown'] as const

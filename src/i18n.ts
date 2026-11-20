@@ -475,7 +475,9 @@ const en = {
   kinRated: (name: string, rating: string) => `Another lot of “${name}”, which you rated ${rating}`,
   ofVariety: (name: string) => `${name} variety`,
   notVariety: (name: string) => `Not ${name}`,
-  brew: { v60: 'V60', kalita: 'Kalita Wave', origami: 'Origami', chemex: 'Chemex', clever: 'Clever', aeropress: 'AeroPress', frenchPress: 'French press', moka: 'Moka pot', espresso: 'Espresso', coldBrew: 'Cold brew', cezve: 'Cezve' } satisfies Record<Brew, string>,
+  brew: { v60: 'Pour-over', clever: 'Clever', aeropress: 'AeroPress', frenchPress: 'French press', batchBrew: 'Batch brew', moka: 'Moka pot', espresso: 'Espresso', coldBrew: 'Cold brew', cezve: 'Cezve' } satisfies Record<Brew, string>,
+  /** What a method covers, under its name in the picker. */
+  brewIncludes: { v60: 'V60, Kalita, Origami, Chemex', batchBrew: 'Drip coffee machine' } as Partial<Record<Brew, string>>,
   notFromCountry: (name: string) => `Not from ${name}`,
   /** [pushes the score up because it is present / higher, … because it is absent / lower] */
   reasons: {
@@ -991,7 +993,8 @@ const ru: Dict = {
   kinRated: (name, rating) => `Другой лот «${name}», вы поставили ${rating}`,
   ofVariety: (name) => `Сорт ${name}`,
   notVariety: (name) => `Не ${name}`,
-  brew: { v60: 'V60', kalita: 'Kalita Wave', origami: 'Origami', chemex: 'Chemex', clever: 'Clever', aeropress: 'Аэропресс', frenchPress: 'Френч-пресс', moka: 'Мока', espresso: 'Эспрессо', coldBrew: 'Колд брю', cezve: 'Джезва' },
+  brew: { v60: 'Пуровер', clever: 'Clever', aeropress: 'Аэропресс', frenchPress: 'Френч-пресс', batchBrew: 'Батч-брю', moka: 'Мока', espresso: 'Эспрессо', coldBrew: 'Колд брю', cezve: 'Джезва' },
+  brewIncludes: { v60: 'V60, Kalita, Origami, Chemex', batchBrew: 'Капельная кофемашина' },
   notFromCountry: (name) => `Не ${name}`,
   reasons: {
     berry: ['Ягодные ноты', 'Нет ягодных нот'],
@@ -1494,7 +1497,8 @@ const es: Dict = {
   kinRated: (name, rating) => `Otro lote de «${name}», que valoraste con ${rating}`,
   ofVariety: (name) => `Variedad ${name}`,
   notVariety: (name) => `No es ${name}`,
-  brew: { v60: 'V60', kalita: 'Kalita Wave', origami: 'Origami', chemex: 'Chemex', clever: 'Clever', aeropress: 'AeroPress', frenchPress: 'Prensa francesa', moka: 'Moka', espresso: 'Espresso', coldBrew: 'Cold brew', cezve: 'Cezve' },
+  brew: { v60: 'Pour-over', clever: 'Clever', aeropress: 'AeroPress', frenchPress: 'Prensa francesa', batchBrew: 'Batch brew', moka: 'Moka', espresso: 'Espresso', coldBrew: 'Cold brew', cezve: 'Cezve' },
+  brewIncludes: { v60: 'V60, Kalita, Origami, Chemex', batchBrew: 'Cafetera de goteo' },
   notFromCountry: (name) => `No es de ${name}`,
   reasons: {
     berry: ['Notas de frutos rojos', 'Sin notas de frutos rojos'],

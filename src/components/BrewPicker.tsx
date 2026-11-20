@@ -56,7 +56,10 @@ export function BrewPicker({ value, ratings, onChange }: {
               return (
                 <li key={b ?? 'none'}>
                   <button type="button" role="option" aria-selected={on} className={on ? 'on' : ''} onClick={() => choose(b)}>
-                    <span className={b ? '' : 'muted'}>{b ? t.brew[b] : t.coffee.noBrew}</span>
+                    <span className={`brew-option${b ? '' : ' muted'}`}>
+                      {b ? t.brew[b] : t.coffee.noBrew}
+                      {b && t.brewIncludes[b] && <small>{t.brewIncludes[b]}</small>}
+                    </span>
                     <span className="spacer" />
                     {r != null && <span className="seg-rating">{r.toFixed(1)}</span>}
                     <span className="brew-check" aria-hidden="true">{on ? '✓' : ''}</span>
