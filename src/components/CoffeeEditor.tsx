@@ -248,7 +248,7 @@ export function CoffeeEditor({ coffee, onSave, onClose }: { coffee: CoffeeDraft;
         </label>
         <label className="field">
           <span>{t.editor.website}</span>
-          <input className="input" inputMode="url" autoCapitalize="off" value={c.website ?? ''} placeholder="onsaya.com" onChange={(e) => set('website', e.target.value.trim())} />
+          <input className="input" inputMode="url" autoCapitalize="off" value={c.website ?? ''} placeholder={t.editor.websitePlaceholder} onChange={(e) => set('website', e.target.value.trim())} />
         </label>
         <div className="grid-2" style={{ marginTop: 12 }}>
           <label className="field">

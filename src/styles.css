@@ -305,6 +305,8 @@ h2.section {
   -webkit-appearance: none; appearance: none;
 }
 .input:focus { outline: none; border-color: var(--accent); }
+/* Hints in empty fields: clearly paler than anything typed. */
+.input::placeholder { color: var(--muted); opacity: 0.55; }
 textarea.input { min-height: 84px; resize: vertical; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .grid-2 .field + .field { margin-top: 0; }
