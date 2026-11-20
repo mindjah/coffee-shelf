@@ -280,8 +280,12 @@ h2.section {
 .chip { padding: 5px 11px; border-radius: 999px; background: var(--surface-2); font-size: 13px; }
 .chip.note { background: var(--accent-soft); }
 
-.flavors { margin-top: 16px; display: grid; gap: 8px; }
-.flavor { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; align-items: center; font-size: 13px; }
+.flavors { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+.flavors > .muted { grid-column: 1 / -1; }
+/* The flavor's name over its bar, two to a row, so long names don't wrap beside a thin column. */
+/* Bars in a row line up: a name that wraps grows upwards. */
+.flavor { display: grid; grid-template-rows: 1fr auto; gap: 5px; font-size: 13px; }
+.flavor > span:first-child { align-self: end; }
 .flavor .bar { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
 .flavor .bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
 
@@ -739,3 +743,13 @@ textarea.input { min-height: 84px; resize: vertical; }
 .rate-head { gap: 12px; }
 .btn.brew-pill { min-height: 36px; padding: 0 14px 0 12px; gap: 6px; font-size: 15px; white-space: nowrap; flex: none; }
 .btn.brew-pill svg { width: 20px; height: 20px; }
+
+/* Coffee card: labelled facts and a block of explanations under them */
+/* Label left, value right, one fact per line, hairlines between: compact and easy to scan. */
+.coffee-facts { margin: 12px 0 0; }
+.coffee-facts div { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 9px 0; border-top: 0.5px solid var(--line); }
+.coffee-facts div:first-child { border-top: 0; }
+.coffee-facts dt { color: var(--muted); font-size: 14px; flex: none; }
+.coffee-facts dd { margin: 0; font-size: 15px; font-weight: 500; text-align: right; min-width: 0; overflow-wrap: anywhere; }
+.coffee-notes { margin-top: 14px; padding-top: 12px; border-top: 0.5px solid var(--line); display: grid; gap: 6px; }
+.coffee-notes p { margin: 0; }

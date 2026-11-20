@@ -40,23 +40,29 @@ export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }
   const translated = notes.join() !== coffee.notes.join()
   // Not printed on the bag: shown as a likely method, with what it's based on.
   const brew = brewMethod(coffee)
-  const facts = [
+  // Labelled like the editor's fields, without their hints ("Varieties (comma separated)", "Altitude, m").
+  const label = (text: string) => text.replace(/\s*\(.*\)|,\s*\S+$/g, '')
+  const cap = (v: string) => v.charAt(0).toUpperCase() + v.slice(1)
+  const price = formatPrice(coffee, lang)
+  const facts = ([
     // A mark like "W" or "N" (washed, natural) reads better as the process's name.
-    coffee.process !== 'unknown' && (processDetail.trim().length > 2 ? processDetail : t.process[coffee.process]),
-    coffee.roast !== 'unknown' && t.coffee.roastChip(t.roast[coffee.roast]),
-    brew && (brew.stated ? t.roastFor[brew.method] : t.coffee.brewChip(t.roastFor[brew.method])),
-    coffee.varieties.length > 0 && coffee.varieties.join(', '),
-    coffee.altitude && `${coffee.altitude.toLocaleString(lang)} m`,
-    coffee.producer,
-    coffee.scaScore && `SCA ${coffee.scaScore}`,
-    coffee.weight && t.coffee.grams(coffee.weight),
-    coffee.roastedAt && t.coffee.roasted(
+    coffee.process !== 'unknown' && [t.editor.process, cap(processDetail.trim().length > 2 ? processDetail : t.process[coffee.process])],
+    coffee.roast !== 'unknown' && [t.editor.roast, t.roast[coffee.roast]],
+    brew && [t.editor.roastFor, brew.stated ? t.roastFor[brew.method] : t.coffee.brewChip(t.roastFor[brew.method])],
+    coffee.varieties.length > 0 && [label(t.editor.varieties), coffee.varieties.join(', ')],
+    coffee.altitude && [label(t.editor.altitude), `${coffee.altitude.toLocaleString(lang)} m`],
+    coffee.producer && [t.editor.producer, coffee.producer],
+    coffee.scaScore && [t.editor.sca, String(coffee.scaScore)],
+    coffee.weight && [label(t.editor.weight), t.coffee.grams(coffee.weight)],
+    coffee.roastedAt && [t.editor.roastedAt, t.coffee.roasted(
       new Date(coffee.roastedAt).toLocaleDateString(lang, { day: 'numeric', month: 'short', ...(new Date(coffee.roastedAt).getFullYear() !== new Date().getFullYear() && { year: 'numeric' }) }),
       Math.floor((Date.now() - coffee.roastedAt) / 864e5),
-    ),
+    )],
     // What you paid, and per 100 g so bags of different sizes compare.
-    formatPrice(coffee, lang) && [formatPrice(coffee, lang), pricePer100g(coffee, lang) && coffee.weight !== 100 && t.coffee.per100g(pricePer100g(coffee, lang))].filter(Boolean).join(' · '),
-  ].filter(Boolean) as string[]
+    price && [t.editor.price, [price, pricePer100g(coffee, lang) && coffee.weight !== 100 && t.coffee.per100g(pricePer100g(coffee, lang))].filter(Boolean).join(' · ')],
+  ].filter(Boolean) as [string, string][])
+  // Notes found online came from the roaster's page, not the bag.
+  const notesFromWeb = coffee.webFields?.includes('notes')
   const flavors = FLAVORS.filter((f) => coffee.flavors[f] > 0).sort((a, b) => coffee.flavors[b] - coffee.flavors[a])
 
   return (
@@ -69,25 +75,15 @@ export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }
           <div className="muted small">{originLine(coffee, t, lang)}</div>
         </div>
       </div>
-      {(notes.length > 0 || facts.length > 0) && (
+      {notes.length > 0 && (
         <div className="chips">
-          {notes.map((n) => <span key={`n-${n}`} className="chip note">{n}</span>)}
-          {facts.map((f) => <span key={`f-${f}`} className="chip">{f}</span>)}
+          {notes.map((n) => <span key={n} className="chip note">{n}</span>)}
         </div>
       )}
-      {brew && showBrewWhy && (
-        <div className="muted small" style={{ marginTop: 8 }}>
-          {brewTitle(brew, t)}: {brewWhy(brew, t)}.
-        </div>
-      )}
-      {!!coffee.webFields?.length && (
-        <div className="muted small" style={{ marginTop: 8 }}>
-          {t.editor.fromWeb(webFieldNames(t, coffee.webFields))}
-          {coffee.webSource && <> · <a className="hint-link" href={coffee.webSource} target="_blank" rel="noopener noreferrer">{t.editor.webSource}</a></>}
-        </div>
-      )}
-      {translated && (
-        <div className="muted small" style={{ marginTop: 8 }}>{t.coffee.onBag}: {coffee.notes.join(', ')}</div>
+      {facts.length > 0 && (
+        <dl className="coffee-facts">
+          {facts.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
+        </dl>
       )}
       {/* An "estimate" from nothing (no origin, process or roast) would be made up: not shown. */}
       {showFlavors && flavors.length > 0 && hasProfile(coffee) && (
@@ -99,6 +95,18 @@ export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }
             </div>
           ))}
           {coffee.flavorsEstimated && <div className="muted small">{t.coffee.estimated}</div>}
+        </div>
+      )}
+      {((brew && showBrewWhy) || !!coffee.webFields?.length || translated) && (
+        <div className="coffee-notes muted small">
+          {brew && showBrewWhy && <p>{brewTitle(brew, t)}: {brewWhy(brew, t)}.</p>}
+          {!!coffee.webFields?.length && (
+            <p>
+              {t.editor.fromWeb(webFieldNames(t, coffee.webFields))}
+              {coffee.webSource && <> · <a className="hint-link" href={coffee.webSource} target="_blank" rel="noopener noreferrer">{t.editor.webSource}</a></>}
+            </p>
+          )}
+          {translated && <p>{notesFromWeb ? t.coffee.original : t.coffee.onBag}: {coffee.notes.join(', ')}</p>}
         </div>
       )}
     </div>
