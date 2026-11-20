@@ -736,4 +736,6 @@ textarea.input { min-height: 84px; resize: vertical; }
 .chip.pickable { border: 1px solid transparent; color: var(--text); font: inherit; font-size: 13px; }
 .chip.pickable.on { background: var(--accent); color: var(--on-accent); }
 .chip.pickable.suggested { border: 1px dashed var(--accent); }
-.btn.brew-this { min-height: 44px; margin: 0 0 12px; }
+.rate-head { gap: 12px; }
+.btn.brew-pill { min-height: 36px; padding: 0 14px 0 12px; gap: 6px; font-size: 15px; white-space: nowrap; flex: none; }
+.btn.brew-pill svg { width: 20px; height: 20px; }

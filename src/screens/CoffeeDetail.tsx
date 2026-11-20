@@ -86,22 +86,23 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
           </div>
         )}
         <div className="card">
-          <div className="row">
-            <div style={{ fontWeight: 600 }}>{coffee.rating == null ? t.coffee.rateAfter : t.coffee.yourRating}</div>
+          {/* Brewing sits by the title: brew with a recipe and its method is picked below. The stars
+              show the rating; with both methods rated, each one's is listed under the title. */}
+          <div className="row rate-head">
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontWeight: 600 }}>{coffee.rating == null ? t.coffee.rateAfter : t.coffee.yourRating}</div>
+              {byMethod.length > 1 && <div className="muted small">{byMethod.map((m) => `${t.brew[m.brew!]} ${m.rating.toFixed(1)}`).join(' · ')}</div>}
+            </div>
             <span className="spacer" />
-            {byMethod.length > 1
-              ? <span className="muted small">{byMethod.map((m) => `${t.brew[m.brew!]} ${m.rating.toFixed(1)}`).join(' · ')}</span>
-              : coffee.rating != null && <span className="muted">{coffee.rating.toFixed(1)}</span>}
+            <button type="button" className="btn ghost brew-pill" onClick={() => setBrewing(true)} aria-label={t.coffee.brewThis}>
+              <KettleIcon /> {t.coffee.brewShort}
+            </button>
           </div>
           {/* Pick the method first: the stars are that method's rating. Nothing is picked on an unrated coffee. */}
           <div style={{ marginTop: 12 }}>
             <BrewPicker value={selected} ratings={coffee} onChange={pickMethod} />
           </div>
           {unassigned != null && <p className="muted small" style={{ margin: '-4px 0 8px' }}>{t.coffee.pickBrewHint}</p>}
-          {/* The encyclopedia's recipes with timers; brewing with V60 or AeroPress picks that method here. */}
-          <button className="btn ghost block brew-this" onClick={() => setBrewing(true)}>
-            <KettleIcon /> {t.coffee.brewThis}
-          </button>
           <div style={{ margin: '0 0 12px' }}>
             <Stars value={shown} onChange={rate} />
           </div>
