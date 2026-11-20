@@ -127,10 +127,10 @@ export function CoffeeDetail({ coffee, model, onClose, justSaved }: { coffee: Co
         )}
         <p className="muted small" style={{ textAlign: 'center' }}>{t.coffee.scanned} {new Date(coffee.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
         {/* Other things to do with the bag: a quiet list, not big buttons that look like the next step. */}
-        <div className="tool-actions">
-          {!archived && <button type="button" onClick={addToCompare} aria-label={t.compare.add}><CompareIcon /><span>{t.compare.short}</span></button>}
-          {!archived && <button type="button" onClick={toggleArchive} aria-label={t.archive.move}><ArchiveIcon /><span>{t.archive.short}</span></button>}
-          <button type="button" className="danger" onClick={remove} aria-label={t.coffee.delete}><TrashIcon /><span>{t.common.delete}</span></button>
+        <div className="action-row">
+          {!archived && <button type="button" className="btn ghost" onClick={addToCompare} aria-label={t.compare.add}><CompareIcon />{t.compare.short}</button>}
+          {!archived && <button type="button" className="btn ghost" onClick={toggleArchive} aria-label={t.archive.move}><ArchiveIcon />{t.archive.short}</button>}
+          <button type="button" className="btn ghost danger-text" onClick={remove} aria-label={t.coffee.delete}><TrashIcon />{t.common.delete}</button>
         </div>
         {compareNote && <div className="notice" style={{ marginTop: 0 }}>{compareNote}</div>}
       </div>
