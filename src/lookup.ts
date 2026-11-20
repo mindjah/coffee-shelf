@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { BagSchema, SYSTEM, toDraft } from './extract'
 import { ScanError } from './errors'
 import { lookupProvider } from './settings'
-import type { CoffeeDraft } from './types'
+import { FLAVORS, type CoffeeDraft } from './types'
 import type { ReadStatus } from './scan'
 
 export const LookupSchema = BagSchema.extend({
@@ -31,6 +31,7 @@ export function lookupRequest(c: CoffeeDraft): string {
     producer: c.producer,
     process: c.process === 'unknown' ? '' : c.process,
     notes: c.notes.join(', '),
+    website: c.website,
   }).filter(([, v]) => v))
   return `Find this coffee online and fill in its details:\n${JSON.stringify(known, null, 2)}`
 }
@@ -40,12 +41,26 @@ export function parseLookup(text: string): Lookup {
   const json = text.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1] ?? text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)
   let parsed
   try {
-    parsed = LookupSchema.safeParse(JSON.parse(json))
+    // Written as text, not held to the schema: a field left out takes its empty value.
+    const answer = JSON.parse(json)
+    const blank = notFound()
+    parsed = LookupSchema.safeParse({ ...blank, ...answer, translations: { ...blank.translations, ...answer?.translations }, flavors: { ...blank.flavors, ...answer?.flavors } })
   } catch {
     throw new ScanError('unreadable')
   }
   if (!parsed.success) throw new ScanError('unreadable')
   return parsed.data
+}
+
+/** "Nothing found", for a search that couldn't even find a page to open. */
+export const notFound = (): Lookup => {
+  const tr = { notes: [], process_detail: '' }
+  return {
+    is_coffee_bag: true, roaster: '', series: '', name: '', country: '', country_codes: [], area: '', producer: '', varieties: [],
+    process: 'unknown', process_detail: '', altitude_masl: null, roast: 'unknown', roast_for: 'unknown', region: 'unknown', notes: [],
+    translations: { en: tr, ru: tr, es: tr }, flavors: Object.fromEntries(FLAVORS.map((f) => [f, 0])) as Lookup['flavors'], flavors_estimated: true,
+    acidity: null, body: null, sweetness: null, sca_score: null, weight_g: null, roast_date: '', website: '', label_cut_off: false, found: false, source_url: '',
+  }
 }
 
 /** The schema as JSON Schema text, for prompts that ask for JSON in plain text. */

@@ -50,7 +50,8 @@ export function LookupButton({ coffee, onFilled }: { coffee: CoffeeDraft; onFill
       setMessage(t.editor.lookupFilled(webFieldNames(t, fields)) + via)
     } catch (e) {
       if (ac.signal.aborted) return
-      setMessage(e instanceof ScanError ? [t.errors[e.code], e.detail].filter(Boolean).join(' ') : String(e))
+      const text = e instanceof ScanError && e.code === 'unreadable' ? t.editor.lookupUnreadable : e instanceof ScanError ? t.errors[e.code] : String(e)
+      setMessage([text, e instanceof ScanError && e.detail].filter(Boolean).join(' '))
     } finally {
       setBusy(false)
       setStatus(undefined)

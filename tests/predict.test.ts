@@ -113,7 +113,7 @@ function bag(o: Partial<Bag> = {}): Bag {
     is_coffee_bag: true, roaster: 'Onsaya Coffee', series: '', name: 'Santa Rosa', country: '', country_codes: [], area: '', producer: '',
     varieties: [], process: 'unknown', process_detail: '', altitude_masl: null, roast: 'unknown', roast_for: 'unknown', region: 'unknown',
     notes: [], translations: { en: tr, ru: tr, es: tr }, flavors: none, flavors_estimated: true, acidity: null, body: null, sweetness: null,
-    sca_score: null, weight_g: 200, roast_date: '', label_cut_off: false, ...o,
+    sca_score: null, weight_g: 200, roast_date: '', website: '', label_cut_off: false, ...o,
   }
 }
 
@@ -148,4 +148,11 @@ test('a web answer is read from a JSON block', () => {
   const parsed = parseLookup(`Here it is:\n\`\`\`json\n${JSON.stringify(answer)}\n\`\`\``)
   assert.equal(parsed.found, true)
   assert.equal(parsed.source_url, 'https://onsaya.com/santa-rosa')
+})
+
+test('a web answer missing some fields still counts', () => {
+  const parsed = parseLookup('```json\n{"found": true, "source_url": "https://onsaya.com/x", "roaster": "Onsaya", "name": "Santa Rosa", "country": "Colombia", "country_codes": ["CO"], "notes": ["apple"]}\n```')
+  assert.equal(parsed.found, true)
+  assert.deepEqual(parsed.country_codes, ['CO'])
+  assert.equal(parsed.process, 'unknown')
 })

@@ -39,6 +39,7 @@ export const BagSchema = z.object({
   sca_score: z.number().nullable(),
   weight_g: z.number().nullable().describe('Net weight in grams if printed (250 g → 250, 1 kg → 1000); null if not shown'),
   roast_date: z.string().describe('Roast date as YYYY-MM-DD; when no year is printed, as --MM-DD; empty if none. Mind the order: Europe writes day first, the US month first, Japan and China month.day or year.month.day'),
+  website: z.string().describe('The roaster\'s website or shop address printed on the bag, as a bare domain ("onsaya.com"); also from an email ("info@onsaya.com" → onsaya.com); empty if none'),
   label_cut_off: z.boolean().describe('True if text that may name the coffee, its origin, process or tasting notes is hidden by a fold, cut off at the edge, covered or too blurry to read'),
 })
 
@@ -138,7 +139,14 @@ export function toDraft(bag: Bag): CoffeeDraft {
     series: series.toLowerCase() === name.toLowerCase() ? '' : series,
     roastedAt: roastDate(bag.roast_date),
     labelCutOff: bag.label_cut_off || undefined,
+    website: siteOf(bag.website),
   }
+}
+
+/** "https://www.Onsaya.com/shop" or "info@onsaya.com" → "onsaya.com"; anything else → empty. */
+export function siteOf(s: string): string {
+  const host = s.trim().toLowerCase().replace(/^[^@\s]*@/, '').replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[/?#\s]/)[0]
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(host) ? host : ''
 }
 
 /**

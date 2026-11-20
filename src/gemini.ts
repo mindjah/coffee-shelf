@@ -6,7 +6,7 @@ import { getSettings } from './settings'
 import { ScanError } from './errors'
 import { BagSchema, SYSTEM, USER_PROMPT, toDraft } from './extract'
 import { linkInfo } from './links'
-import { LOOKUP_SYSTEM, lookupJsonSchema, parseLookup, type Lookup } from './lookup'
+import { LOOKUP_SYSTEM, lookupJsonSchema, notFound, parseLookup, type Lookup } from './lookup'
 
 // Gemini takes plain JSON Schema; drop the $schema marker it doesn't accept.
 const { $schema: _, ...responseJsonSchema } = z.toJSONSchema(BagSchema) as Record<string, unknown>
@@ -107,22 +107,65 @@ export async function placeFromLink(link: string, model?: string, signal?: Abort
   return { name }
 }
 
-/** Finds a coffee online with Google Search and URL context; the answer comes as JSON text. */
+const LOOKUP_FORMAT = `Answer with one JSON object matching this JSON Schema, in a \`\`\`json block:\n`
+
+/**
+ * Finds a coffee online with Google Search and URL context; the answer comes as JSON text.
+ * Free keys often get no Google Search at all (or run out of it), while URL context still works:
+ * then the model names the pages most likely to have the coffee, and reads those.
+ */
 export async function lookup(request: string, signal?: AbortSignal, model?: string): Promise<Lookup> {
   const { geminiKey, geminiModel: picked } = getSettings()
   const geminiModel = model ?? picked
   if (!geminiKey) throw new ScanError('noKey')
+  const ai = new GoogleGenAI({ apiKey: geminiKey })
+  const ask = async (text: string, tools: { googleSearch?: object; urlContext?: object }[]) => {
+    let response
+    try {
+      response = await ai.models.generateContent({
+        model: geminiModel,
+        contents: [{ role: 'user', parts: [{ text: `${text}\n\n${LOOKUP_FORMAT}${lookupJsonSchema()}` }] }],
+        config: { systemInstruction: LOOKUP_SYSTEM, tools, maxOutputTokens: 16000, abortSignal: signal },
+      })
+    } catch (e) {
+      throw toScanError(e)
+    }
+    if (response.promptFeedback?.blockReason) throw new ScanError('refusal')
+    if (response.candidates?.[0]?.finishReason === FinishReason.MAX_TOKENS) throw new ScanError('truncated')
+    return parseLookup(response.text ?? '')
+  }
+
+  try {
+    return await ask(request, [{ googleSearch: {} }, { urlContext: {} }])
+  } catch (e) {
+    if (!(e instanceof ScanError && e.code === 'rateLimit')) throw e
+  }
+  const urls = await likelyPages(ai, geminiModel, request, signal)
+  if (!urls.length) return notFound()
+  return ask(`${request}\n\nGoogle Search isn't available. Open these pages, and links on them that look like this coffee's page, to find it:\n${urls.join('\n')}`, [{ urlContext: {} }])
+}
+
+/** Up to eight addresses where this coffee is likely described, from what the model knows. */
+async function likelyPages(ai: GoogleGenAI, model: string, request: string, signal?: AbortSignal): Promise<string[]> {
   let response
   try {
-    response = await new GoogleGenAI({ apiKey: geminiKey }).models.generateContent({
-      model: geminiModel,
-      contents: [{ role: 'user', parts: [{ text: `${request}\n\nAnswer with one JSON object matching this JSON Schema, in a \`\`\`json block:\n${lookupJsonSchema()}` }] }],
-      config: { systemInstruction: LOOKUP_SYSTEM, tools: [{ googleSearch: {} }, { urlContext: {} }], maxOutputTokens: 16000, abortSignal: signal },
+    response = await ai.models.generateContent({
+      model,
+      contents: [{ role: 'user', parts: [{ text: `${request}\n\nList up to 8 web addresses most likely to describe this exact coffee: the roaster's website (use the website given, if any), its shop or coffee catalogue pages, its site search for the coffee's name (e.g. https://example.com/search?q=name), and shops known to sell this roaster's coffee. Only domains you are confident exist.` }] }],
+      config: {
+        responseMimeType: 'application/json',
+        responseJsonSchema: { type: 'object', properties: { urls: { type: 'array', items: { type: 'string' } } }, required: ['urls'] },
+        maxOutputTokens: 2000,
+        abortSignal: signal,
+      },
     })
   } catch (e) {
     throw toScanError(e)
   }
-  if (response.promptFeedback?.blockReason) throw new ScanError('refusal')
-  if (response.candidates?.[0]?.finishReason === FinishReason.MAX_TOKENS) throw new ScanError('truncated')
-  return parseLookup(response.text ?? '')
+  try {
+    const urls: unknown = JSON.parse(response.text ?? '{}').urls
+    return Array.isArray(urls) ? urls.filter((u): u is string => typeof u === 'string' && /^https?:\/\/[^\s]+$/.test(u)).slice(0, 8) : []
+  } catch {
+    return []
+  }
 }

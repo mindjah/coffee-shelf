@@ -64,6 +64,8 @@ export interface Coffee {
   scaScore: number | null
   /** Roast date, as printed or entered (midnight local time). */
   roastedAt?: number | null
+  /** The roaster's website as printed on the bag ("onsaya.com"), where a web lookup starts. */
+  website?: string
   /** Details filled from the web (see lookup.ts), and the page they came from. */
   webFields?: string[]
   webSource?: string
