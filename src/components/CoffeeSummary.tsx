@@ -40,7 +40,8 @@ export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }
   // Not printed on the bag: shown as a likely method, with what it's based on.
   const brew = brewMethod(coffee)
   const facts = [
-    coffee.process !== 'unknown' && (processDetail || t.process[coffee.process]),
+    // A mark like "W" or "N" (washed, natural) reads better as the process's name.
+    coffee.process !== 'unknown' && (processDetail.trim().length > 2 ? processDetail : t.process[coffee.process]),
     coffee.roast !== 'unknown' && t.coffee.roastChip(t.roast[coffee.roast]),
     brew && (brew.stated ? t.roastFor[brew.method] : t.coffee.brewChip(t.roastFor[brew.method])),
     coffee.varieties.length > 0 && coffee.varieties.join(', '),

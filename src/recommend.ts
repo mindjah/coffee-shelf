@@ -75,6 +75,16 @@ export function bagFacts(c: CoffeeDraft): number {
 export const MIN_FACTS = 2
 const bagIsThin = (c: CoffeeDraft) => bagFacts(c) < MIN_FACTS
 
+/** What a bag has to say before two coffees can be called the same: notes, origin, process and roast. */
+const FULL_FACTS = 5
+
+/**
+ * How far "similar" can be trusted for these two bags. Two bags that state only "Ethiopia, washed"
+ * get the same guessed profile and look identical, but that's two guesses agreeing, not two
+ * coffees: the score is held to what the thinner bag tells. Kin keep theirs (see kin()).
+ */
+const coverage = (a: CoffeeDraft, b: CoffeeDraft) => Math.min(1, Math.min(bagFacts(a), bagFacts(b)) / FULL_FACTS)
+
 const BASE_FEATURES: Feature[] = [
   ...FLAVORS.map((f) => ({
     id: f,
@@ -557,13 +567,14 @@ export function predict(model: Model, c: CoffeeDraft, brew: Brew = 'v60', exclud
   const sims = model.rated
     .map((r) => ({ coffee: r.coffee, ...similarity(model.flavor, x, c, r, model.sigma2) }))
     .filter((r) => !bagIsThin(r.coffee) || r.kin)
-    .map(({ coffee, sim }) => ({ coffee, similarity: sim }))
+    .map(({ coffee, sim, kin: k }) => ({ coffee, similarity: k ? sim : sim * coverage(c, coffee) }))
     .sort((a, b) => b.similarity - a.similarity)
     .filter((s, i, all) => all.findIndex((o) => o.coffee === s.coffee) === i)
   // A guessed profile (no tasting notes, or only drink associations) makes for a less certain prediction.
   // So does a bag that says little: confidence grows with what it states (see bagFacts()).
-  const strength = Math.min(1, model.rated.length / 15) * Math.min(1, wSum / 1.2) * (c.flavorsEstimated ? 0.6 : 1) * Math.min(1, facts / 4)
-  const confidence = strength > 0.55 ? 'high' : strength > 0.25 ? 'medium' : 'low'
+  const strength = Math.min(1, model.rated.length / 15) * Math.min(1, wSum / 1.2) * (c.flavorsEstimated ? 0.6 : 1) * Math.min(1, facts / FULL_FACTS)
+  // Origin and process alone (no notes, no roast) can't make a guess better than low.
+  const confidence = facts < 3 ? 'low' : strength > 0.55 ? 'high' : strength > 0.25 ? 'medium' : 'low'
   const final = clampScore(score)
 
   let byBrew: Prediction['byBrew']

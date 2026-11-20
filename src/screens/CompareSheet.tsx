@@ -183,7 +183,7 @@ export function CompareSheet({ items, model, coffees, onClose, onQuickRemove }: 
                 ) : dash,
               )}
               {row(t.compare.origin, ({ d }) => originLine(d, t, lang))}
-              {row(t.compare.process, ({ d }) => (d.process === 'unknown' ? dash : localized(d, lang).processDetail || t.process[d.process]))}
+              {row(t.compare.process, ({ d }) => (d.process === 'unknown' ? dash : (localized(d, lang).processDetail.trim().length > 2 ? localized(d, lang).processDetail : t.process[d.process])))}
               {row(t.compare.roast, ({ d }) => (d.roast === 'unknown' ? dash : t.roast[d.roast]))}
               {row(t.compare.notes, ({ d }) => {
                 const notes = localized(d, lang).notes.slice(0, 5)

@@ -111,7 +111,8 @@ export function toDraft(bag: Bag): CoffeeDraft {
     producer: text(bag.producer),
     varieties: bag.varieties.map(text).filter(Boolean),
     process: bag.process,
-    processDetail: text(bag.process_detail),
+    // "(W)" on a label is a process mark, not wording worth keeping.
+    processDetail: text(bag.process_detail).replace(/^\(?\w{1,2}\)?$/, ''),
     altitude: bag.altitude_masl,
     roast: bag.roast,
     roastFor: bag.roast_for,
