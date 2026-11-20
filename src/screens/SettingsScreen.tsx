@@ -163,9 +163,11 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
                   className={`chevron${expanded ? ' open' : ''}`}
                   role="button"
                   aria-label={expanded ? t.settings.collapse : t.settings.expand}
+                  // Opening shows the key card like tapping the card does; tapped again, it folds.
                   onClick={(e) => {
                     e.stopPropagation()
-                    setExpanded((v) => !v)
+                    setExpanded(!expanded)
+                    if (!expanded && usesAI(p)) setFlash((n) => n + 1)
                   }}
                 >
                   <ChevronIcon />
