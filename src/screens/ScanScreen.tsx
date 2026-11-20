@@ -402,9 +402,9 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             </>
           )}
           {/* Not the next step: comparing and discarding sit apart, as a quiet list (as on a coffee's page). */}
-          <div className="card detail-actions" style={{ marginTop: 20 }}>
-            <button type="button" onClick={addToCompare}><CompareIcon />{t.compare.add}</button>
-            <button type="button" className="danger" onClick={reset}><TrashIcon />{t.scan.discard}</button>
+          <div className="tool-actions">
+            <button type="button" onClick={addToCompare} aria-label={t.compare.add}><CompareIcon /><span>{t.compare.short}</span></button>
+            <button type="button" className="danger" onClick={reset}><TrashIcon /><span>{t.scan.discard}</span></button>
           </div>
           {notice && <div className="notice">{notice}</div>}
         </div>

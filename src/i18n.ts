@@ -17,6 +17,7 @@ const en = {
   },
   common: {
     close: 'Close',
+    delete: 'Delete',
     info: 'More info',
     savePhoto: 'Save photo',
     cancel: 'Cancel',
@@ -119,6 +120,7 @@ const en = {
   archive: {
     title: 'Archive',
     move: 'Move to archive',
+    short: 'Archive',
     restore: 'Restore from archive',
     note: 'This coffee is in the archive: it isn’t on your shelf and doesn’t count toward your taste profile or predictions.',
     empty: 'Nothing here yet. “Move to archive” on a coffee’s page puts it here — it leaves the shelf and your taste profile but isn’t deleted.',
@@ -133,6 +135,7 @@ const en = {
   },
   compare: {
     add: 'Add to comparison',
+    short: 'Compare',
     added: 'Added to comparison — scan the next bag.',
     full: (n: number) => `The comparison is full (${n} bags). Remove one to add another.`,
     bar: (n: number) => `Comparing ${n} ${n === 1 ? 'bag' : 'bags'}`,
@@ -537,6 +540,7 @@ const ru: Dict = {
   },
   common: {
     close: 'Закрыть',
+    delete: 'Удалить',
     info: 'Подробнее',
     savePhoto: 'Сохранить фото',
     cancel: 'Отмена',
@@ -642,6 +646,7 @@ const ru: Dict = {
   archive: {
     title: 'Архив',
     move: 'Переместить в архив',
+    short: 'В архив',
     restore: 'Вернуть из архива',
     note: 'Этот кофе в архиве: его нет на полке, и он не учитывается во вкусовом профиле и прогнозах.',
     empty: 'Пока пусто. Кнопка «Переместить в архив» на странице кофе отправит его сюда — он уйдёт с полки и из вкусового профиля, но не удалится.',
@@ -656,6 +661,7 @@ const ru: Dict = {
   },
   compare: {
     add: 'Добавить к сравнению',
+    short: 'Сравнить',
     added: 'Добавлено к сравнению — сканируйте следующую пачку.',
     full: (n) => `В сравнении уже ${n} пачек — это максимум. Уберите одну, чтобы добавить новую.`,
     bar: (n) => `В сравнении: ${n}`,
@@ -1049,6 +1055,7 @@ const es: Dict = {
   },
   common: {
     close: 'Cerrar',
+    delete: 'Eliminar',
     info: 'Más información',
     savePhoto: 'Guardar foto',
     cancel: 'Cancelar',
@@ -1151,6 +1158,7 @@ const es: Dict = {
   archive: {
     title: 'Archivo',
     move: 'Mover al archivo',
+    short: 'Archivar',
     restore: 'Recuperar del archivo',
     note: 'Este café está en el archivo: no aparece en tu estante y no cuenta para tu perfil de gusto ni para las predicciones.',
     empty: 'Aún no hay nada. «Mover al archivo» en la página de un café lo trae aquí: sale del estante y de tu perfil de gusto, pero no se borra.',
@@ -1165,6 +1173,7 @@ const es: Dict = {
   },
   compare: {
     add: 'Añadir a la comparación',
+    short: 'Comparar',
     added: 'Añadido a la comparación: escanea la siguiente bolsa.',
     full: (n) => `La comparación está llena (${n} bolsas). Quita una para añadir otra.`,
     bar: (n) => `Comparando ${n} ${n === 1 ? 'bolsa' : 'bolsas'}`,
