@@ -18,6 +18,8 @@ export const LOOKUP_SYSTEM = `${SYSTEM}
 
 This time there is no photo: you are finding this coffee online, on the roaster's own website or shop first, then on shops that sell it. Search the web, open the most relevant pages and fill the same fields from what they say.
 
+Roasters' sites are often in their own language (Japanese, Korean, Spanish…): match names by meaning and transliteration (サンタローザ = Santa Rosa, ウォルカ = Worka) and translate what you find. The bag may print only part of the product's name: "Santa Rosa" can be the shop's "El Salvador Santa Rosa Pacamara". Shops often list products at /collections/all or /products.json (Shopify) and have a site search.
+
 Report only what a page about this exact coffee states (same roaster, same lot, farm or blend). A page about a different coffee from the same roaster, or general knowledge of the origin, does not count: then set found to false and leave the fields empty. Never invent tasting notes. Set is_coffee_bag to true and label_cut_off to false. Put the address of the page you used in source_url.`
 
 /** What the bag already says, for the search to start from. */
@@ -121,7 +123,7 @@ export async function lookupCoffee(c: CoffeeDraft, signal: AbortSignal, onStatus
     onStatus,
     attemptMs: LOOKUP_ATTEMPT_MS,
     keyedOnly: true,
-    nextOn: (e) => e instanceof ScanError && ['unreadable', 'truncated', 'refusal', 'api'].includes(e.code),
+    nextOn: (e) => e instanceof ScanError && ['unreadable', 'truncated', 'refusal', 'api', 'siteClosed'].includes(e.code),
   })
   if (!found.found) return { draft: null, source: '', via }
   return { draft: toDraft(found), source: /^https?:\/\//.test(found.source_url) ? found.source_url : '', via }

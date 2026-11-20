@@ -140,9 +140,44 @@ export async function lookup(request: string, signal?: AbortSignal, model?: stri
   } catch (e) {
     if (!(e instanceof ScanError && e.code === 'rateLimit')) throw e
   }
-  const urls = await likelyPages(ai, geminiModel, request, signal)
-  if (!urls.length) return notFound()
-  return ask(`${request}\n\nGoogle Search isn't available. Open these pages, and links on them that look like this coffee's page, to find it:\n${urls.join('\n')}`, [{ urlContext: {} }])
+  // Without search, a product page can't be guessed (/products/el-salvador-santa-rosa-pacamara-202610):
+  // first the shop's listings point to it, then it is read.
+  const listings = [...new Set([...shopPages(request), ...(await likelyPages(ai, geminiModel, request, signal))])].slice(0, 12)
+  if (!listings.length) return notFound()
+  const pages = await findProductPages(ai, geminiModel, request, listings, signal)
+  if (!pages.length) return notFound()
+  return ask(`${request}\n\nGoogle Search isn't available. Read these pages, which should be about this coffee:\n${pages.join('\n')}`, [{ urlContext: {} }])
+}
+
+/** A shop's listing pages, when the bag (or you) gave its website. */
+function shopPages(request: string): string[] {
+  const site = request.match(/"website":\s*"([^"]+)"/)?.[1]
+  if (!site) return []
+  const name = request.match(/"name":\s*"([^"]+)"/)?.[1] ?? ''
+  const base = `https://${site}`
+  return [`${base}/`, `${base}/collections/all`, `${base}/products.json`, ...(name ? [`${base}/search?q=${encodeURIComponent(name)}`] : [])]
+}
+
+/**
+ * Opens the listings and names the product pages about this coffee. Throws siteClosed when none of
+ * the pages would open (sites that turn automated visits away).
+ */
+async function findProductPages(ai: GoogleGenAI, model: string, request: string, listings: string[], signal?: AbortSignal): Promise<string[]> {
+  let response
+  try {
+    response = await ai.models.generateContent({
+      model,
+      contents: [{ role: 'user', parts: [{ text: `${request}\n\nOpen these pages of the roaster's site and shops. Find the product page about this exact coffee; its name may be in another language or longer than the bag's (Santa Rosa → "El Salvador Santa Rosa Pacamara", "サンタローザ農園"). Reply with one line per page address, like PAGE: https://…, the best match first, at most 3. If a listing already describes the coffee in full, give that listing's address. If nothing matches, reply PAGE: NONE.\n\n${listings.join('\n')}` }] }],
+      config: { tools: [{ urlContext: {} }], maxOutputTokens: 4000, abortSignal: signal },
+    })
+  } catch (e) {
+    throw toScanError(e)
+  }
+  const fetched = response.candidates?.[0]?.urlContextMetadata?.urlMetadata ?? []
+  if (fetched.length && !fetched.some((m) => m.urlRetrievalStatus === UrlRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS)) {
+    throw new ScanError('siteClosed')
+  }
+  return [...(response.text ?? '').matchAll(/PAGE:\s*(https?:\/\/\S+)/g)].map((m) => m[1].replace(/[)>.,]+$/, '')).slice(0, 3)
 }
 
 /** Up to eight addresses where this coffee is likely described, from what the model knows. */
