@@ -157,11 +157,25 @@ test('a web answer missing some fields still counts', () => {
   assert.equal(parsed.process, 'unknown')
 })
 
-test('a recipe counts as its brew method, not the recipe', async () => {
+test('a recipe counts as its general brew method, not the recipe', async () => {
   const { brewOfRecipe } = await import('../src/brew')
   assert.equal(brewOfRecipe('V60 — Tetsu Kasuya’s 4:6 method'), 'v60')
   assert.equal(brewOfRecipe('V60: la receta clásica'), 'v60')
   assert.equal(brewOfRecipe('AeroPress — перевёрнутый способ'), 'aeropress')
   assert.equal(brewOfRecipe('Мой утренний Аэропресс'), 'aeropress')
-  assert.equal(brewOfRecipe('Chemex'), null)
+  assert.equal(brewOfRecipe('Chemex'), 'chemex')
+  assert.equal(brewOfRecipe('Холодный пуровер (по-японски)'), 'v60')
+  assert.equal(brewOfRecipe('Френч-пресс'), 'frenchPress')
+  assert.equal(brewOfRecipe('Cafetera moka (italiana)'), 'moka')
+  assert.equal(brewOfRecipe('Джезва (турка)'), 'cezve')
+  assert.equal(brewOfRecipe('Kalita Wave and flat-bottom drippers'), 'kalita')
+  assert.equal(brewOfRecipe('My Sunday recipe'), null)
+})
+
+test('any brew method you rate with enough becomes a factor', () => {
+  const lib = library().map((c, i) => ({ ...c, brewedWith: (i % 2 ? 'chemex' : 'frenchPress') as Coffee['brewedWith'] }))
+  const model = buildModel(lib)
+  assert.ok(model.features.some((f) => f.id === 'brew:chemex'))
+  assert.ok(model.features.some((f) => f.id === 'brew:frenchPress'))
+  assert.equal(model.brewCounts.chemex, 5)
 })

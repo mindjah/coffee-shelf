@@ -72,12 +72,25 @@ export function brewMethod(c: CoffeeDraft): BrewGuess | null {
   return c.roastFor !== 'unknown' ? { method: c.roastFor, clues: [], stated: true } : guessBrewMethod(c)
 }
 
+/** Recipe names (any language the encyclopedia has, and your own recipes) → the general method. */
+const RECIPE_METHODS: [RegExp, Brew][] = [
+  [/\bv\s?60\b|iced pour|холодный пуровер|con hielo/i, 'v60'],
+  [/kalita|калита/i, 'kalita'],
+  [/origami|оригами/i, 'origami'],
+  [/chemex|кемекс/i, 'chemex'],
+  [/clever|кливер/i, 'clever'],
+  [/aero\s?press|аэропресс/i, 'aeropress'],
+  [/french press|prensa francesa|френч/i, 'frenchPress'],
+  [/moka|мока|гейзер|italiana/i, 'moka'],
+  [/cold brew|колд брю/i, 'coldBrew'],
+  [/cezve|джезв|турк|turkish|turco/i, 'cezve'],
+  [/espresso|эспрессо/i, 'espresso'],
+]
+
 /**
  * The brew method a rating goes under, from a recipe's name: "V60 — 4:6 method" is V60,
- * "AeroPress — inverted" is AeroPress. Other methods (Chemex, French press…) have no rating of their own.
+ * "AeroPress — inverted" is AeroPress, "Japanese iced pour-over" is brewed in a V60.
  */
 export function brewOfRecipe(title: string): Brew | null {
-  if (/\bv\s?60\b/i.test(title)) return 'v60'
-  if (/aero\s?press|аэропресс/i.test(title)) return 'aeropress'
-  return null
+  return RECIPE_METHODS.find(([re]) => re.test(title))?.[1] ?? null
 }

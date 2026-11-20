@@ -1,4 +1,4 @@
-import { FLAVORS, type Brew, type Coffee, type CoffeeDraft, type Flavor, type Region } from './types'
+import { BREWS, FLAVORS, type Brew, type Coffee, type CoffeeDraft, type Flavor, type Region } from './types'
 import { brewMethod } from './brew'
 import { sameRoaster } from './roaster'
 import { normalize } from './lexicon'
@@ -123,8 +123,6 @@ const BASE_FEATURES: Feature[] = [
   },
   // 80 → 0, 92+ → 1; a bag without a score sits in the middle.
   { id: 'sca', group: 'sca', weight: 0.5, get: (c) => (c.scaScore == null ? 0.5 : clamp01((c.scaScore - 80) / 12)) },
-  // V60 is 0, AeroPress 1; ratings from before the method was asked sit in between.
-  { id: 'aeropress', group: 'brew', weight: 0.6, get: (c) => (c.brewedWith === 'aeropress' ? 1 : c.brewedWith === 'v60' ? 0 : 0.5) },
 ]
 
 /** Countries, roasters and varieties become their own factor once you've rated at least this many. */
@@ -150,7 +148,16 @@ function extraFeatures(rated: Coffee[]): Feature[] {
   for (const c of rated) if (c.roaster.trim() && !roasterNames.some((r) => sameRoaster(r, c.roaster))) roasterNames.push(c.roaster.trim())
   const roasters = frequent(rated.map((c) => roasterNames.filter((r) => sameRoaster(r, c.roaster))), (r) => r)
   const varieties = frequent(rated.map((c) => c.varieties), varietyKey)
+  // Each brew method you've rated with enough becomes a factor; ratings without a method are neutral.
+  const brews = frequent(rated.map((c) => methodRatings(c).flatMap((m) => (m.brew ? [m.brew] : []))), (b) => b)
   return [
+    ...[...brews.keys()].map((b) => ({
+      id: `brew:${b}`,
+      group: 'brew' as const,
+      weight: 0.6,
+      get: (c: CoffeeDraft) => (c.brewedWith === b ? 1 : 0),
+      known: (c: CoffeeDraft) => !!c.brewedWith,
+    })),
     ...[...countries.keys()].map((code) => ({
       id: `country:${code}`,
       group: 'origin' as const,
@@ -451,10 +458,7 @@ export function buildModel(all: Coffee[], params: Params = DEFAULT_PARAMS, accur
     sigma2: kernelWidth(rated.map((r) => r.x)),
     featureMean: fit?.featureMean ?? new Array(features.length).fill(0),
     beta: fit?.beta ?? null,
-    brewCounts: {
-      v60: rated.filter((r) => r.brew === 'v60').length,
-      aeropress: rated.filter((r) => r.brew === 'aeropress').length,
-    },
+    brewCounts: Object.fromEntries(BREWS.map((b) => [b, rated.filter((r) => r.brew === b).length])) as Record<Brew, number>,
     accuracy,
   }
 }
@@ -552,7 +556,7 @@ export interface Prediction {
   /** The brew method this score is for. */
   brew: Brew
   /** Scores per method, once you've rated a few coffees with each. */
-  byBrew?: Record<Brew, number>
+  byBrew?: Partial<Record<Brew, number>>
   /** Where the rating most likely lands: the guess give or take its usual miss. */
   range?: [number, number]
 }
@@ -610,11 +614,12 @@ export function predict(model: Model, c: CoffeeDraft, brew: Brew = 'v60', exclud
   else if (acc && acc.mae > acc.baseline * 0.9 && confidence === 'high') confidence = 'medium'
   const final = clampScore(score)
 
+  // Your usual method next to the one you rate with most otherwise, once each has a few ratings.
   let byBrew: Prediction['byBrew']
-  if (model.brewCounts.v60 >= MIN_RATED_FOR_FACTOR && model.brewCounts.aeropress >= MIN_RATED_FOR_FACTOR) {
-    const other: Brew = brew === 'v60' ? 'aeropress' : 'v60'
+  const other = BREWS.filter((b) => b !== brew && model.brewCounts[b] >= MIN_RATED_FOR_FACTOR).sort((a, b) => model.brewCounts[b] - model.brewCounts[a])[0]
+  if (other && model.brewCounts[brew] >= MIN_RATED_FOR_FACTOR) {
     const otherScore = clampScore(scoreFor(model, vec(model.features, model.params, model.fills, { ...c, brewedWith: other }), c).score)
-    byBrew = { [brew]: final, [other]: otherScore } as Record<Brew, number>
+    byBrew = { [brew]: final, [other]: otherScore }
   }
 
   // Give or take: how far the neighbours disagree, and no tighter than predictions have missed by

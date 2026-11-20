@@ -72,8 +72,8 @@ export function PredictionCard({ prediction, ratedCount, rated, pick, lookup }: 
         <div className="row small brew-scores">
           <span className="muted">{t.prediction.byBrew}</span>
           <span className="spacer" />
-          {BREWS.map((b) => (
-            <span key={b} className={b === p.brew ? 'on' : 'muted'}>{t.brew[b]} {p.byBrew![b].toFixed(1)}</span>
+          {BREWS.filter((b) => p.byBrew![b] != null).map((b) => (
+            <span key={b} className={b === p.brew ? 'on' : 'muted'}>{t.brew[b]} {p.byBrew![b]!.toFixed(1)}</span>
           ))}
         </div>
       )}

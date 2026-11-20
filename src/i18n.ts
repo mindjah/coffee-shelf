@@ -474,7 +474,7 @@ const en = {
   kinRated: (name: string, rating: string) => `Another lot of “${name}”, which you rated ${rating}`,
   ofVariety: (name: string) => `${name} variety`,
   notVariety: (name: string) => `Not ${name}`,
-  brew: { v60: 'V60', aeropress: 'AeroPress' } satisfies Record<Brew, string>,
+  brew: { v60: 'V60', kalita: 'Kalita Wave', origami: 'Origami', chemex: 'Chemex', clever: 'Clever', aeropress: 'AeroPress', frenchPress: 'French press', moka: 'Moka pot', espresso: 'Espresso', coldBrew: 'Cold brew', cezve: 'Cezve' } satisfies Record<Brew, string>,
   notFromCountry: (name: string) => `Not from ${name}`,
   /** [pushes the score up because it is present / higher, … because it is absent / lower] */
   reasons: {
@@ -508,7 +508,6 @@ const en = {
     sweetness: ['Sweeter cup', 'Less sweetness'],
     altitude: ['Grown higher', 'Grown lower'],
     sca: ['Higher SCA score', 'Lower SCA score'],
-    aeropress: ['Brewed in AeroPress', 'Brewed in V60'],
   } as Record<string, Pair>,
 }
 
@@ -990,7 +989,7 @@ const ru: Dict = {
   kinRated: (name, rating) => `Другой лот «${name}», вы поставили ${rating}`,
   ofVariety: (name) => `Сорт ${name}`,
   notVariety: (name) => `Не ${name}`,
-  brew: { v60: 'V60', aeropress: 'Аэропресс' },
+  brew: { v60: 'V60', kalita: 'Kalita Wave', origami: 'Origami', chemex: 'Chemex', clever: 'Clever', aeropress: 'Аэропресс', frenchPress: 'Френч-пресс', moka: 'Мока', espresso: 'Эспрессо', coldBrew: 'Колд брю', cezve: 'Джезва' },
   notFromCountry: (name) => `Не ${name}`,
   reasons: {
     berry: ['Ягодные ноты', 'Нет ягодных нот'],
@@ -1023,7 +1022,6 @@ const ru: Dict = {
     sweetness: ['Более сладкая чашка', 'Меньше сладости'],
     altitude: ['Выращен выше', 'Выращен ниже'],
     sca: ['Выше оценка SCA', 'Ниже оценка SCA'],
-    aeropress: ['Аэропресс', 'V60'],
   },
 }
 
@@ -1493,7 +1491,7 @@ const es: Dict = {
   kinRated: (name, rating) => `Otro lote de «${name}», que valoraste con ${rating}`,
   ofVariety: (name) => `Variedad ${name}`,
   notVariety: (name) => `No es ${name}`,
-  brew: { v60: 'V60', aeropress: 'AeroPress' },
+  brew: { v60: 'V60', kalita: 'Kalita Wave', origami: 'Origami', chemex: 'Chemex', clever: 'Clever', aeropress: 'AeroPress', frenchPress: 'Prensa francesa', moka: 'Moka', espresso: 'Espresso', coldBrew: 'Cold brew', cezve: 'Cezve' },
   notFromCountry: (name) => `No es de ${name}`,
   reasons: {
     berry: ['Notas de frutos rojos', 'Sin notas de frutos rojos'],
@@ -1526,7 +1524,6 @@ const es: Dict = {
     sweetness: ['Taza más dulce', 'Menos dulzor'],
     altitude: ['Cultivado más alto', 'Cultivado más bajo'],
     sca: ['Puntuación SCA más alta', 'Puntuación SCA más baja'],
-    aeropress: ['Preparado en AeroPress', 'Preparado en V60'],
   },
 }
 
@@ -1550,6 +1547,7 @@ export function useT(): Dict {
 
 /** Explanation text for a recommender reason; `short` drops "than you usually drink". */
 export function reasonText(t: Dict, r: Pick<Reason, 'id' | 'up'>, lang: Lang, short = false): string {
+  if (r.id.startsWith('brew:')) return t.brew[r.id.slice('brew:'.length) as Brew] ?? r.id
   if (r.id.startsWith('kin:')) {
     const [, rating, ...name] = r.id.split(':')
     return t.kinRated(name.join(':'), Number(rating).toFixed(1))

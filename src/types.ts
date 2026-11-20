@@ -15,7 +15,8 @@ export const ROAST_FOR = ['filter', 'espresso', 'omni', 'unknown'] as const
 export type RoastFor = (typeof ROAST_FOR)[number]
 
 /** How a coffee was brewed when it was rated. */
-export const BREWS = ['v60', 'aeropress'] as const
+/** The encyclopedia's recipes, by general method (the 4:6 recipe is V60, the inverted one AeroPress). */
+export const BREWS = ['v60', 'kalita', 'origami', 'chemex', 'clever', 'aeropress', 'frenchPress', 'moka', 'espresso', 'coldBrew', 'cezve'] as const
 export type Brew = (typeof BREWS)[number]
 
 export const REGIONS = ['east-africa', 'other-africa', 'central-america', 'south-america', 'asia-pacific', 'blend', 'unknown'] as const
