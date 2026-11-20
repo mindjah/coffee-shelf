@@ -62,7 +62,7 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
   const update = (patch: Partial<Coffee>) => db.coffees.update(coffee.id!, patch)
 
   // Ratings per brew method: pick V60 or AeroPress, the stars are that method's rating.
-  const { selected, shown, unassigned, pick: pickMethod, rate, clear: clearRating } = useMethodRating(coffee, update)
+  const { selected, shown, pick: pickMethod, rate, clear: clearRating } = useMethodRating(coffee, update)
 
   const archived = !!coffee.archivedAt
   async function toggleArchive() {
@@ -96,7 +96,6 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
             </button>
           </div>
           <BrewPicker value={selected} ratings={coffee} onChange={pickMethod} />
-          {unassigned != null && <p className="muted small rate-hint">{t.coffee.pickBrewHint}</p>}
           <div className="rate-stars">
             <Stars value={shown} onChange={rate} big />
             <div className="muted small">{shown != null ? shown.toFixed(1) : t.coffee.rateAfter}</div>

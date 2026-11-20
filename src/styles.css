@@ -546,28 +546,28 @@ textarea.input { min-height: 84px; resize: vertical; }
 }
 
 /* "Brewed with: V60 | AeroPress" under the rating stars. */
-.brew-picker { display: flex; align-items: center; gap: 12px; margin: 14px 0 0; }
+.brew-picker { margin: 14px 0 0; }
 .seg-rating { margin-left: 6px; font-weight: 500; opacity: 0.7; }
 /* Brew method dropdown: a field-like button and a floating list under it */
 .brew-select { position: relative; flex: 1; min-width: 0; }
 .brew-select-btn {
-  display: flex; align-items: center; gap: 4px; width: 100%; min-height: 46px; padding: 0 12px 0 14px;
-  border: 1px solid var(--line); border-radius: 14px; background: var(--surface); font-size: 16px; font-weight: 600; text-align: left;
+  display: flex; align-items: center; gap: 4px; width: 100%; min-height: 42px; padding: 0 12px 0 14px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 15px; font-weight: 600; text-align: left;
 }
-.brew-select-btn.empty .brew-select-name { color: var(--muted); font-weight: 500; }
-.brew-select-btn svg { width: 18px; height: 18px; color: var(--muted); transition: transform 0.15s ease; }
+.brew-select-btn.unset .brew-select-name { color: var(--muted); font-weight: 500; }
+.brew-select-btn svg { display: block; flex: none; align-self: center; width: 18px; height: 18px; color: var(--muted); transition: transform 0.15s ease; }
 .brew-select-btn[aria-expanded="true"] { border-color: var(--accent); }
 .brew-select-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
 .brew-select-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .brew-menu {
   position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; right: 0; margin: 0; padding: 6px; list-style: none;
-  max-height: 330px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  max-height: 288px; overflow-y: auto; -webkit-overflow-scrolling: touch;
   background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 12px 32px rgba(20, 14, 10, 0.18);
   animation: fade 0.12s ease;
 }
 .brew-menu button {
-  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 42px; padding: 0 10px 0 12px;
-  border: 0; border-radius: 10px; background: transparent; font-size: 15px; text-align: left;
+  display: flex; align-items: baseline; gap: 8px; width: 100%; min-height: 36px; padding: 8px 10px 8px 12px;
+  border: 0; border-radius: 9px; background: transparent; font-size: 15px; text-align: left;
 }
 .brew-menu button.on { background: var(--accent-soft); font-weight: 600; }
 .brew-check { width: 16px; color: var(--accent); font-weight: 700; text-align: center; }
@@ -784,7 +784,6 @@ textarea.input { min-height: 84px; resize: vertical; }
 .stars.big { gap: 8px; }
 .stars.big .star, .stars.big .star .fill svg { width: 46px; height: 46px; }
 .stars.big .star { color: var(--star-empty); }
-.rate-hint { margin: 8px 4px 0; }
 
 /* Settings: the key card lights up when its AI is picked */
 .key-card { scroll-margin-top: calc(var(--safe-top) + 16px); }
@@ -794,5 +793,5 @@ textarea.input { min-height: 84px; resize: vertical; }
   100% { box-shadow: var(--shadow); }
 }
 .btn.key-link { text-decoration: none; }
-.brew-option { display: grid; gap: 1px; padding: 6px 0; }
-.brew-option small { font-size: 12px; font-weight: 400; color: var(--muted); }
+.brew-option { flex: none; }
+.brew-includes { min-width: 0; font-size: 12px; font-weight: 400; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

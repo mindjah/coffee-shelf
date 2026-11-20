@@ -40,10 +40,9 @@ export function BrewPicker({ value, ratings, onChange }: {
 
   return (
     <div className="brew-picker">
-      <span className="muted small">{t.coffee.brewedWith}</span>
       <div className="brew-select" ref={box}>
-        <button type="button" className={`brew-select-btn${value ? '' : ' empty'}`} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
-          <span className="brew-select-name">{value ? t.brew[value] : t.coffee.noBrew}</span>
+        <button type="button" className={`brew-select-btn${value ? '' : ' unset'}`} aria-haspopup="listbox" aria-expanded={open} aria-label={t.coffee.brewedWith} onClick={() => setOpen((o) => !o)}>
+          <span className="brew-select-name">{value ? t.brew[value] : t.coffee.brewQuestion}</span>
           {current != null && <span className="seg-rating">{current.toFixed(1)}</span>}
           <span className="spacer" />
           <ChevronIcon />
@@ -56,10 +55,8 @@ export function BrewPicker({ value, ratings, onChange }: {
               return (
                 <li key={b ?? 'none'}>
                   <button type="button" role="option" aria-selected={on} className={on ? 'on' : ''} onClick={() => choose(b)}>
-                    <span className={`brew-option${b ? '' : ' muted'}`}>
-                      {b ? t.brew[b] : t.coffee.noBrew}
-                      {b && t.brewIncludes[b] && <small>{t.brewIncludes[b]}</small>}
-                    </span>
+                    <span className={`brew-option${b ? '' : ' muted'}`}>{b ? t.brew[b] : t.coffee.noBrew}</span>
+                    {b && t.brewIncludes[b] && <small className="brew-includes">{t.brewIncludes[b]}</small>}
                     <span className="spacer" />
                     {r != null && <span className="seg-rating">{r.toFixed(1)}</span>}
                     <span className="brew-check" aria-hidden="true">{on ? '✓' : ''}</span>
