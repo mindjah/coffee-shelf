@@ -446,7 +446,7 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
               <button className="btn block" onClick={startManual}>
                 <PlusIcon /> {t.scan.enterManually}
               </button>
-              <button className="btn plain block" style={{ marginTop: 6 }} onClick={() => cameraRef.current?.click()}>
+              <button className="btn plain block" style={{ marginTop: 6 }} onClick={() => libraryRef.current?.click()}>
                 {t.scan.addPhoto}
               </button>
             </>
@@ -471,8 +471,9 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
             {shots.map((b, i) => (
               <Shot key={i} blob={b} onRemove={() => setShots((s) => s.filter((_, j) => j !== i))} />
             ))}
+            {/* No `capture` here: iOS offers Photo Library, Take Photo or Files, so the back can come from the gallery too. */}
             {shots.length < 3 && (
-              <button className="shot add" onClick={() => cameraRef.current?.click()}>
+              <button className="shot add" onClick={() => libraryRef.current?.click()}>
                 <PlusIcon />
                 {t.scan.otherSide}
               </button>
