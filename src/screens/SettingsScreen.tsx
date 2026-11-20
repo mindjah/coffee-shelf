@@ -33,10 +33,13 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
   }[ai]
   // Picking an AI brings its key card into view and lights it up: the key, model and where to get a key.
   const keyCard = useRef<HTMLDivElement>(null)
+  const keyInput = useRef<HTMLInputElement>(null)
   const [flash, setFlash] = useState(0)
   useEffect(() => {
     const el = keyCard.current
     if (!flash || !el) return
+    // Without a key yet, the cursor waits in its field.
+    if (!keyInput.current?.value) keyInput.current?.focus({ preventScroll: true })
     el.scrollIntoView({ block: 'start', behavior: 'smooth' })
     el.classList.remove('flash')
     void el.offsetWidth // restart the animation on a second tap
@@ -135,10 +138,12 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
             <button
               key={p}
               className={`choice${chosen ? ' on' : ''}`}
-              // The chosen card opens and closes the section; the others switch method.
+              // Tapping an AI, chosen or not, opens its key card and brings it into view; the chevron
+              // folds the section, and so does tapping the chosen Without AI.
               onClick={() => {
-                if (chosen) return setExpanded((v) => !v)
-                saveSettings({ provider: p })
+                if (chosen && !usesAI(p)) return setExpanded((v) => !v)
+                if (!chosen) saveSettings({ provider: p })
+                setExpanded(true)
                 if (usesAI(p)) setFlash((n) => n + 1)
               }}
               aria-pressed={chosen}
@@ -150,7 +155,15 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
                 <span className="sub">{t.settings.providers[p][1]}</span>
               </span>
               {chosen && (
-                <span className={`chevron${expanded ? ' open' : ''}`} aria-label={expanded ? t.settings.collapse : t.settings.expand}>
+                <span
+                  className={`chevron${expanded ? ' open' : ''}`}
+                  role="button"
+                  aria-label={expanded ? t.settings.collapse : t.settings.expand}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setExpanded((v) => !v)
+                  }}
+                >
                   <ChevronIcon />
                 </span>
               )}
@@ -166,6 +179,7 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
           <label className="field" style={{ marginTop: 14 }}>
             <span>{keyCopy.label}</span>
             <input
+              ref={keyInput}
               className="input"
               type="password"
               autoComplete="off"
