@@ -40,7 +40,11 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
     if (!flash || !el) return
     // Without a key yet, the cursor waits in its field.
     if (!keyInput.current?.value) keyInput.current?.focus({ preventScroll: true })
-    el.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    // Scrolled by hand after layout: the card may have just opened.
+    requestAnimationFrame(() => {
+      const top = el.getBoundingClientRect().top + window.scrollY - parseFloat(getComputedStyle(el).scrollMarginTop || '0')
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+    })
     el.classList.remove('flash')
     void el.offsetWidth // restart the animation on a second tap
     el.classList.add('flash')
@@ -242,6 +246,7 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
       </div>
 
       <ArchiveSection archived={archived} onOpen={onOpen} />
+      <p className="muted small" style={{ textAlign: 'center', margin: '24px 0 8px', opacity: 0.7 }}>{t.settings.build(__BUILD__)}</p>
     </div>
   )
 }

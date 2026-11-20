@@ -5,8 +5,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 // On GitHub Pages the app lives under /<repo>/; the deploy workflow passes it in.
 const base = process.env.BASE_PATH ? `${process.env.BASE_PATH.replace(/\/$/, '')}/` : '/'
 
+// Shown at the bottom of Settings, to tell which version a phone is running.
+const build = new Date().toISOString().slice(0, 16).replace('T', ' ')
+
 export default defineConfig({
   base,
+  define: { __BUILD__: JSON.stringify(build) },
   plugins: [
     react(),
     VitePWA({
