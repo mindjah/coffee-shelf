@@ -33,6 +33,8 @@ export default function App() {
     return back && TABS.some((x) => x.id === back) ? (back as Tab) : 'scan'
   })
   const [openId, setOpenId] = useState<number>()
+  // The coffee just saved from a scan: its page opens with a "saved" note.
+  const [savedId, setSavedId] = useState<number>()
   const [shelfOpened, setShelfOpened] = useState(false)
   if (tab === 'shelf' && !shelfOpened) setShelfOpened(true)
   const all = useLiveQuery(() => db.coffees.toArray(), [])
@@ -82,7 +84,7 @@ export default function App() {
     <>
       {/* Kept mounted so photos, an in-flight scan and an unsaved result survive tab switches. */}
       <div {...page('scan')}>
-        <ScanScreen model={model} coffees={all} onSaved={(id) => (setTab('shelf'), setOpenId(id))} onOpenSettings={() => setTab('settings')} />
+        <ScanScreen model={model} coffees={all} onSaved={(id) => (setTab('shelf'), setOpenId(id), setSavedId(id))} onOpenSettings={() => setTab('settings')} />
       </div>
       {/* Built on first visit, then kept: coming back shows it at once instead of rebuilding it and
           reloading every bag photo. It still follows the shelf as coffees are added or changed. */}
@@ -94,7 +96,7 @@ export default function App() {
       {tab === 'taste' && <div {...page('taste')}><InsightsScreen coffees={coffees} model={model} /></div>}
       {tab === 'settings' && <div {...page('settings')}><SettingsScreen archived={archived} onOpen={setOpenId} /></div>}
 
-      {open && <CoffeeDetail key={open.id} coffee={open} model={model} onClose={() => setOpenId(undefined)} />}
+      {open && <CoffeeDetail key={open.id} coffee={open} model={model} justSaved={open.id === savedId} onClose={() => (setOpenId(undefined), setSavedId(undefined))} />}
 
       <PhotoViewer />
 

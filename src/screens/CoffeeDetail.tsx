@@ -15,12 +15,13 @@ import { BrewPicker } from '../components/BrewPicker'
 import { NoteField } from '../components/NoteField'
 import { LookupButton } from '../components/LookupButton'
 import { TastedPicker } from '../components/TastedPicker'
-import { KettleIcon } from '../components/icons'
+import { ArchiveIcon, CompareIcon, KettleIcon, TrashIcon } from '../components/icons'
 import { brewOfRecipe } from '../brew'
 
 const Encyclopedia = lazy(() => import('../components/Encyclopedia').then((m) => ({ default: m.Encyclopedia })))
 
-export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model: Model; onClose: () => void }) {
+/** `justSaved`: opened right after scanning, so it says it's saved and what (not) to do next. */
+export function CoffeeDetail({ coffee, model, onClose, justSaved }: { coffee: Coffee; model: Model; onClose: () => void; justSaved?: boolean }) {
   const t = useT()
   const lang = useLang()
   const [editing, setEditing] = useState(false)
@@ -60,6 +61,8 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
   ]
 
   const update = (patch: Partial<Coffee>) => db.coffees.update(coffee.id!, patch)
+  // Leaving keeps a note typed but not yet saved.
+  const close = () => (comment !== coffee.comment && update({ comment }), onClose())
 
   // Ratings per brew method: pick V60 or AeroPress, the stars are that method's rating.
   const { selected, shown, pick: pickMethod, rate, clear: clearRating } = useMethodRating(coffee, update)
@@ -77,8 +80,16 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
   }
 
   return (
-    <Sheet title={coffee.roaster || t.coffee.fallbackTitle} onClose={() => (comment !== coffee.comment && update({ comment }), onClose())} closeLabel={t.common.done} action={{ label: t.common.edit, onClick: () => setEditing(true) }}>
+    // "‹ Shelf" reads as the way out, where a small "Done" in the corner was missed.
+    <Sheet title={coffee.roaster || t.coffee.fallbackTitle} onClose={close} closeLabel={`‹ ${t.tabs.shelf}`} action={{ label: t.common.edit, onClick: () => setEditing(true) }}>
       <div className="stack">
+        {justSaved && (
+          <div className="card saved-note">
+            <div className="saved-title">✓ {t.detail.saved}</div>
+            <p className="muted small">{coffee.rating == null ? t.detail.savedUnrated : t.detail.savedRated}</p>
+            <button className="btn block" onClick={close}>{t.common.done}</button>
+          </div>
+        )}
         {archived && (
           <div className="notice archived-note">
             <p style={{ margin: '0 0 10px' }}>{t.archive.note}</p>
@@ -115,10 +126,13 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
           <div className="card"><ClosestList similar={prediction.similar} pick={pick} /></div>
         )}
         <p className="muted small" style={{ textAlign: 'center' }}>{t.coffee.scanned} {new Date(coffee.createdAt).toLocaleDateString(lang, { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-        {!archived && <button className="btn ghost block" onClick={addToCompare}>{t.compare.add}</button>}
+        {/* Other things to do with the bag: a quiet list, not big buttons that look like the next step. */}
+        <div className="card detail-actions">
+          {!archived && <button type="button" onClick={addToCompare}><CompareIcon />{t.compare.add}</button>}
+          {!archived && <button type="button" onClick={toggleArchive}><ArchiveIcon />{t.archive.move}</button>}
+          <button type="button" className="danger" onClick={remove}><TrashIcon />{t.coffee.delete}</button>
+        </div>
         {compareNote && <div className="notice" style={{ marginTop: 0 }}>{compareNote}</div>}
-        {!archived && <button className="btn ghost block" onClick={toggleArchive}>{t.archive.move}</button>}
-        <button className="btn danger block" onClick={remove}>{t.coffee.delete}</button>
       </div>
       {comparing && (
         <CompareSheet

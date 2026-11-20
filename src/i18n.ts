@@ -10,6 +10,11 @@ type Pair = [up: string, down: string]
 
 const en = {
   tabs: { scan: 'Scan', shelf: 'Shelf', taste: 'Taste', settings: 'Settings' },
+  detail: {
+    saved: 'Saved to your shelf',
+    savedUnrated: 'Nothing else to do now. After you taste it, open it from the shelf and rate it: your ratings teach the app your taste.',
+    savedRated: 'Your rating is saved too. Tap Done to go back to the shelf.',
+  },
   common: {
     close: 'Close',
     info: 'More info',
@@ -525,6 +530,11 @@ const plural = (n: number, one: string, few: string, many: string) => {
 
 const ru: Dict = {
   tabs: { scan: 'Скан', shelf: 'Полка', taste: 'Вкус', settings: 'Настройки' },
+  detail: {
+    saved: 'Сохранено на полку',
+    savedUnrated: 'Больше ничего делать не нужно. Когда попробуете, откройте кофе на полке и поставьте оценку — так приложение узнаёт ваш вкус.',
+    savedRated: 'Оценка тоже сохранена. Нажмите «Готово», чтобы вернуться на полку.',
+  },
   common: {
     close: 'Закрыть',
     info: 'Подробнее',
@@ -1032,6 +1042,11 @@ const ru: Dict = {
 
 const es: Dict = {
   tabs: { scan: 'Escanear', shelf: 'Estante', taste: 'Gusto', settings: 'Ajustes' },
+  detail: {
+    saved: 'Guardado en tu estante',
+    savedUnrated: 'No hace falta nada más. Cuando lo pruebes, ábrelo desde el estante y valóralo: tus valoraciones enseñan a la app tu gusto.',
+    savedRated: 'Tu valoración también se guardó. Toca Listo para volver al estante.',
+  },
   common: {
     close: 'Cerrar',
     info: 'Más información',

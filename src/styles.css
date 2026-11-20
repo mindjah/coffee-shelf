@@ -795,3 +795,16 @@ textarea.input { min-height: 84px; resize: vertical; }
 .btn.key-link { text-decoration: none; }
 .brew-option { flex: none; }
 .brew-includes { min-width: 0; font-size: 12px; font-weight: 400; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Coffee page: the note after saving a scan, and the quiet list of other actions */
+.saved-note { border: 1.5px solid var(--accent); }
+.saved-title { font-weight: 700; font-size: 17px; }
+.saved-note p { margin: 6px 0 14px; }
+.detail-actions { padding: 6px 8px; display: grid; }
+.detail-actions button {
+  display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 10px;
+  border: 0; border-radius: 12px; background: none; font-size: 15px; text-align: left; color: var(--text);
+}
+.detail-actions button + button { border-top: 0.5px solid var(--line); border-radius: 0; }
+.detail-actions button svg { width: 20px; height: 20px; color: var(--muted); flex: none; }
+.detail-actions button.danger, .detail-actions button.danger svg { color: var(--pass); }
