@@ -97,6 +97,8 @@ export function fillGaps<T extends CoffeeDraft>(old: T, web: CoffeeDraft): { nex
   take('series', ['series'], !old.series?.trim(), !!web.series)
   take('notes', ['notes', 'translations', 'flavors', 'flavorsEstimated', 'structure'], old.flavorsEstimated || !old.notes.length, web.notes.length > 0 && !web.flavorsEstimated)
   if (old.roastFor === 'unknown' && web.roastFor !== 'unknown') next.roastFor = web.roastFor
+  // Where the coffee was found: the next search starts there. Not one of the facts shown as from the web.
+  if (!old.website && web.website) next.website = web.website
   return { next, fields }
 }
 

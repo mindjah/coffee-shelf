@@ -4,7 +4,7 @@ import type { CoffeeDraft } from './types'
 import { blobToBase64 } from './image'
 import { getSettings } from './settings'
 import { ScanError } from './errors'
-import { BagSchema, SYSTEM, USER_PROMPT, toDraft } from './extract'
+import { BagSchema, SYSTEM, USER_PROMPT, siteOf, toDraft } from './extract'
 import { linkInfo } from './links'
 import { LOOKUP_SYSTEM, lookupJsonSchema, notFound, parseLookup, type Lookup } from './lookup'
 
@@ -140,34 +140,67 @@ export async function lookup(request: string, signal?: AbortSignal, model?: stri
   } catch (e) {
     if (!(e instanceof ScanError && e.code === 'rateLimit')) throw e
   }
-  // Without search, a product page can't be guessed (/products/el-salvador-santa-rosa-pacamara-202610):
-  // first the shop's listings point to it, then it is read.
-  const listings = [...new Set([...shopPages(request), ...(await likelyPages(ai, geminiModel, request, signal))])].slice(0, 12)
-  if (!listings.length) return notFound()
-  const pages = await findProductPages(ai, geminiModel, request, listings, signal)
-  if (!pages.length) return notFound()
-  return ask(`${request}\n\nGoogle Search isn't available. Read these pages, which should be about this coffee:\n${pages.join('\n')}`, [{ urlContext: {} }])
+  // Without Google Search, a product page can't be guessed (/products/el-salvador-santa-rosa-pacamara-202610).
+  // Public search engines' result pages stand in for it: they name the page, or at least the
+  // roaster's site, whose listings then point to the page. Then the page is read.
+  const known = request.match(/"website":\s*"([^"]+)"/)?.[1]
+  let found = await findProductPages(ai, geminiModel, request, [
+    ...(known ? shopPages(known, request) : []),
+    ...searchPages(request),
+    ...(await likelyPages(ai, geminiModel, request, signal)),
+  ], signal)
+  // Only the roaster's site turned up: its catalogue is the next place to look.
+  const site = found.sites.find((s) => s !== known)
+  if (!found.pages.length && site) found = await findProductPages(ai, geminiModel, request, shopPages(site, request), signal)
+  if (!found.pages.length) return notFound()
+  const answer = await ask(`${request}\n\nGoogle Search isn't available. Read these pages, which should be about this coffee:\n${found.pages.join('\n')}`, [{ urlContext: {} }])
+  // Kept on the coffee, so the next search starts there.
+  return { ...answer, website: answer.website || site || '' }
 }
 
-/** A shop's listing pages, when the bag (or you) gave its website. */
-function shopPages(request: string): string[] {
-  const site = request.match(/"website":\s*"([^"]+)"/)?.[1]
-  if (!site) return []
-  const name = request.match(/"name":\s*"([^"]+)"/)?.[1] ?? ''
+const field = (request: string, key: string) => request.match(new RegExp(`"${key}":\\s*"([^"]+)"`))?.[1] ?? ''
+
+/** A shop's listing pages: Shopify's catalogue and product feed, and its site search. */
+function shopPages(site: string, request: string): string[] {
+  const name = field(request, 'name')
   const base = `https://${site}`
   return [`${base}/`, `${base}/collections/all`, `${base}/products.json`, ...(name ? [`${base}/search?q=${encodeURIComponent(name)}`] : [])]
 }
 
+/** Result pages of public search engines for the roaster and the coffee. */
+function searchPages(request: string): string[] {
+  const roaster = field(request, 'roaster')
+  const name = field(request, 'name')
+  if (!roaster && !name) return []
+  const q = (text: string) => encodeURIComponent(text)
+  const both = [roaster, name, 'coffee'].filter(Boolean).join(' ')
+  return [
+    `https://html.duckduckgo.com/html/?q=${q(both)}`,
+    `https://www.bing.com/search?q=${q(both)}`,
+    ...(roaster ? [`https://html.duckduckgo.com/html/?q=${q(`${roaster} coffee roaster official site`)}`] : []),
+  ]
+}
+
 /**
- * Opens the listings and names the product pages about this coffee. Throws siteClosed when none of
- * the pages would open (sites that turn automated visits away).
+ * Opens the pages (listings, search results) and names the product pages about this coffee, and
+ * the roaster's own site when a result shows it. Throws siteClosed when none would open.
  */
-async function findProductPages(ai: GoogleGenAI, model: string, request: string, listings: string[], signal?: AbortSignal): Promise<string[]> {
+async function findProductPages(ai: GoogleGenAI, model: string, request: string, listings: string[], signal?: AbortSignal): Promise<{ pages: string[]; sites: string[] }> {
+  const urls = [...new Set(listings)].slice(0, 15)
+  if (!urls.length) return { pages: [], sites: [] }
   let response
   try {
     response = await ai.models.generateContent({
       model,
-      contents: [{ role: 'user', parts: [{ text: `${request}\n\nOpen these pages of the roaster's site and shops. Find the product page about this exact coffee; its name may be in another language or longer than the bag's (Santa Rosa → "El Salvador Santa Rosa Pacamara", "サンタローザ農園"). Reply with one line per page address, like PAGE: https://…, the best match first, at most 3. If a listing already describes the coffee in full, give that listing's address. If nothing matches, reply PAGE: NONE.\n\n${listings.join('\n')}` }] }],
+      contents: [{ role: 'user', parts: [{ text: `${request}
+
+Open these pages: search results, and the roaster's site and shops. Find the product page about this exact coffee; its name may be in another language or longer than the bag's (Santa Rosa → "El Salvador Santa Rosa Pacamara", "サンタローザ農園"). Search result pages link to the pages they found: give those pages' own addresses, not the search engine's.
+Reply with lines like:
+PAGE: https://… (the coffee's page, best match first, at most 3; a listing that describes the coffee in full counts)
+SITE: example.com (the roaster's own website, if you saw it)
+If nothing matches, reply PAGE: NONE.
+
+${urls.join('\n')}` }] }],
       config: { tools: [{ urlContext: {} }], maxOutputTokens: 4000, abortSignal: signal },
     })
   } catch (e) {
@@ -177,7 +210,11 @@ async function findProductPages(ai: GoogleGenAI, model: string, request: string,
   if (fetched.length && !fetched.some((m) => m.urlRetrievalStatus === UrlRetrievalStatus.URL_RETRIEVAL_STATUS_SUCCESS)) {
     throw new ScanError('siteClosed')
   }
-  return [...(response.text ?? '').matchAll(/PAGE:\s*(https?:\/\/\S+)/g)].map((m) => m[1].replace(/[)>.,]+$/, '')).slice(0, 3)
+  const text = response.text ?? ''
+  const engines = /(^|\.)(duckduckgo|bing|google)\./
+  const pages = [...text.matchAll(/PAGE:\s*(https?:\/\/\S+)/g)].map((m) => m[1].replace(/[)>.,]+$/, '')).filter((u) => !engines.test(siteOf(u))).slice(0, 3)
+  const sites = [...text.matchAll(/SITE:\s*(\S+)/g)].map((m) => siteOf(m[1])).filter((h) => h && !engines.test(h))
+  return { pages, sites }
 }
 
 /** Up to eight addresses where this coffee is likely described, from what the model knows. */
