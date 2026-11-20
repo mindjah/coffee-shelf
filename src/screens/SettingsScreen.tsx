@@ -25,11 +25,23 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
   // The key card belongs to the selected AI provider (Without AI has none; Gemini fields fill in).
   const ai: AIProvider = usesAI(settings.provider) ? settings.provider : 'gemini'
   const { key: keyField, model: modelField, models } = AI_FIELDS[ai]
+  // `url`: the page where the provider's API keys are created.
   const keyCopy = {
-    gemini: { label: t.settings.geminiKey, placeholder: 'AIza…', hint: t.settings.geminiHint },
-    claude: { label: t.settings.apiKey, placeholder: 'sk-ant-…', hint: t.settings.keyHint },
-    openai: { label: t.settings.openaiKey, placeholder: 'sk-…', hint: t.settings.openaiHint },
+    gemini: { label: t.settings.geminiKey, placeholder: 'AIza…', hint: t.settings.geminiHint, name: 'Gemini', url: 'https://aistudio.google.com/apikey' },
+    claude: { label: t.settings.apiKey, placeholder: 'sk-ant-…', hint: t.settings.keyHint, name: 'Claude', url: 'https://console.anthropic.com/settings/keys' },
+    openai: { label: t.settings.openaiKey, placeholder: 'sk-…', hint: t.settings.openaiHint, name: 'OpenAI', url: 'https://platform.openai.com/api-keys' },
   }[ai]
+  // Picking an AI brings its key card into view and lights it up: the key, model and where to get a key.
+  const keyCard = useRef<HTMLDivElement>(null)
+  const [flash, setFlash] = useState(0)
+  useEffect(() => {
+    const el = keyCard.current
+    if (!flash || !el) return
+    el.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    el.classList.remove('flash')
+    void el.offsetWidth // restart the animation on a second tap
+    el.classList.add('flash')
+  }, [flash])
   const [key, setKey] = useState(settings[keyField])
   // Show the stored key of whichever provider is selected.
   useEffect(() => setKey(settings[keyField]), [keyField, settings])
@@ -124,7 +136,11 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
               key={p}
               className={`choice${chosen ? ' on' : ''}`}
               // The chosen card opens and closes the section; the others switch method.
-              onClick={() => (chosen ? setExpanded((v) => !v) : saveSettings({ provider: p }))}
+              onClick={() => {
+                if (chosen) return setExpanded((v) => !v)
+                saveSettings({ provider: p })
+                if (usesAI(p)) setFlash((n) => n + 1)
+              }}
               aria-pressed={chosen}
               aria-expanded={chosen ? expanded : undefined}
             >
@@ -143,8 +159,11 @@ export function SettingsScreen({ archived, onOpen }: { archived: Coffee[]; onOpe
         })}
       </div>
       {!expanded ? null : usesAI(settings.provider) ? (
-        <div className="card" style={{ marginTop: 12 }}>
-          <label className="field">
+        <div ref={keyCard} className="card key-card" style={{ marginTop: 12 }}>
+          <a className="btn ghost block key-link" href={keyCopy.url} target="_blank" rel="noopener noreferrer">
+            {t.settings.getKey(keyCopy.name)} ↗
+          </a>
+          <label className="field" style={{ marginTop: 14 }}>
             <span>{keyCopy.label}</span>
             <input
               className="input"

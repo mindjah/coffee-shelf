@@ -785,3 +785,12 @@ textarea.input { min-height: 84px; resize: vertical; }
 .stars.big .star, .stars.big .star .fill svg { width: 46px; height: 46px; }
 .stars.big .star { color: var(--star-empty); }
 .rate-hint { margin: 8px 4px 0; }
+
+/* Settings: the key card lights up when its AI is picked */
+.key-card { scroll-margin-top: calc(var(--safe-top) + 16px); }
+.key-card.flash { animation: key-flash 1.6s ease; }
+@keyframes key-flash {
+  0%, 60% { box-shadow: 0 0 0 3px var(--accent), var(--shadow); }
+  100% { box-shadow: var(--shadow); }
+}
+.btn.key-link { text-decoration: none; }
