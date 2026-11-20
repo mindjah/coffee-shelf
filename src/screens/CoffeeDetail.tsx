@@ -98,6 +98,10 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
             <BrewPicker value={selected} ratings={coffee} onChange={pickMethod} />
           </div>
           {unassigned != null && <p className="muted small" style={{ margin: '-4px 0 8px' }}>{t.coffee.pickBrewHint}</p>}
+          {/* The encyclopedia's recipes with timers; brewing with V60 or AeroPress picks that method here. */}
+          <button className="btn ghost block brew-this" onClick={() => setBrewing(true)}>
+            <KettleIcon /> {t.coffee.brewThis}
+          </button>
           <div style={{ margin: '0 0 12px' }}>
             <Stars value={shown} onChange={rate} />
           </div>
@@ -108,10 +112,6 @@ export function CoffeeDetail({ coffee, model, onClose }: { coffee: Coffee; model
           )}
         </div>
         <CoffeeSummary coffee={coffee} />
-        {/* The encyclopedia's recipes with timers; brewing with V60 or AeroPress picks that method above. */}
-        <button className="btn ghost block" onClick={() => setBrewing(true)}>
-          <KettleIcon /> {t.coffee.brewThis}
-        </button>
         {coffee.rating == null && !archived && (
           <PredictionCard prediction={prediction} ratedCount={model.count} pick={pick}
             lookup={bagFacts(coffee) < 4 ? <LookupButton coffee={coffee} onFilled={(next) => update(next)} /> : undefined} />
