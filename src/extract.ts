@@ -44,7 +44,7 @@ export const SYSTEM = `You read photos of specialty coffee packaging (front and/
 
 Transcribe what is printed; do not guess names, producers or altitudes that are not visible.
 
-Use empty strings, empty arrays, null or "unknown" for anything missing.
+For anything missing use an empty string, an empty array or null; "unknown" only for the fields that offer it as a choice (process, roast, roast_for, region). Never write "unknown", "n/a" or similar into a text field.
 
 The coffee name is what tells this coffee apart from the roaster's others. Many bags carry a big series or product-line title (a range name, "Drip Coffee", "Filter Selection", a seasonal collection) and a smaller line naming the actual coffee. Put the big title in series and the smaller line in name, keeping both as printed. The coffee's line is often right above the details (variety, process, rest days). It may name an origin and station ("Ethiopia Worka Smoky BBQ"), or only a blend ("Spicy Mix"), and it may repeat a word from the roaster's logo or sub-brand ("… Underdog") — it is still the coffee's name. Use the series title as the name only when nothing else on the bag names the coffee.
 
@@ -92,19 +92,26 @@ export const USER_PROMPT = 'Extract this coffee.'
 
 export type Bag = z.infer<typeof BagSchema>
 
+/** "unknown", "N/A", "—"… written into a text field instead of leaving it empty. */
+export const isPlaceholder = (s: string) => /^\s*(unknown|not (printed|specified|stated)|n\/?a|none|-+|—|неизвестно|не указан[оа]?|desconocido|no indicado)\s*$/i.test(s)
+const text = (s: string) => (isPlaceholder(s) ? '' : s.trim())
+
 export function toDraft(bag: Bag): CoffeeDraft {
   if (!bag.is_coffee_bag) throw new ScanError('notCoffee')
+  const name = text(bag.name)
+  const area = text(bag.area)
   const clamp = (n: number | null, lo: number, hi: number) => (n == null ? null : Math.min(hi, Math.max(lo, n)))
   return {
-    roaster: bag.roaster.trim(),
-    name: bag.name.trim(),
-    country: bag.country.trim(),
+    roaster: text(bag.roaster),
+    name,
+    country: text(bag.country),
     countryCodes: bag.country_codes.map((c) => c.trim().toUpperCase()).filter((c) => /^[A-Z]{2}$/.test(c)),
-    area: bag.area.trim(),
-    producer: bag.producer.trim(),
-    varieties: bag.varieties,
+    // A bag naming only "Santa Rosa" isn't telling the region too.
+    area: area.toLowerCase() === name.toLowerCase() ? '' : area,
+    producer: text(bag.producer),
+    varieties: bag.varieties.map(text).filter(Boolean),
     process: bag.process,
-    processDetail: bag.process_detail.trim(),
+    processDetail: text(bag.process_detail),
     altitude: bag.altitude_masl,
     roast: bag.roast,
     roastFor: bag.roast_for,

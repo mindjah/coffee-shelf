@@ -33,6 +33,15 @@ export function PredictionCard({ prediction, ratedCount, rated, pick }: { predic
       </div>
     )
   }
+  // Enough ratings, but the bag says too little about the taste to compare it with anything.
+  if (!prediction && ratedCount >= MIN_RATINGS) {
+    return (
+      <div className="card">
+        <div className="verdict">{t.prediction.tooLittle}</div>
+        <div className="muted small">{t.prediction.tooLittleHint}</div>
+      </div>
+    )
+  }
   if (!prediction) {
     return (
       <div className="card">
@@ -97,7 +106,7 @@ export function ClosestList({ similar, pick }: { similar: Prediction['similar'];
           <>
             <div style={{ minWidth: 0, textAlign: 'left' }}>
               <div style={{ fontWeight: 600 }}>{coffee.name || coffee.roaster}</div>
-              {(coffee.country || coffee.area) && <div>{[countryName(coffee, lang), coffee.area].filter(Boolean).join(' · ')}</div>}
+              {[countryName(coffee, lang), coffee.area].some(Boolean) && <div>{[countryName(coffee, lang), coffee.area].filter(Boolean).join(' · ')}</div>}
               <div className="muted">{coffee.roaster} · {t.prediction.similar(Math.round(similarity * 100))}</div>
             </div>
             <span className="spacer" />

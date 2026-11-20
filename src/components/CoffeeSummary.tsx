@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { FLAVORS, type CoffeeDraft, type Lang } from '../types'
 import { countryName, formatPrice, localized, pricePer100g, useLang, useT, type Dict } from '../i18n'
 import { BagThumb } from './CoffeeThumb'
+import { hasProfile } from '../recommend'
 import { brewMethod, type BrewGuess } from '../brew'
 
 export function usePhotoUrl(photo?: Blob | ArrayBuffer) {
@@ -76,7 +77,8 @@ export function CoffeeSummary({ coffee, showFlavors = true, showBrewWhy = true }
       {translated && (
         <div className="muted small" style={{ marginTop: 8 }}>{t.coffee.onBag}: {coffee.notes.join(', ')}</div>
       )}
-      {showFlavors && flavors.length > 0 && (
+      {/* An "estimate" from nothing (no origin, process or roast) would be made up: not shown. */}
+      {showFlavors && flavors.length > 0 && hasProfile(coffee) && (
         <div className="flavors">
           {flavors.map((f) => (
             <div className="flavor" key={f}>

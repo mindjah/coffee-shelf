@@ -178,6 +178,8 @@ const en = {
     yourRating: 'Your rating',
     yourRatingHint: "You've tasted this coffee — this is your own rating, not a prediction.",
     notEnough: 'Not enough ratings yet',
+    tooLittle: 'Too little on the bag to predict',
+    tooLittleHint: 'Nothing here says how it tastes: no origin, process, roast or tasting notes. Add what you know with Edit (the roaster’s site often has it), and the app will compare it with your coffees.',
     rateMore: (n: number) => `Rate ${n} more ${n === 1 ? 'coffee' : 'coffees'} and Coffee Shelf will start predicting how much you'll like new bags.`,
     subtitle: (c: string) => `Predicted rating · ${c} confidence`,
     confidence: { low: 'low', medium: 'medium', high: 'high' },
@@ -444,6 +446,7 @@ const en = {
   } satisfies Record<Region, string>,
   fromRoaster: (name: string) => `Roaster ${name}`,
   notFromRoaster: (name: string) => `Not from ${name}`,
+  kinRated: (name: string, rating: string) => `Another lot of “${name}”, which you rated ${rating}`,
   ofVariety: (name: string) => `${name} variety`,
   notVariety: (name: string) => `Not ${name}`,
   brew: { v60: 'V60', aeropress: 'AeroPress' } satisfies Record<Brew, string>,
@@ -659,6 +662,8 @@ const ru: Dict = {
     yourRating: 'Ваша оценка',
     yourRatingHint: 'Вы уже пробовали этот кофе — это ваша оценка, а не прогноз.',
     notEnough: 'Пока мало оценок',
+    tooLittle: 'На пачке слишком мало данных для прогноза',
+    tooLittleHint: 'Ничего не говорит о вкусе: нет страны, обработки, обжарки или вкусовых нот. Добавьте, что знаете, через «Изменить» (часто это есть на сайте обжарщика) — и приложение сравнит его с вашими кофе.',
     rateMore: (n) => `Оцените ещё ${n} кофе, и Coffee Shelf начнёт предсказывать, понравятся ли вам новые пачки.`,
     subtitle: (c) => `Прогноз оценки · ${c} уверенность`,
     confidence: { low: 'низкая', medium: 'средняя', high: 'высокая' },
@@ -925,6 +930,7 @@ const ru: Dict = {
   },
   fromRoaster: (name) => `Обжарщик ${name}`,
   notFromRoaster: (name) => `Не ${name}`,
+  kinRated: (name, rating) => `Другой лот «${name}», вы поставили ${rating}`,
   ofVariety: (name) => `Сорт ${name}`,
   notVariety: (name) => `Не ${name}`,
   brew: { v60: 'V60', aeropress: 'Аэропресс' },
@@ -1134,6 +1140,8 @@ const es: Dict = {
     yourRating: 'Tu valoración',
     yourRatingHint: 'Ya has probado este café: es tu propia valoración, no una predicción.',
     notEnough: 'Aún no hay suficientes valoraciones',
+    tooLittle: 'La bolsa dice muy poco para predecir',
+    tooLittleHint: 'Nada indica cómo sabe: ni origen, ni proceso, ni tueste, ni notas de cata. Añade lo que sepas con Editar (la web del tostador suele tenerlo) y la app lo comparará con tus cafés.',
     rateMore: (n) => `Valora ${n} ${n === 1 ? 'café más' : 'cafés más'} y Coffee Shelf empezará a predecir cuánto te gustarán las bolsas nuevas.`,
     subtitle: (c) => `Valoración prevista · confianza ${c}`,
     confidence: { low: 'baja', medium: 'media', high: 'alta' },
@@ -1400,6 +1408,7 @@ const es: Dict = {
   },
   fromRoaster: (name) => `Tostador ${name}`,
   notFromRoaster: (name) => `No es de ${name}`,
+  kinRated: (name, rating) => `Otro lote de «${name}», que valoraste con ${rating}`,
   ofVariety: (name) => `Variedad ${name}`,
   notVariety: (name) => `No es ${name}`,
   brew: { v60: 'V60', aeropress: 'AeroPress' },
@@ -1459,6 +1468,10 @@ export function useT(): Dict {
 
 /** Explanation text for a recommender reason; `short` drops "than you usually drink". */
 export function reasonText(t: Dict, r: Pick<Reason, 'id' | 'up'>, lang: Lang, short = false): string {
+  if (r.id.startsWith('kin:')) {
+    const [, rating, ...name] = r.id.split(':')
+    return t.kinRated(name.join(':'), Number(rating).toFixed(1))
+  }
   if (r.id.startsWith('roaster:')) {
     const name = r.id.slice('roaster:'.length)
     return r.up ? t.fromRoaster(name) : t.notFromRoaster(name)
@@ -1479,7 +1492,8 @@ export function reasonText(t: Dict, r: Pick<Reason, 'id' | 'up'>, lang: Lang, sh
 const regionNames = new Map<Lang, Intl.DisplayNames>()
 
 export function countryName(c: Pick<Coffee, 'country' | 'countryCodes'>, lang: Lang): string {
-  if (!c.countryCodes?.length) return c.country
+  // Earlier scans could store "unknown" as the country.
+  if (!c.countryCodes?.length) return /^\s*unknown\s*$/i.test(c.country) ? '' : c.country
   let names = regionNames.get(lang)
   if (!names) regionNames.set(lang, (names = new Intl.DisplayNames([lang], { type: 'region' })))
   try {
