@@ -15,7 +15,7 @@ import { brewTitle, brewWhy, CoffeeSummary, usePhotoUrl } from '../components/Co
 import { CoffeeEditor } from '../components/CoffeeEditor'
 import { PredictionCard } from '../components/PredictionCard'
 import { Stars } from '../components/Stars'
-import { BeanIcon, CameraIcon, PlusIcon } from '../components/icons'
+import { BeanIcon, CameraIcon, CompareIcon, PlusIcon, TrashIcon } from '../components/icons'
 import { Avatar } from '../components/Avatar'
 import { PourOver } from '../components/PourOver'
 import { focusDriveSection } from '../gdrive'
@@ -401,9 +401,12 @@ export function ScanScreen({ model, coffees, onSaved, onOpenSettings }: Props) {
               <button className="btn ghost block" onClick={() => save(false)}>{t.scan.saveLater}</button>
             </>
           )}
-          <button className="btn ghost block" onClick={addToCompare}>{t.compare.add}</button>
+          {/* Not the next step: comparing and discarding sit apart, as a quiet list (as on a coffee's page). */}
+          <div className="card detail-actions" style={{ marginTop: 20 }}>
+            <button type="button" onClick={addToCompare}><CompareIcon />{t.compare.add}</button>
+            <button type="button" className="danger" onClick={reset}><TrashIcon />{t.scan.discard}</button>
+          </div>
           {notice && <div className="notice">{notice}</div>}
-          <button className="btn danger block" onClick={reset}>{t.scan.discard}</button>
         </div>
         {editing && (
           <CoffeeEditor coffee={draft} onClose={() => (setEditing(false), isBlankDraft(draft) && reset())} onSave={(c) => (setDraft(c), setEditing(false))} />
